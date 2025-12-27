@@ -359,24 +359,11 @@ def hien_thi_bang_vang_diem_so():
     </div>
     """, unsafe_allow_html=True)
  
-# --- KHỞI TẠO TRẠNG THÁI HỆ THỐNG ---
+# --- KHỞI TẠO TRẠNG THÁI HỆ THỐNG (Clean) ---
 if 'logged_in' not in st.session_state:
-    # Thử nạp từ cache nếu có (Ghi nhớ đăng nhập)
-    if os.path.exists("login_cache.json"):
-        try:
-            with open("login_cache.json", "r", encoding='utf-8') as f:
-                cache = json.load(f)
-                st.session_state.logged_in = True
-                # Sử dụng 'user_id' và 'user_role' để khớp với logic Login phía dưới của bạn
-                st.session_state.user_id = cache.get('u_id')
-                st.session_state.user_role = cache.get('role', 'Học Sĩ') 
-        except Exception:
-            # Nếu file lỗi, reset trạng thái về chưa login
-            st.session_state.logged_in = False
-    else:
-        st.session_state.logged_in = False
-        st.session_state.user_id = None
-        st.session_state.user_role = None
+    st.session_state.logged_in = False
+    st.session_state.user_id = None
+    st.session_state.user_role = None
 
 # Khởi tạo trang mặc định nếu chưa có
 if 'current_page' not in st.session_state:
