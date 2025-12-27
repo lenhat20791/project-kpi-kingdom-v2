@@ -1516,19 +1516,19 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     current_admin_pass = st.session_state.data.get('admin', {}).get('password', 'admin')
 
                     # 3. Tạo dữ liệu mới
-                    new_data = {}
-                    new_data['admin'] = {
-                        "name": "Administrator",
-                        "password": current_admin_pass,
-                        "role": "admin",
-                        "grade": "Hệ thống", 
-                        "team": "Quản trị",
-                        "kpi": 0.0, 
-                        "level": 99
+                    new_data = {
+                        'admin': {
+                            "name": "Administrator",
+                            "password": current_admin_pass,
+                            "role": "admin",
+                            "grade": "Hệ thống", 
+                            "team": "Quản trị",
+                            "kpi": 0.0, 
+                            "level": 99
+                        },
+                        'players': [], # PHẢI CÓ DÒNG NÀY ĐỂ BÁO HỆ THỐNG LÀ KHÔNG CÓ HỌC SINH
+                        'rank_settings': saved_rank_settings if saved_rank_settings else []
                     }
-                    'players': [], # PHẢI CÓ DÒNG NÀY ĐỂ BÁO HỆ THỐNG LÀ KHÔNG CÓ HỌC SINH
-                    'rank_settings': saved_rank_settings if saved_rank_settings else []
-                }
                     
                     if saved_rank_settings:
                         new_data['rank_settings'] = saved_rank_settings
