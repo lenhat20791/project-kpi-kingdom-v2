@@ -1549,44 +1549,43 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     save_data_func(new_data)
                     
                     # ==========================================================
-                    # 🕵️ CHẾ ĐỘ THÁM TỬ: KIỂM TRA XEM ĐANG XÓA CÁI GÌ?
+                    # 🔥 CODE CHUẨN: XÓA SẠCH VÀ TẠO LẠI TIÊU ĐỀ
                     # ==========================================================
                     try:
                         import user_module
-                        
-                        st.write("🔄 Đang thử kết nối Google Sheets...") # Debug
                         client = user_module.get_gspread_client()
                         
                         if client:
-                            # 1. Kiểm tra xem đang mở đúng File không
                             sh = client.open(user_module.SHEET_NAME)
-                            st.warning(f"📂 Đã tìm thấy file Sheet tên: '{sh.title}'") # In tên file
                             
-                            # 2. Liệt kê tất cả các Tab đang có
-                            worksheet_list = sh.worksheets()
-                            st.write(f"📑 Danh sách các Tab trong file: {[ws.title for ws in worksheet_list]}")
-
-                            # 3. Chọn Tab để xóa (Cần xác định đúng tab chứa dữ liệu)
-                            # Mặc định lấy tab đầu tiên (index 0)
-                            wks = sh.sheet1 
-                            st.error(f"🔥 Đang thực hiện xóa dữ liệu tại Tab: '{wks.title}'") # In tên tab bị xóa
+                            # --- XỬ LÝ TAB PLAYERS (QUAN TRỌNG NHẤT) ---
+                            # Hãy thay "Players" bằng tên chính xác Tab của bạn nếu khác
+                            try:
+                                wks = sh.worksheet("Players") 
+                            except:
+                                wks = sh.sheet1 # Nếu không tìm thấy tên, lấy tab đầu tiên
+                                
+                            st.write(f"🧹 Đang dọn dẹp tab: {wks.title}...")
+                            wks.clear() # Xóa sạch
                             
-                            # 4. Thực hiện Xóa
-                            wks.clear()
-                            st.toast(f"Đã xóa xong tab {wks.title}!", icon="☠️")
+                            # 👇 TẠO LẠI TIÊU ĐỀ CỘT (Cực kỳ quan trọng)
+                            # Bạn hãy chỉnh sửa danh sách này cho khớp với các cột bạn đang dùng
+                            headers = ["ID", "Tên", "Mật khẩu", "Vai trò", "Khối", "Team", "KPI", "Level", "EXP", "Vật phẩm"]
+                            wks.append_row(headers)
                             
-                            # 5. Kiểm tra lại ngay lập tức
-                            val = wks.get_all_values()
-                            if not val:
-                                st.success("✅ Xác nhận: Tab này đã TRẮNG TINH!")
-                            else:
-                                st.error(f"❌ Kỳ lạ: Vẫn còn {len(val)} dòng dữ liệu!")
+                            st.toast(f"✅ Đã reset {wks.title} và tạo lại tiêu đề!", icon="🎉")
+                            
+                            # (Tùy chọn) Xóa thêm các Tab khác nếu muốn sạch bách
+                            # try:
+                            #     sh.worksheet("PVP").clear()
+                            #     sh.worksheet("Logs").clear()
+                            # except: pass
 
                         else:
-                            st.error("⚠️ Client trả về None (Chưa kết nối được API).")
+                            st.error("⚠️ Không có kết nối Google Sheets.")
                             
                     except Exception as e:
-                        st.error(f"❌ LỖI NGHIÊM TRỌNG: {e}")
+                        st.error(f"❌ Lỗi reset Sheet: {e}")
                     # ==========================================================
                     
                     # 6. Dọn dẹp session để tránh xung đột
