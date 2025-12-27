@@ -15,7 +15,7 @@ import shutil
 from datetime import datetime, timedelta
 import zipfile
 import unidecode
-from kpi_kingdom_v2 import save_data
+from user_module import save_data
 
 def thực_hiện_auto_backup():
     """Tự động sao lưu dữ liệu data.json và loi_dai.json sau mỗi 7 ngày"""

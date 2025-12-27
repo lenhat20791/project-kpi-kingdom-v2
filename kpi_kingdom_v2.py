@@ -17,7 +17,7 @@ from admin_module import load_dungeon_config
 from admin_module import hien_thi_thong_bao_he_thong
 from datetime import datetime, timedelta
 import zipfile
-
+from user_module import save_data, load_data
         
 # --- 🚑 BỘ CỨU HỘ DỮ LIỆU TỪ Ổ CỨNG (SỬA FILE data.json) ---
 def emergency_fix_data_file():
