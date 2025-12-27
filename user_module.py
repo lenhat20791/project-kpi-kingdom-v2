@@ -60,7 +60,7 @@ except Exception as e:
 
 # --- BIẾN ĐIỀU KHIỂN CHẾ ĐỘ THỬ NGHIỆM ---
 # Tự động bật True nếu chạy máy nhà, False nếu chạy trên Streamlit Cloud
-IS_DEV_MODE = not os.getenv("STREAMLIT_RUNTIME_STATS_URL")
+IS_DEV_MODE = not st.secrets.get("gcp_service_account")
 
 # --- HÀM POPUP KẾT QUẢ MỞ RƯƠNG (DIALOG) ---
 @st.dialog("✨ KẾT QUẢ MỞ RƯƠNG ✨")
