@@ -18,6 +18,10 @@ from item_system import get_active_combat_stats
 SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 SHEET_NAME = "Data_KPI_Kingdom"
 
+# --- BIẾN ĐIỀU KHIỂN CHẾ ĐỘ THỬ NGHIỆM ---
+# Tự động bật True nếu chạy máy nhà, False nếu chạy trên Streamlit Cloud
+IS_DEV_MODE = not st.secrets.get("gcp_service_account")
+
 def get_gspread_client():
     # Sử dụng .get() để không bị lỗi "No secrets found" làm sập app
     gcp_info = st.secrets.get("gcp_service_account")
@@ -58,9 +62,7 @@ try:
 except Exception as e:
     print(f"⚠️ Chưa kết nối được Google Sheets: {e}")
 
-# --- BIẾN ĐIỀU KHIỂN CHẾ ĐỘ THỬ NGHIỆM ---
-# Tự động bật True nếu chạy máy nhà, False nếu chạy trên Streamlit Cloud
-IS_DEV_MODE = not st.secrets.get("gcp_service_account")
+
 
 # --- HÀM POPUP KẾT QUẢ MỞ RƯƠNG (DIALOG) ---
 @st.dialog("✨ KẾT QUẢ MỞ RƯƠNG ✨")
