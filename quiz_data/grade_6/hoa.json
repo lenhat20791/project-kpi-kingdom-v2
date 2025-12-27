@@ -1,0 +1,556 @@
+{
+  "easy": [
+    {
+      "question": "Nguyên tố hóa học nào có ký hiệu là Fe",
+      "options": ["Sắt", "Nhôm", "Đồng", "Kẽm"],
+      "answer": "Sắt"
+    },
+    {
+      "question": "Chất nào sau đây tồn tại ở trạng thái khí ở điều kiện thường",
+      "options": ["Oxi", "Nước", "Muối ăn", "Sắt"],
+      "answer": "Oxi"
+    },
+    {
+      "question": "Công thức hóa học của nước là gì",
+      "options": ["H2O", "CO2", "NaCl", "O2"],
+      "answer": "H2O"
+    },
+    {
+      "question": "Nguyên tố nào có ký hiệu hóa học là O",
+      "options": ["Oxi", "Vàng", "Bạc", "Lưu huỳnh"],
+      "answer": "Oxi"
+    },
+    {
+      "question": "Muối ăn có công thức hóa học là",
+      "options": ["NaCl", "KCl", "CaCO3", "NaOH"],
+      "answer": "NaCl"
+    },
+    {
+      "question": "Chất nào sau đây là kim loại",
+      "options": ["Sắt", "Lưu huỳnh", "Oxi", "Cacbon"],
+      "answer": "Sắt"
+    },
+    {
+      "question": "Chất nào sau đây là phi kim",
+      "options": ["Oxi", "Sắt", "Nhôm", "Kẽm"],
+      "answer": "Oxi"
+    },
+    {
+      "question": "Trạng thái của nước đá là",
+      "options": ["Rắn", "Lỏng", "Khí", "Plasma"],
+      "answer": "Rắn"
+    },
+    {
+      "question": "Nguyên tố nào có ký hiệu hóa học là Al",
+      "options": ["Nhôm", "Sắt", "Chì", "Đồng"],
+      "answer": "Nhôm"
+    },
+    {
+      "question": "Không khí là hỗn hợp chủ yếu của các khí nào",
+      "options": ["Nitơ và oxi", "Oxi và hidro", "Cacbon và oxi", "Hidro và nitơ"],
+      "answer": "Nitơ và oxi"
+    },
+    {
+      "question": "Chất nào sau đây là chất rắn ở điều kiện thường",
+      "options": ["Muối ăn", "Oxi", "Hơi nước", "Khí cacbonic"],
+      "answer": "Muối ăn"
+    },
+    {
+      "question": "Nguyên tố nào sau đây là kim loại nhẹ",
+      "options": ["Nhôm", "Sắt", "Đồng", "Chì"],
+      "answer": "Nhôm"
+    },
+    {
+      "question": "Cacbon đioxit có công thức hóa học là",
+      "options": ["CO2", "CO", "C2O", "CaO"],
+      "answer": "CO2"
+    },
+    {
+      "question": "Chất nào sau đây tan tốt trong nước",
+      "options": ["Muối ăn", "Cát", "Dầu ăn", "Bột đá"],
+      "answer": "Muối ăn"
+    },
+    {
+      "question": "Kim loại nào sau đây dẫn điện tốt",
+      "options": ["Đồng", "Lưu huỳnh", "Oxi", "Cacbon"],
+      "answer": "Đồng"
+    },
+    {
+      "question": "Oxi là chất khí có tính chất nào",
+      "options": ["Duy trì sự cháy", "Không màu không mùi và không cháy", "Dễ cháy", "Có mùi hắc"],
+      "answer": "Duy trì sự cháy"
+    },
+    {
+      "question": "Chất nào sau đây là hợp chất",
+      "options": ["Nước", "Oxi", "Sắt", "Đồng"],
+      "answer": "Nước"
+    },
+    {
+      "question": "Nguyên tố nào có ký hiệu hóa học là H",
+      "options": ["Hidro", "Heli", "Sắt", "Thủy ngân"],
+      "answer": "Hidro"
+    },
+    {
+      "question": "Hidro là chất khí có đặc điểm nào",
+      "options": ["Nhẹ nhất", "Nặng hơn không khí", "Có màu xanh", "Có mùi"],
+      "answer": "Nhẹ nhất"
+    },
+    {
+      "question": "Kim loại nào sau đây thường được dùng làm dây điện",
+      "options": ["Đồng", "Chì", "Sắt", "Thiếc"],
+      "answer": "Đồng"
+    },
+    {
+      "question": "Chất nào sau đây là chất lỏng ở điều kiện thường",
+      "options": ["Nước", "Muối", "Oxi", "Sắt"],
+      "answer": "Nước"
+    },
+    {
+      "question": "Nguyên tố nào có ký hiệu hóa học là Na",
+      "options": ["Natri", "Nhôm", "Nitơ", "Niken"],
+      "answer": "Natri"
+    },
+    {
+      "question": "Chất nào sau đây không phải là kim loại",
+      "options": ["Lưu huỳnh", "Sắt", "Nhôm", "Kẽm"],
+      "answer": "Lưu huỳnh"
+    },
+    {
+      "question": "Công thức hóa học của khí oxi là",
+      "options": ["O2", "O3", "CO2", "H2O"],
+      "answer": "O2"
+    },
+    {
+      "question": "Chất nào sau đây là đơn chất",
+      "options": ["Oxi", "Nước", "Muối ăn", "Khí cacbonic"],
+      "answer": "Oxi"
+    },
+    {
+      "question": "Kim loại nào sau đây có màu đỏ",
+      "options": ["Đồng", "Nhôm", "Sắt", "Kẽm"],
+      "answer": "Đồng"
+    },
+    {
+      "question": "Chất nào sau đây dùng để pha nước muối sinh hoạt",
+      "options": ["Muối ăn", "Đường", "Bột mì", "Cát"],
+      "answer": "Muối ăn"
+    },
+    {
+      "question": "Không khí có vị gì",
+      "options": ["Không mùi không vị", "Mặn", "Ngọt", "Chua"],
+      "answer": "Không mùi không vị"
+    },
+    {
+      "question": "Chất nào sau đây là nguồn cung cấp oxi trong phòng thí nghiệm",
+      "options": ["KMnO4", "NaCl", "CaCO3", "H2O"],
+      "answer": "KMnO4"
+    },
+    {
+      "question": "Nguyên tố nào có ký hiệu hóa học là Cl",
+      "options": ["Clo", "Canxi", "Cacbon", "Chì"],
+      "answer": "Clo"
+    }
+  ],
+  "medium": [
+    {
+      "question": "Oxi có vai trò gì trong đời sống con người",
+      "options": ["Duy trì sự hô hấp", "Làm thức ăn", "Làm nhiên liệu", "Làm chất tẩy rửa"],
+      "answer": "Duy trì sự hô hấp"
+    },
+    {
+      "question": "Khí cacbonic không duy trì sự cháy vì",
+      "options": ["Không duy trì sự cháy", "Dễ cháy", "Có mùi hắc", "Nhẹ hơn không khí"],
+      "answer": "Không duy trì sự cháy"
+    },
+    {
+      "question": "Phản ứng hóa học là quá trình",
+      "options": ["Biến đổi chất này thành chất khác", "Nóng chảy chất", "Bay hơi chất", "Hòa tan chất"],
+      "answer": "Biến đổi chất này thành chất khác"
+    },
+    {
+      "question": "Dấu hiệu nào cho biết có phản ứng hóa học xảy ra",
+      "options": ["Có chất mới tạo thành", "Chất tan trong nước", "Chất bay hơi", "Chất đông đặc"],
+      "answer": "Có chất mới tạo thành"
+    },
+    {
+      "question": "Dung dịch là hỗn hợp",
+      "options": ["Đồng nhất", "Không đồng nhất", "Rắn", "Khí"],
+      "answer": "Đồng nhất"
+    },
+    {
+      "question": "Muối ăn tan trong nước tạo thành",
+      "options": ["Dung dịch", "Chất rắn", "Chất khí", "Huyền phù"],
+      "answer": "Dung dịch"
+    },
+    {
+      "question": "Dung dịch axit làm đổi màu giấy quỳ tím thành",
+      "options": ["Đỏ", "Xanh", "Không đổi màu", "Vàng"],
+      "answer": "Đỏ"
+    },
+    {
+      "question": "Dung dịch bazơ làm đổi màu giấy quỳ tím thành",
+      "options": ["Xanh", "Đỏ", "Không đổi màu", "Tím nhạt"],
+      "answer": "Xanh"
+    },
+    {
+      "question": "Nước muối sinh hoạt có tính chất gì",
+      "options": ["Dẫn điện", "Không dẫn điện", "Dễ cháy", "Có mùi"],
+      "answer": "Dẫn điện"
+    },
+    {
+      "question": "Kim loại phản ứng với axit thường tạo ra",
+      "options": ["Muối và khí hidro", "Muối và oxi", "Bazơ và nước", "Khí cacbonic"],
+      "answer": "Muối và khí hidro"
+    },
+    {
+      "question": "Phản ứng trung hòa là phản ứng giữa",
+      "options": ["Axit và bazơ", "Kim loại và axit", "Phi kim và oxi", "Muối và nước"],
+      "answer": "Axit và bazơ"
+    },
+    {
+      "question": "Chất nào sau đây là oxit bazơ",
+      "options": ["CaO", "CO2", "SO2", "P2O5"],
+      "answer": "CaO"
+    },
+    {
+      "question": "Chất nào sau đây là oxit axit",
+      "options": ["CO2", "Na2O", "CaO", "MgO"],
+      "answer": "CO2"
+    },
+    {
+      "question": "Khí CO2 được dùng trong bình chữa cháy vì",
+      "options": ["Không duy trì sự cháy", "Dễ cháy", "Nhẹ hơn không khí", "Có mùi"],
+      "answer": "Không duy trì sự cháy"
+    },
+    {
+      "question": "Vôi sống có công thức hóa học là",
+      "options": ["CaO", "CaOH2", "CaCO3", "CaCl2"],
+      "answer": "CaO"
+    },
+    {
+      "question": "Vôi tôi được tạo thành khi",
+      "options": ["Cho CaO tác dụng với nước", "Đun CaCO3", "Hòa tan CaCl2", "Đốt CaOH2"],
+      "answer": "Cho CaO tác dụng với nước"
+    },
+    {
+      "question": "Dung dịch muối trung tính có tính chất",
+      "options": ["Không làm đổi màu quỳ tím", "Làm đỏ quỳ tím", "Làm xanh quỳ tím", "Dễ cháy"],
+      "answer": "Không làm đổi màu quỳ tím"
+    },
+    {
+      "question": "Hiện tượng nước vôi trong bị vẩn đục chứng tỏ có khí",
+      "options": ["CO2", "Oxi", "Hidro", "Nitơ"],
+      "answer": "CO2"
+    },
+    {
+      "question": "Chất nào sau đây được dùng để làm mềm nước cứng",
+      "options": ["Na2CO3", "NaCl", "HCl", "CO2"],
+      "answer": "Na2CO3"
+    },
+    {
+      "question": "Kim loại nào sau đây không phản ứng với dung dịch axit loãng",
+      "options": ["Đồng", "Kẽm", "Sắt", "Nhôm"],
+      "answer": "Đồng"
+    },
+    {
+      "question": "Nồng độ phần trăm của dung dịch cho biết",
+      "options": ["Khối lượng chất tan trong 100 g dung dịch", "Thể tích dung môi", "Khối lượng dung môi", "Số mol chất tan"],
+      "answer": "Khối lượng chất tan trong 100 g dung dịch"
+    },
+    {
+      "question": "Muối được dùng để bảo quản thực phẩm vì",
+      "options": ["Ức chế vi sinh vật", "Làm thực phẩm ngọt", "Làm thực phẩm mềm", "Tạo màu đẹp"],
+      "answer": "Ức chế vi sinh vật"
+    },
+    {
+      "question": "Tại sao không nên uống nước có tính axit mạnh",
+      "options": ["Gây hại cho sức khỏe", "Vì có màu lạ", "Vì không mùi", "Vì dễ bay hơi"],
+      "answer": "Gây hại cho sức khỏe"
+    },
+    {
+      "question": "Chất nào sau đây dùng để khử trùng nước sinh hoạt",
+      "options": ["Clo", "Oxi", "CO2", "Nitơ"],
+      "answer": "Clo"
+    },
+    {
+      "question": "Khi pha loãng axit cần",
+      "options": ["Rót axit vào nước", "Rót nước vào axit", "Đổ cùng lúc", "Đun nóng"],
+      "answer": "Rót axit vào nước"
+    },
+    {
+      "question": "Phản ứng đốt cháy là phản ứng",
+      "options": ["Chất tác dụng với oxi", "Chất phân hủy", "Chất trao đổi", "Chất tan"],
+      "answer": "Chất tác dụng với oxi"
+    },
+    {
+      "question": "Nước cất khác nước tự nhiên vì",
+      "options": ["Không chứa chất tan", "Có vị mặn", "Có mùi", "Dễ cháy"],
+      "answer": "Không chứa chất tan"
+    },
+    {
+      "question": "Dung dịch nào sau đây thường dùng trong y tế",
+      "options": ["Nước muối sinh lý", "HCl đặc", "NaOH đặc", "H2SO4 đặc"],
+      "answer": "Nước muối sinh lý"
+    },
+    {
+      "question": "Hóa học có vai trò gì trong đời sống",
+      "options": ["Giải thích và ứng dụng các chất", "Chỉ dùng trong phòng thí nghiệm", "Không liên quan thực tế", "Chỉ dùng trong công nghiệp"],
+      "answer": "Giải thích và ứng dụng các chất"
+    }
+  ],
+  "hard": [
+    {
+      "question": "Hiện tượng nào sau đây chứng tỏ có phản ứng hóa học xảy ra",
+      "options": ["Có chất mới sinh ra", "Chất tan trong nước", "Chất bay hơi", "Chất nóng chảy"],
+      "answer": "Có chất mới sinh ra"
+    },
+    {
+      "question": "Cho sắt tác dụng với dung dịch HCl loãng, sản phẩm tạo thành là",
+      "options": ["FeCl2 và H2", "FeCl3 và H2", "FeO và H2O", "Fe và HCl"],
+      "answer": "FeCl2 và H2"
+    },
+    {
+      "question": "Phương trình hóa học đúng của phản ứng trung hòa là",
+      "options": ["NaOH + HCl = NaCl + H2O", "NaOH + HCl = Na + HClO", "NaOH + HCl = NaCl", "NaOH + HCl = NaO + H2"],
+      "answer": "NaOH + HCl = NaCl + H2O"
+    },
+    {
+      "question": "Chất nào sau đây làm đục nước vôi trong",
+      "options": ["CO2", "Oxi", "Hidro", "Nitơ"],
+      "answer": "CO2"
+    },
+    {
+      "question": "Khi đốt cháy lưu huỳnh trong không khí tạo ra chất nào",
+      "options": ["SO2", "SO3", "H2S", "S"],
+      "answer": "SO2"
+    },
+    {
+      "question": "Kim loại nào sau đây không phản ứng với dung dịch axit loãng",
+      "options": ["Đồng", "Sắt", "Kẽm", "Nhôm"],
+      "answer": "Đồng"
+    },
+    {
+      "question": "Dung dịch nào sau đây làm xanh giấy quỳ tím",
+      "options": ["NaOH", "HCl", "NaCl", "H2O"],
+      "answer": "NaOH"
+    },
+    {
+      "question": "Dung dịch nào sau đây làm đỏ giấy quỳ tím",
+      "options": ["HCl", "NaOH", "NaCl", "Nước cất"],
+      "answer": "HCl"
+    },
+    {
+      "question": "Phản ứng nào sau đây là phản ứng phân hủy",
+      "options": ["CaCO3 = CaO + CO2", "NaOH + HCl", "Fe + HCl", "C + Oxi"],
+      "answer": "CaCO3 = CaO + CO2"
+    },
+    {
+      "question": "Dung dịch muối ăn có tính chất nào",
+      "options": ["Dẫn điện", "Không dẫn điện", "Làm đổi màu quỳ tím", "Dễ cháy"],
+      "answer": "Dẫn điện"
+    },
+    {
+      "question": "Khi cho CaO tác dụng với nước thì hiện tượng xảy ra là",
+      "options": ["Tỏa nhiệt mạnh", "Thu nhiệt", "Không đổi", "Bay hơi"],
+      "answer": "Tỏa nhiệt mạnh"
+    },
+    {
+      "question": "Chất nào sau đây là oxit bazơ",
+      "options": ["Na2O", "CO2", "SO2", "P2O5"],
+      "answer": "Na2O"
+    },
+    {
+      "question": "Chất nào sau đây là oxit axit",
+      "options": ["SO2", "CaO", "MgO", "Na2O"],
+      "answer": "SO2"
+    },
+    {
+      "question": "Phản ứng nào sau đây tạo ra khí hidro",
+      "options": ["Zn + HCl", "NaCl + H2O", "CaO + H2O", "NaOH + HCl"],
+      "answer": "Zn + HCl"
+    },
+    {
+      "question": "Chất nào sau đây dùng để làm sạch nước đục",
+      "options": ["Phèn chua", "Muối ăn", "Đường", "Cồn"],
+      "answer": "Phèn chua"
+    },
+    {
+      "question": "Khi cho CO2 dư vào nước vôi trong thì hiện tượng là",
+      "options": ["Dung dịch trong trở lại", "Kết tủa tăng", "Dung dịch sôi", "Không đổi"],
+      "answer": "Dung dịch trong trở lại"
+    },
+    {
+      "question": "Kim loại nào sau đây được dùng để mạ chống gỉ sắt",
+      "options": ["Kẽm", "Đồng", "Chì", "Thiếc"],
+      "answer": "Kẽm"
+    },
+    {
+      "question": "Dung dịch nào sau đây có tính trung tính",
+      "options": ["NaCl", "HCl", "NaOH", "KOH"],
+      "answer": "NaCl"
+    },
+    {
+      "question": "Phản ứng đốt cháy metan tạo ra sản phẩm là",
+      "options": ["CO2 và H2O", "CO và H2", "C và Oxi", "CH4"],
+      "answer": "CO2 và H2O"
+    },
+    {
+      "question": "Kim loại nào sau đây dẫn điện tốt nhất",
+      "options": ["Đồng", "Sắt", "Nhôm", "Kẽm"],
+      "answer": "Đồng"
+    },
+    {
+      "question": "Dung dịch nào sau đây không làm đổi màu quỳ tím",
+      "options": ["NaCl", "HCl", "NaOH", "KOH"],
+      "answer": "NaCl"
+    },
+    {
+      "question": "Chất nào sau đây không phải là oxit",
+      "options": ["NaCl", "CO2", "CaO", "SO2"],
+      "answer": "NaCl"
+    },
+    {
+      "question": "Hiện tượng gỉ sắt là",
+      "options": ["Phản ứng hóa học", "Hiện tượng vật lý", "Sự nóng chảy", "Sự bay hơi"],
+      "answer": "Phản ứng hóa học"
+    },
+    {
+      "question": "Chất nào sau đây là muối",
+      "options": ["NaCl", "HCl", "NaOH", "H2SO4"],
+      "answer": "NaCl"
+    },
+    {
+      "question": "Dung dịch nào sau đây có thể gây bỏng da",
+      "options": ["NaOH đặc", "Nước muối loãng", "Nước cất", "Dung dịch đường"],
+      "answer": "NaOH đặc"
+    },
+    {
+      "question": "Khí nào sau đây không duy trì sự cháy",
+      "options": ["CO2", "Oxi", "Ozon", "Không khí"],
+      "answer": "CO2"
+    },
+    {
+      "question": "Chất nào sau đây được dùng để sản xuất vôi sống",
+      "options": ["CaCO3", "CaOH2", "CaCl2", "CaSO4"],
+      "answer": "CaCO3"
+    },
+    {
+      "question": "Dung dịch nào sau đây thường dùng để rửa rau",
+      "options": ["Nước muối loãng", "HCl", "NaOH", "Cồn"],
+      "answer": "Nước muối loãng"
+    },
+    {
+      "question": "Phản ứng giữa axit và bazơ còn gọi là phản ứng",
+      "options": ["Trung hòa", "Phân hủy", "Hóa hợp", "Thế"],
+      "answer": "Trung hòa"
+    },
+    {
+      "question": "Khí nào sau đây nhẹ nhất",
+      "options": ["Hidro", "Oxi", "Nitơ", "CO2"],
+      "answer": "Hidro"
+    }
+  ],
+  "extreme": [
+    {
+      "question": "Khối lượng mol của H2O là bao nhiêu",
+      "options": ["18 g", "16 g", "20 g", "22 g"],
+      "answer": "18 g"
+    },
+    {
+      "question": "Khối lượng mol của CO2 là",
+      "options": ["44 g", "32 g", "28 g", "40 g"],
+      "answer": "44 g"
+    },
+    {
+      "question": "Nếu có 36 g H2O thì số mol H2O là",
+      "options": ["2 mol", "1 mol", "3 mol", "0.5 mol"],
+      "answer": "2 mol"
+    },
+    {
+      "question": "Nếu có 22 g CO2 thì số mol CO2 là",
+      "options": ["0.5 mol", "1 mol", "2 mol", "0.25 mol"],
+      "answer": "0.5 mol"
+    },
+    {
+      "question": "Dung dịch có nồng độ 10 phần trăm nghĩa là",
+      "options": ["10 g chất tan trong 100 g dung dịch", "10 g chất tan trong 100 g nước", "100 g chất tan trong 10 g dung dịch", "1 g chất tan trong 10 g dung dịch"],
+      "answer": "10 g chất tan trong 100 g dung dịch"
+    },
+    {
+      "question": "Vì sao không nên dùng nồi nhôm để nấu thức ăn có tính axit",
+      "options": ["Nhôm bị ăn mòn", "Nhôm dẫn điện kém", "Nhôm nặng", "Nhôm dễ nóng chảy"],
+      "answer": "Nhôm bị ăn mòn"
+    },
+    {
+      "question": "Muối được dùng để bảo quản thực phẩm vì",
+      "options": ["Ức chế vi sinh vật", "Làm thực phẩm ngọt", "Làm thực phẩm mềm", "Làm thực phẩm có màu"],
+      "answer": "Ức chế vi sinh vật"
+    },
+    {
+      "question": "Vì sao CO2 được dùng trong bình chữa cháy",
+      "options": ["Không duy trì sự cháy", "Dễ cháy", "Nhẹ hơn không khí", "Có mùi"],
+      "answer": "Không duy trì sự cháy"
+    },
+    {
+      "question": "Dung dịch nào sau đây an toàn để súc miệng",
+      "options": ["Nước muối loãng", "HCl", "NaOH", "H2SO4"],
+      "answer": "Nước muối loãng"
+    },
+    {
+      "question": "Khi pha loãng axit cần rót",
+      "options": ["Axit vào nước", "Nước vào axit", "Cả hai cùng lúc", "Đun nóng axit"],
+      "answer": "Axit vào nước"
+    },
+    {
+      "question": "Tại sao không nên đổ dầu mỡ xuống cống",
+      "options": ["Gây tắc cống", "Làm nước sạch hơn", "Làm nước bay hơi", "Không ảnh hưởng"],
+      "answer": "Gây tắc cống"
+    },
+    {
+      "question": "Dung dịch nào sau đây thường dùng trong y tế",
+      "options": ["Nước muối sinh lý", "HCl đặc", "NaOH đặc", "H2SO4 đặc"],
+      "answer": "Nước muối sinh lý"
+    },
+    {
+      "question": "Tại sao cần phân loại rác thải hóa học",
+      "options": ["Để xử lý an toàn", "Để rác nhẹ hơn", "Để đẹp hơn", "Để dễ đốt"],
+      "answer": "Để xử lý an toàn"
+    },
+    {
+      "question": "Khí nào sau đây gây hiệu ứng nhà kính",
+      "options": ["CO2", "Oxi", "Nitơ", "Hidro"],
+      "answer": "CO2"
+    },
+    {
+      "question": "Dung dịch nào sau đây có thể sát trùng vết thương nhẹ",
+      "options": ["Cồn 70 độ", "HCl", "NaOH", "Nước muối đặc"],
+      "answer": "Cồn 70 độ"
+    },
+    {
+      "question": "Tại sao cần đọc kỹ nhãn mác hóa chất",
+      "options": ["Đảm bảo an toàn", "Để biết màu sắc", "Để biết mùi", "Để dễ bảo quản"],
+      "answer": "Đảm bảo an toàn"
+    },
+    {
+      "question": "Hóa học giúp ích gì cho đời sống",
+      "options": ["Ứng dụng và giải thích các hiện tượng", "Chỉ dùng để thi cử", "Không liên quan thực tế", "Chỉ dùng trong phòng thí nghiệm"],
+      "answer": "Ứng dụng và giải thích các hiện tượng"
+    },
+    {
+      "question": "Tại sao không nên trộn chất tẩy rửa với axit",
+      "options": ["Sinh ra khí độc", "Làm sạch hơn", "Không có tác dụng", "Làm dung dịch loãng"],
+      "answer": "Sinh ra khí độc"
+    },
+    {
+      "question": "Dung dịch nào sau đây có thể gây ô nhiễm môi trường nếu thải trực tiếp",
+      "options": ["Nước thải axit", "Nước mưa", "Nước cất", "Nước lọc"],
+      "answer": "Nước thải axit"
+    },
+    {
+      "question": "Vì sao cần trung hòa nước thải trước khi xả ra môi trường",
+      "options": ["Bảo vệ sinh vật và môi trường", "Để nước trong hơn", "Để nước có mùi", "Để nước bay hơi"],
+      "answer": "Bảo vệ sinh vật và môi trường"
+    }
+
+  ]
+}

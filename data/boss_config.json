@@ -1,0 +1,36 @@
+{
+    "active_boss": {
+        "ten": "Pháp Sư Toán Học",
+        "mon": "toan",
+        "hp_max": 1000,
+        "hp_current": 949,
+        "damage": 10,
+        "kpi_rate": 1.0,
+        "anh": "assets/teachers/toan.png",
+        "drop_table": [
+            {
+                "type": "kpi",
+                "id": "kpi_bonus",
+                "amount": 10,
+                "rate": 20
+            },
+            {
+                "type": "currency",
+                "id": "gold",
+                "amount": 100,
+                "rate": 30
+            },
+            {
+                "type": "none",
+                "id": "none",
+                "amount": 0,
+                "rate": 50
+            }
+        ],
+        "status": "active",
+        "created_at": "2025-12-25 08:32:30",
+        "contributions": {
+            "nguyenhuuxuanan": 51
+        }
+    }
+}

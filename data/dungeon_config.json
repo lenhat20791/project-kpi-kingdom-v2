@@ -1,0 +1,320 @@
+{
+    "toan": {
+        "name": "TOAN",
+        "phases": {
+            "phase_1": {
+                "title": "",
+                "monster_name": "Hoa Bẫy Kẹp Quang Hợp",
+                "monster_img": "",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 5
+            },
+            "phase_2": {
+                "title": "Giai đoạn 2",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_3": {
+                "title": "Giai đoạn 3",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_4": {
+                "title": "Giai đoạn 4",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            }
+        }
+    },
+    "van": {
+        "name": "VAN",
+        "phases": {
+            "phase_1": {
+                "title": "Giai đoạn 1",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_2": {
+                "title": "Giai đoạn 2",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_3": {
+                "title": "Giai đoạn 3",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_4": {
+                "title": "Giai đoạn 4",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            }
+        }
+    },
+    "anh": {
+        "name": "ANH",
+        "phases": {
+            "phase_1": {
+                "title": "Giai đoạn 1",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_2": {
+                "title": "Giai đoạn 2",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_3": {
+                "title": "Giai đoạn 3",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_4": {
+                "title": "Giai đoạn 4",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            }
+        }
+    },
+    "ly": {
+        "name": "LY",
+        "phases": {
+            "phase_1": {
+                "title": "Giai đoạn 1",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_2": {
+                "title": "Giai đoạn 2",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_3": {
+                "title": "Giai đoạn 3",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_4": {
+                "title": "Giai đoạn 4",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            }
+        }
+    },
+    "hoa": {
+        "name": "HOA",
+        "phases": {
+            "phase_1": {
+                "title": "Giai đoạn 1",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_2": {
+                "title": "Giai đoạn 2",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_3": {
+                "title": "Giai đoạn 3",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_4": {
+                "title": "Giai đoạn 4",
+                "monster_name": "Quái vật tập sự",
+                "monster_img": "https://i.ibb.co/v6m80YV/monster-placeholder.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            }
+        }
+    },
+    "sinh": {
+        "name": "SINH",
+        "phases": {
+            "phase_1": {
+                "title": "THÂM NHẬP MÀNG SINH CHẤT",
+                "monster_name": "HOA BẪY KẸP QUANG HỢP",
+                "monster_img": "https://i.ibb.co/sJj6f704/hoabaykepquanghop.png",
+                "quiz_level": "easy",
+                "num_questions": 5,
+                "time_limit": 10,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_2": {
+                "title": "MA TRẬN BÀO QUAN",
+                "monster_name": "BỌ CÁNH CỨNG NHIỄM SẮC THỂ ",
+                "monster_img": "https://i.ibb.co/vv4cZRgd/BOCANHCUNGNHIEMSACTHE.png",
+                "quiz_level": "medium",
+                "num_questions": 5,
+                "time_limit": 15,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_3": {
+                "title": "VƯỜN NHIỄM SẮC THỂ",
+                "monster_name": "LÃO THỤ TUẦN HOÀN VẬT CHẤT",
+                "monster_img": "https://i.ibb.co/zHZcswnj/LAOTHUTUANHOAN.png",
+                "quiz_level": "hard",
+                "num_questions": 5,
+                "time_limit": 18,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            },
+            "phase_4": {
+                "title": "SÀN ĐẤU CHỌN LỌC TỰ NHIÊN",
+                "monster_name": "THẦN RỪNG ĐA PHÔI",
+                "monster_img": "https://i.ibb.co/fYzh5BVc/THANRUNGDAPHOI.png",
+                "quiz_level": "extreme",
+                "num_questions": 5,
+                "time_limit": 20,
+                "reward_kpi": 10,
+                "reward_exp": 20,
+                "item_drop_id": "Không rơi đồ",
+                "drop_rate": 0
+            }
+        }
+    }
+}

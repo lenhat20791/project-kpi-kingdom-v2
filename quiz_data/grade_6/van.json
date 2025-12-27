@@ -1,0 +1,476 @@
+{
+  "easy": [
+    {
+      "question": "Truyện 'Thánh Gióng' thuộc thể loại nào?",
+      "options": ["Truyền thuyết", "Cổ tích", "Ngụ ngôn", "Truyện cười"],
+      "answer": "Truyền thuyết"
+    },
+    {
+      "question": "Tác giả của 'Truyện Kiều' là ai?",
+      "options": ["Nguyễn Du", "Nguyễn Trãi", "Nguyễn Đình Chiểu", "Hồ Xuân Hương"],
+      "answer": "Nguyễn Du"
+    },
+    {
+      "question": "Thể thơ lục bát có đặc điểm nào sau đây?",
+      "options": ["Một dòng 6 tiếng, một dòng 8 tiếng", "Mỗi dòng 5 tiếng", "Mỗi dòng 4 tiếng", "Không cố định số tiếng"],
+      "answer": "Một dòng 6 tiếng, một dòng 8 tiếng"
+    },
+    {
+      "question": "Truyện 'Sơn Tinh, Thủy Tinh' giải thích hiện tượng gì?",
+      "options": ["Lũ lụt", "Động đất", "Hạn hán", "Sấm sét"],
+      "answer": "Lũ lụt"
+    },
+    {
+      "question": "Bài thơ 'Lượm' của Tố Hữu được viết theo thể thơ nào?",
+      "options": ["4 chữ", "5 chữ", "Lục bát", "Tự do"],
+      "answer": "4 chữ"
+    },
+    {
+      "question": "Truyện 'Tấm Cám' thuộc thể loại nào?",
+      "options": ["Cổ tích", "Truyền thuyết", "Ngụ ngôn", "Truyện cười"],
+      "answer": "Cổ tích"
+    },
+    {
+      "question": "Thể thơ 5 chữ còn gọi là gì?",
+      "options": ["Ngũ ngôn", "Tứ ngôn", "Lục bát", "Song thất"],
+      "answer": "Ngũ ngôn"
+    },
+    {
+      "question": "Nhân vật chính trong truyện 'Con Rồng cháu Tiên' là ai?",
+      "options": ["Lạc Long Quân và Âu Cơ", "Thánh Gióng", "Lang Liêu", "An Dương Vương"],
+      "answer": "Lạc Long Quân và Âu Cơ"
+    },
+    {
+      "question": "Truyện ngụ ngôn thường nhằm mục đích gì?",
+      "options": ["Rút ra bài học", "Giải trí đơn thuần", "Kể lịch sử", "Miêu tả thiên nhiên"],
+      "answer": "Rút ra bài học"
+    },
+    {
+      "question": "Tác phẩm 'Ếch ngồi đáy giếng' thuộc thể loại nào?",
+      "options": ["Ngụ ngôn", "Cổ tích", "Truyền thuyết", "Thần thoại"],
+      "answer": "Ngụ ngôn"
+    },
+    {
+      "question": "Thể thơ nào có số tiếng mỗi dòng không cố định?",
+      "options": ["Thơ tự do", "4 chữ", "5 chữ", "Lục bát"],
+      "answer": "Thơ tự do"
+    },
+    {
+      "question": "Ai là tác giả bài thơ 'Bánh trôi nước'?",
+      "options": ["Hồ Xuân Hương", "Nguyễn Du", "Nguyễn Trãi", "Tố Hữu"],
+      "answer": "Hồ Xuân Hương"
+    },
+    {
+      "question": "Truyện cổ tích thường có kết thúc như thế nào?",
+      "options": ["Có hậu", "Buồn bã", "Dang dở", "Bi kịch"],
+      "answer": "Có hậu"
+    },
+    {
+      "question": "Nhân vật Lang Liêu xuất hiện trong truyện nào?",
+      "options": ["Bánh chưng, bánh giầy", "Thánh Gióng", "Tấm Cám", "Sọ Dừa"],
+      "answer": "Bánh chưng, bánh giầy"
+    },
+    {
+      "question": "Thể thơ 4 chữ có đặc điểm gì?",
+      "options": ["Mỗi dòng 4 tiếng", "Mỗi dòng 5 tiếng", "Mỗi dòng 6 tiếng", "Không cố định"],
+      "answer": "Mỗi dòng 4 tiếng"
+    },
+    {
+      "question": "Tác phẩm 'Con Rồng cháu Tiên' giải thích điều gì?",
+      "options": ["Nguồn gốc dân tộc", "Nguồn gốc chữ viết", "Nguồn gốc nghề nông", "Nguồn gốc sông núi"],
+      "answer": "Nguồn gốc dân tộc"
+    },
+    {
+      "question": "Nhân vật chính trong truyện 'Sọ Dừa' là ai?",
+      "options": ["Sọ Dừa", "Cô út", "Phú ông", "Hai chị"],
+      "answer": "Sọ Dừa"
+    },
+    {
+      "question": "Bài thơ 'À ơi tay mẹ' được viết theo thể thơ nào?",
+      "options": ["Lục bát", "4 chữ", "5 chữ", "Tự do"],
+      "answer": "Lục bát"
+    },
+    {
+      "question": "Truyện truyền thuyết thường gắn với yếu tố gì?",
+      "options": ["Lịch sử và tưởng tượng", "Hoàn toàn tưởng tượng", "Đời sống hiện đại", "Khoa học"],
+      "answer": "Lịch sử và tưởng tượng"
+    },
+    {
+      "question": "Ai là tác giả bài thơ 'Lượm'?",
+      "options": ["Tố Hữu", "Huy Cận", "Xuân Diệu", "Nguyễn Du"],
+      "answer": "Tố Hữu"
+    },
+    {
+      "question": "Thể thơ lục bát thường được dùng nhiều trong thể loại nào?",
+      "options": ["Truyện thơ", "Văn nghị luận", "Kịch", "Truyện ngắn"],
+      "answer": "Truyện thơ"
+    },
+    {
+      "question": "Truyện 'Bánh chưng, bánh giầy' thuộc thể loại nào?",
+      "options": ["Truyền thuyết", "Cổ tích", "Ngụ ngôn", "Truyện cười"],
+      "answer": "Truyền thuyết"
+    },
+    {
+      "question": "Nhân vật Tấm đại diện cho phẩm chất gì?",
+      "options": ["Hiền lành, chăm chỉ", "Xảo quyệt", "Lười biếng", "Độc ác"],
+      "answer": "Hiền lành, chăm chỉ"
+    },
+    {
+      "question": "Thể thơ 5 chữ thường có nhịp điệu như thế nào?",
+      "options": ["Nhanh, gọn", "Chậm, dài", "Không nhịp điệu", "Rất tự do"],
+      "answer": "Nhanh, gọn"
+    },
+    {
+      "question": "Truyện cổ tích thường có yếu tố nào?",
+      "options": ["Kì ảo", "Khoa học", "Lịch sử chính xác", "Thực nghiệm"],
+      "answer": "Kì ảo"
+    },
+    {
+      "question": "Ai là tác giả 'Nam quốc sơn hà'?",
+      "options": ["Lý Thường Kiệt", "Nguyễn Trãi", "Nguyễn Du", "Trần Quốc Tuấn"],
+      "answer": "Lý Thường Kiệt"
+    },
+    {
+      "question": "Thể thơ nào thường dùng trong ca dao?",
+      "options": ["Lục bát", "5 chữ", "4 chữ", "Tự do"],
+      "answer": "Lục bát"
+    },
+    {
+      "question": "Nhân vật chính trong truyện 'Sơn Tinh, Thủy Tinh' là ai?",
+      "options": ["Sơn Tinh và Thủy Tinh", "Vua Hùng", "Mị Nương", "Lạc Long Quân"],
+      "answer": "Sơn Tinh và Thủy Tinh"
+    },
+    {
+      "question": "Truyện ngụ ngôn thường sử dụng hình ảnh gì để kể chuyện?",
+      "options": ["Con vật, đồ vật", "Nhân vật lịch sử", "Người thật việc thật", "Thiên nhiên"],
+      "answer": "Con vật, đồ vật"
+    }
+  ],
+  "medium": [
+    {
+      "question": "Trong câu 'Mặt trời của bắp thì nằm trên đồi', tác giả sử dụng biện pháp tu từ nào?",
+      "options": ["Ẩn dụ", "So sánh", "Nhân hóa", "Hoán dụ"],
+      "answer": "Ẩn dụ"
+    },
+    {
+      "question": "Câu 'Tre xung phong vào xe tăng đại bác' sử dụng biện pháp tu từ nào?",
+      "options": ["Nhân hóa", "So sánh", "Ẩn dụ", "Nói quá"],
+      "answer": "Nhân hóa"
+    },
+    {
+      "question": "Trong câu 'Tiếng suối trong như tiếng hát xa', tác giả dùng biện pháp gì?",
+      "options": ["So sánh", "Nhân hóa", "Ẩn dụ", "Hoán dụ"],
+      "answer": "So sánh"
+    },
+    {
+      "question": "Thành ngữ nào có nghĩa là khen người học giỏi?",
+      "options": ["Học đâu nhớ đó", "Nước đến chân mới nhảy", "Ăn quả nhớ kẻ trồng cây", "Một nắng hai sương"],
+      "answer": "Học đâu nhớ đó"
+    },
+    {
+      "question": "Câu 'Người là Cha, là Bác, là Anh' sử dụng biện pháp tu từ nào?",
+      "options": ["Điệp ngữ", "So sánh", "Ẩn dụ", "Nhân hóa"],
+      "answer": "Điệp ngữ"
+    },
+    {
+      "question": "Thành ngữ 'Một nắng hai sương' nói về điều gì?",
+      "options": ["Sự vất vả", "Sự may mắn", "Sự giàu có", "Sự thông minh"],
+      "answer": "Sự vất vả"
+    },
+    {
+      "question": "Trong câu 'Con trâu là đầu cơ nghiệp', biện pháp tu từ nào được sử dụng?",
+      "options": ["Ẩn dụ", "So sánh", "Nhân hóa", "Nói quá"],
+      "answer": "Ẩn dụ"
+    },
+    {
+      "question": "Thành ngữ nào khuyên con người phải biết ơn?",
+      "options": ["Ăn quả nhớ kẻ trồng cây", "Nước đến chân mới nhảy", "Há miệng chờ sung", "Chân lấm tay bùn"],
+      "answer": "Ăn quả nhớ kẻ trồng cây"
+    },
+    {
+      "question": "Câu 'Cái cò, cái vạc, cái nông' sử dụng biện pháp tu từ nào?",
+      "options": ["Điệp từ", "So sánh", "Ẩn dụ", "Nhân hóa"],
+      "answer": "Điệp từ"
+    },
+    {
+      "question": "Thành ngữ 'Há miệng chờ sung' phê phán điều gì?",
+      "options": ["Lười biếng", "Chăm chỉ", "Thông minh", "Cẩn thận"],
+      "answer": "Lười biếng"
+    },
+    {
+      "question": "Trong câu 'Tre giữ làng, giữ nước', biện pháp tu từ nào được dùng?",
+      "options": ["Nhân hóa", "So sánh", "Ẩn dụ", "Hoán dụ"],
+      "answer": "Nhân hóa"
+    },
+    {
+      "question": "Thành ngữ nào nói về sự đoàn kết?",
+      "options": ["Một cây làm chẳng nên non", "Nước đến chân mới nhảy", "Đứng núi này trông núi nọ", "Chạy ăn từng bữa"],
+      "answer": "Một cây làm chẳng nên non"
+    },
+    {
+      "question": "Câu 'Mặt trời của mẹ, em nằm trên lưng' sử dụng biện pháp gì?",
+      "options": ["Ẩn dụ", "So sánh", "Nhân hóa", "Nói quá"],
+      "answer": "Ẩn dụ"
+    },
+    {
+      "question": "Thành ngữ 'Đứng núi này trông núi nọ' có nghĩa là gì?",
+      "options": ["Không bằng lòng với hiện tại", "Kiên trì", "Chăm chỉ", "Đoàn kết"],
+      "answer": "Không bằng lòng với hiện tại"
+    },
+    {
+      "question": "Trong câu 'Dòng sông mặc áo lụa đào', biện pháp tu từ nào được sử dụng?",
+      "options": ["Nhân hóa", "So sánh", "Ẩn dụ", "Hoán dụ"],
+      "answer": "Nhân hóa"
+    },
+    {
+      "question": "Thành ngữ nào nói về sự cần cù lao động?",
+      "options": ["Chân lấm tay bùn", "Há miệng chờ sung", "Nước đến chân mới nhảy", "Ăn xổi ở thì"],
+      "answer": "Chân lấm tay bùn"
+    },
+    {
+      "question": "Câu 'Sóng gió ơi đừng làm tan nát con thuyền' sử dụng biện pháp gì?",
+      "options": ["Nhân hóa", "So sánh", "Ẩn dụ", "Nói quá"],
+      "answer": "Nhân hóa"
+    },
+    {
+      "question": "Thành ngữ 'Nước đến chân mới nhảy' nói về điều gì?",
+      "options": ["Chủ quan, chậm trễ", "Cẩn thận", "Chăm chỉ", "Nhanh nhẹn"],
+      "answer": "Chủ quan, chậm trễ"
+    },
+    {
+      "question": "Trong câu 'Cánh buồm no gió hát ngoài khơi', biện pháp tu từ nào được dùng?",
+      "options": ["Nhân hóa", "So sánh", "Ẩn dụ", "Hoán dụ"],
+      "answer": "Nhân hóa"
+    },
+    {
+      "question": "Thành ngữ 'Ăn xổi ở thì' phê phán điều gì?",
+      "options": ["Thiếu suy nghĩ lâu dài", "Chăm chỉ", "Cẩn thận", "Tiết kiệm"],
+      "answer": "Thiếu suy nghĩ lâu dài"
+    },
+    {
+      "question": "Câu 'Tiếng suối hát giữa rừng sâu' sử dụng biện pháp nào?",
+      "options": ["Nhân hóa", "So sánh", "Ẩn dụ", "Nói quá"],
+      "answer": "Nhân hóa"
+    },
+    {
+      "question": "Thành ngữ nào nói về sự nghèo khó?",
+      "options": ["Chạy ăn từng bữa", "Một nắng hai sương", "Học đâu nhớ đó", "Ăn quả nhớ kẻ trồng cây"],
+      "answer": "Chạy ăn từng bữa"
+    },
+    {
+      "question": "Trong câu 'Mặt biển ngủ yên', tác giả dùng biện pháp tu từ nào?",
+      "options": ["Nhân hóa", "So sánh", "Ẩn dụ", "Hoán dụ"],
+      "answer": "Nhân hóa"
+    },
+    {
+      "question": "Thành ngữ 'Một cây làm chẳng nên non' khuyên điều gì?",
+      "options": ["Đoàn kết", "Cạnh tranh", "Ích kỉ", "Lười biếng"],
+      "answer": "Đoàn kết"
+    },
+    {
+      "question": "Câu 'Người là ánh sáng soi đường con đi' sử dụng biện pháp nào?",
+      "options": ["Ẩn dụ", "So sánh", "Nhân hóa", "Nói quá"],
+      "answer": "Ẩn dụ"
+    },
+    {
+      "question": "Thành ngữ 'Chân lấm tay bùn' thường nói về ai?",
+      "options": ["Người lao động", "Người giàu có", "Người trí thức", "Người nhàn rỗi"],
+      "answer": "Người lao động"
+    },
+    {
+      "question": "Trong câu 'Con sông uốn mình quanh làng', biện pháp nào được sử dụng?",
+      "options": ["Nhân hóa", "So sánh", "Ẩn dụ", "Hoán dụ"],
+      "answer": "Nhân hóa"
+    },
+    {
+      "question": "Thành ngữ nào mang ý nghĩa phê phán tính ỷ lại?",
+      "options": ["Há miệng chờ sung", "Một nắng hai sương", "Ăn quả nhớ kẻ trồng cây", "Học đâu nhớ đó"],
+      "answer": "Há miệng chờ sung"
+    },
+    {
+      "question": "Câu 'Tre là người bạn thân thiết của làng quê' sử dụng biện pháp nào?",
+      "options": ["Nhân hóa", "So sánh", "Ẩn dụ", "Nói quá"],
+      "answer": "Nhân hóa"
+  ],
+  "hard": [
+    {
+      "question": "Trong câu 'Tre xung phong vào xe tăng đại bác', hình ảnh tre tượng trưng cho điều gì?",
+      "options": ["Con người Việt Nam anh dũng", "Cây cối thiên nhiên", "Vũ khí chiến tranh", "Làng quê yên bình"],
+      "answer": "Con người Việt Nam anh dũng"
+    },
+    {
+      "question": "Câu 'Mặt trời của mẹ, em nằm trên lưng' giúp em hiểu điều gì về người mẹ?",
+      "options": ["Con là niềm sống của mẹ", "Con rất nóng", "Mẹ thích ánh nắng", "Mẹ làm việc ngoài trời"],
+      "answer": "Con là niềm sống của mẹ"
+    },
+    {
+      "question": "Vì sao truyện ngụ ngôn thường dùng hình ảnh con vật để kể chuyện?",
+      "options": ["Dễ hiểu và rút bài học", "Để kể chuyện vui", "Vì con vật thông minh", "Vì con người không quan trọng"],
+      "answer": "Dễ hiểu và rút bài học"
+    },
+    {
+      "question": "Trong câu 'Tiếng suối hát giữa rừng sâu', tác dụng của biện pháp tu từ là gì?",
+      "options": ["Làm cảnh vật sinh động", "Kể chuyện lịch sử", "Giải thích khoa học", "Tăng tính chính xác"],
+      "answer": "Làm cảnh vật sinh động"
+    },
+    {
+      "question": "Thành ngữ 'Ăn quả nhớ kẻ trồng cây' nhắc nhở con người điều gì?",
+      "options": ["Lòng biết ơn", "Sự chăm chỉ", "Tinh thần đoàn kết", "Tính tiết kiệm"],
+      "answer": "Lòng biết ơn"
+    },
+    {
+      "question": "Trong truyện cổ tích, chi tiết kì ảo thường có vai trò gì?",
+      "options": ["Thể hiện ước mơ công bằng", "Gây sợ hãi", "Giải thích khoa học", "Kể chuyện lịch sử"],
+      "answer": "Thể hiện ước mơ công bằng"
+    },
+    {
+      "question": "Câu 'Con sông ôm ấp bờ bãi' gợi cho em cảm xúc gì?",
+      "options": ["Sự gần gũi, thân thương", "Sự nguy hiểm", "Sự dữ dội", "Sự xa lạ"],
+      "answer": "Sự gần gũi, thân thương"
+    },
+    {
+      "question": "Thành ngữ 'Một nắng hai sương' thường dùng để nói về ai?",
+      "options": ["Người lao động vất vả", "Người học giỏi", "Người giàu có", "Người nhàn rỗi"],
+      "answer": "Người lao động vất vả"
+    },
+    {
+      "question": "Biện pháp nhân hóa thường được dùng nhằm mục đích gì?",
+      "options": ["Làm sự vật trở nên gần gũi", "Làm câu văn dài hơn", "Giải thích khái niệm", "Trình bày số liệu"],
+      "answer": "Làm sự vật trở nên gần gũi"
+    },
+    {
+      "question": "Câu 'Tre giữ làng, giữ nước' cho thấy vai trò gì của tre?",
+      "options": ["Biểu tượng bảo vệ quê hương", "Chỉ là cây trồng", "Vật trang trí", "Nguồn thực phẩm"],
+      "answer": "Biểu tượng bảo vệ quê hương"
+    },
+    {
+      "question": "Thành ngữ 'Đứng núi này trông núi nọ' phản ánh thói quen nào?",
+      "options": ["Không hài lòng với hiện tại", "Chăm chỉ học tập", "Kiên trì cố gắng", "Biết bằng lòng"],
+      "answer": "Không hài lòng với hiện tại"
+    },
+    {
+      "question": "Trong câu 'Cánh buồm no gió hát ngoài khơi', tác giả muốn nhấn mạnh điều gì?",
+      "options": ["Vẻ đẹp sinh động của biển", "Sự nguy hiểm của biển", "Công việc nặng nhọc", "Sự tĩnh lặng"],
+      "answer": "Vẻ đẹp sinh động của biển"
+    },
+    {
+      "question": "Thành ngữ nào thể hiện tinh thần làm việc không quản khó khăn?",
+      "options": ["Chân lấm tay bùn", "Há miệng chờ sung", "Ăn xổi ở thì", "Nước đến chân mới nhảy"],
+      "answer": "Chân lấm tay bùn"
+    },
+    {
+      "question": "Vì sao so sánh thường dùng từ 'như'?",
+      "options": ["Để đối chiếu hai sự vật", "Để tăng số chữ", "Để kể chuyện", "Để giải thích"],
+      "answer": "Để đối chiếu hai sự vật"
+    },
+    {
+      "question": "Câu 'Người là ánh sáng soi đường con đi' thể hiện tình cảm gì?",
+      "options": ["Lòng biết ơn và kính yêu", "Sự sợ hãi", "Sự buồn bã", "Sự giận dữ"],
+      "answer": "Lòng biết ơn và kính yêu"
+    },
+    {
+      "question": "Thành ngữ 'Nước đến chân mới nhảy' khuyên điều gì?",
+      "options": ["Không nên chậm trễ", "Nên kiên nhẫn", "Nên mạo hiểm", "Nên dựa dẫm"],
+      "answer": "Không nên chậm trễ"
+    },
+    {
+      "question": "Trong văn học, hình ảnh con vật trong ngụ ngôn thường đại diện cho ai?",
+      "options": ["Con người", "Thiên nhiên", "Thần linh", "Đồ vật"],
+      "answer": "Con người"
+    },
+    {
+      "question": "Câu 'Dòng sông mặc áo lụa đào' giúp cảnh vật trở nên thế nào?",
+      "options": ["Mềm mại, giàu hình ảnh", "Khô khan", "Khó hiểu", "Cứng nhắc"],
+      "answer": "Mềm mại, giàu hình ảnh"
+    },
+    {
+      "question": "Thành ngữ 'Ăn xổi ở thì' phê phán lối sống nào?",
+      "options": ["Thiếu suy nghĩ lâu dài", "Chăm chỉ", "Cẩn thận", "Tiết kiệm"],
+      "answer": "Thiếu suy nghĩ lâu dài"
+    },
+    {
+      "question": "Biện pháp ẩn dụ thường giúp diễn đạt điều gì?",
+      "options": ["Ý nghĩa sâu sắc, kín đáo", "Sự chính xác khoa học", "Con số cụ thể", "Thời gian rõ ràng"],
+      "answer": "Ý nghĩa sâu sắc, kín đáo"
+    },
+    {
+      "question": "Câu 'Tre là người bạn thân thiết của làng quê' thể hiện điều gì?",
+      "options": ["Sự gắn bó giữa con người và tre", "Tre biết nói", "Tre rất hiếm", "Tre chỉ để trang trí"],
+      "answer": "Sự gắn bó giữa con người và tre"
+    },
+    {
+      "question": "Thành ngữ nào thể hiện tinh thần đoàn kết tập thể?",
+      "options": ["Một cây làm chẳng nên non", "Đứng núi này trông núi nọ", "Há miệng chờ sung", "Ăn xổi ở thì"],
+      "answer": "Một cây làm chẳng nên non"
+    },
+    {
+      "question": "Trong câu văn có nhân hóa, sự vật thường được gắn với điều gì?",
+      "options": ["Hoạt động của con người", "Số liệu cụ thể", "Quy luật khoa học", "Thời gian chính xác"],
+      "answer": "Hoạt động của con người"
+    },
+    {
+      "question": "Thành ngữ 'Chạy ăn từng bữa' nói về hoàn cảnh nào?",
+      "options": ["Nghèo khó", "Giàu sang", "Ổn định", "Nhàn rỗi"],
+      "answer": "Nghèo khó"
+    },
+    {
+      "question": "Câu 'Mặt biển ngủ yên' gợi cảm giác gì?",
+      "options": ["Yên bình", "Dữ dội", "Nguy hiểm", "Ồn ào"],
+      "answer": "Yên bình"
+    },
+    {
+      "question": "So sánh giúp câu văn trở nên thế nào?",
+      "options": ["Cụ thể và gợi hình hơn", "Dài dòng hơn", "Khó hiểu hơn", "Khô khan hơn"],
+      "answer": "Cụ thể và gợi hình hơn"
+    },
+    {
+      "question": "Thành ngữ 'Học đâu nhớ đó' khen ngợi điều gì?",
+      "options": ["Khả năng học tập tốt", "Sự lười biếng", "Tính nóng vội", "Thói chủ quan"],
+      "answer": "Khả năng học tập tốt"
+    },
+    {
+      "question": "Trong văn bản, biện pháp tu từ giúp người đọc điều gì?",
+      "options": ["Dễ cảm nhận và tưởng tượng", "Ghi nhớ số liệu", "Hiểu công thức", "Tính toán nhanh"],
+      "answer": "Dễ cảm nhận và tưởng tượng"
+    }
+  ],
+  "extreme": [
+    {
+      "question": "Nếu một đoạn văn chỉ dùng hình ảnh con vật để nói về con người, đoạn văn đó gần với thể loại nào nhất?",
+      "options": ["Ngụ ngôn", "Truyền thuyết", "Cổ tích", "Truyện cười"],
+      "answer": "Ngụ ngôn"
+    },
+    {
+      "question": "Trong một câu văn, vừa có so sánh vừa có nhân hóa, tác dụng chính là gì?",
+      "options": ["Làm hình ảnh sinh động và giàu cảm xúc", "Làm câu văn dài hơn", "Tăng tính khoa học", "Giải thích rõ số liệu"],
+      "answer": "Làm hình ảnh sinh động và giàu cảm xúc"
+    },
+    {
+      "question": "Vì sao hình ảnh tre thường xuất hiện nhiều trong văn học Việt Nam?",
+      "options": ["Gắn bó với đời sống và lịch sử dân tộc", "Vì tre rất hiếm", "Vì tre chỉ để trang trí", "Vì tre khó trồng"],
+      "answer": "Gắn bó với đời sống và lịch sử dân tộc"
+    },
+    {
+      "question": "Một câu văn sử dụng ẩn dụ thường yêu cầu người đọc làm gì?",
+      "options": ["Suy nghĩ và liên tưởng", "Ghi nhớ máy móc", "Tính toán số liệu", "Đọc lướt nhanh"],
+      "answer": "Suy nghĩ và liên tưởng"
+    },
+    {
+      "question": "Thành ngữ được sử dụng hợp lí nhất trong lời khuyên về tinh thần đoàn kết là gì?",
+      "options": ["Một cây làm chẳng nên non", "Há miệng chờ sung", "Nước đến chân mới nhảy", "Ăn xổi ở thì"],
+      "answer": "Một cây làm chẳng nên non"
+    },
+    {
+      "question": "Khi một sự vật thiên nhiên được miêu tả như con người, người đọc thường cảm nhận được điều gì?",
+      "options": ["Sự gần gũi và cảm xúc", "Sự khô khan", "Sự chính xác tuyệt đối", "Sự khó hiểu"],
+      "answer": "Sự gần gũi và cảm xúc"
+    },
+    {
+      "question": "Nếu thay hình ảnh con người bằng đồ vật để nói về tính cách, biện pháp đó gọi là gì?",
+      "options": ["Ẩn dụ", "So sánh", "Nhân hóa", "Hoán dụ"],
+      "answer": "Ẩn dụ"
+    },
+    {
+      "question": "Một bài văn dùng nhi
+  ]
+}

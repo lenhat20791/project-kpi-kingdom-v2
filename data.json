@@ -1,0 +1,11 @@
+{
+    "admin": {
+        "name": "Administrator",
+        "password": "123456",
+        "role": "admin",
+        "grade": "Hệ thống",
+        "team": "Quản trị",
+        "kpi": 0.0,
+        "level": 99
+    }
+}

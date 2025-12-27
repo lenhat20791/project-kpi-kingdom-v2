@@ -1,0 +1,12 @@
+{
+    "hocsi_01": {
+        "name": "Nguyễn Hữu Xuân An",
+        "kpi": 0,
+        "hp": 100.0,
+        "atk": 10.0,
+        "level": 1,
+        "titles": ["Tân Thủ"],
+        "reborn_at": null,
+        "inventory": []
+    }
+}
