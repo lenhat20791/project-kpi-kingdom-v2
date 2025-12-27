@@ -1547,7 +1547,31 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     # 5. Cập nhật và lưu dữ liệu chính
                     st.session_state.data = new_data
                     save_data_func(new_data)
-
+                    
+                    # ========================================================
+                    try:
+                        import user_module  # Import module chứa cấu hình Sheet
+                        
+                        # 1. Lấy quyền kết nối (Dùng hàm bạn đã viết trong user_module)
+                        client = user_module.get_gspread_client()
+                        
+                        if client:
+                            # 2. Mở file Google Sheet theo tên đã cấu hình
+                            sh = client.open(user_module.SHEET_NAME)
+                            wks = sh.sheet1 # Chọn sheet đầu tiên
+                            
+                            # 3. Xóa sạch trơn dữ liệu trên Sheet
+                            wks.clear()
+                            
+                            st.toast("☁️ Đã xóa sạch dữ liệu trên Google Sheets!", icon="✅")
+                        else:
+                            st.warning("⚠️ Đang Offline: Không thể xóa trên Cloud.")
+                            
+                    except Exception as e:
+                        # In lỗi ra để dễ sửa nếu có trục trặc
+                        st.error(f"⚠️ Lỗi kết nối Google Sheets: {e}")
+                    # ========================================================
+                    
                     # 6. Dọn dẹp session để tránh xung đột
                     combat_keys = [
                         "dang_danh_dungeon", "dungeon_questions", "current_q_idx", 
