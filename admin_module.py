@@ -1549,7 +1549,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     save_data_func(new_data)
                     
                     # ==========================================================
-                    # 🔥 CODE CHUẨN: XÓA SẠCH VÀ TẠO LẠI TIÊU ĐỀ
+                    # 🔥 CODE CHUẨN: XÓA SẠCH VÀ TẠO LẠI TIÊU ĐỀ (ĐÃ CẬP NHẬT CỘT)
                     # ==========================================================
                     try:
                         import user_module
@@ -1558,34 +1558,35 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         if client:
                             sh = client.open(user_module.SHEET_NAME)
                             
-                            # --- XỬ LÝ TAB PLAYERS (QUAN TRỌNG NHẤT) ---
-                            # Hãy thay "Players" bằng tên chính xác Tab của bạn nếu khác
+                            # 1. Chọn đúng Tab (Thử 'Players', nếu không có thì lấy Sheet1)
                             try:
                                 wks = sh.worksheet("Players") 
                             except:
-                                wks = sh.sheet1 # Nếu không tìm thấy tên, lấy tab đầu tiên
-                                
-                            st.write(f"🧹 Đang dọn dẹp tab: {wks.title}...")
-                            wks.clear() # Xóa sạch
+                                wks = sh.sheet1 
+
+                            st.write(f"🛠️ Đang tái cấu trúc tab: {wks.title}...")
                             
-                            # 👇 TẠO LẠI TIÊU ĐỀ CỘT (Cực kỳ quan trọng)
-                            # Bạn hãy chỉnh sửa danh sách này cho khớp với các cột bạn đang dùng
-                            headers = ["ID", "Tên", "Mật khẩu", "Vai trò", "Khối", "Team", "KPI", "Level", "EXP", "Vật phẩm"]
-                            wks.append_row(headers)
+                            # 2. Xóa sạch dữ liệu cũ
+                            wks.clear() 
                             
-                            st.toast(f"✅ Đã reset {wks.title} và tạo lại tiêu đề!", icon="🎉")
+                            # 3. DANH SÁCH CỘT BẠN VỪA CUNG CẤP
+                            headers = [
+                                "user_id", "name", "team", "password", 
+                                "kpi", "exp", "level", 
+                                "hp", "hp_max", "stats_json"
+                            ]
                             
-                            # (Tùy chọn) Xóa thêm các Tab khác nếu muốn sạch bách
-                            # try:
-                            #     sh.worksheet("PVP").clear()
-                            #     sh.worksheet("Logs").clear()
-                            # except: pass
+                            # 4. Ghi đè tiêu đề vào dòng A1
+                            # Dùng wks.update để đảm bảo ghi đúng vào hàng đầu tiên
+                            wks.update(range_name='A1', values=[headers])
+                            
+                            st.toast(f"✅ Đã khôi phục {len(headers)} cột thành công!", icon="🏗️")
 
                         else:
-                            st.error("⚠️ Không có kết nối Google Sheets.")
+                            st.error("⚠️ Mất kết nối Google Sheets.")
                             
                     except Exception as e:
-                        st.error(f"❌ Lỗi reset Sheet: {e}")
+                        st.error(f"❌ Lỗi tái tạo bảng: {e}")
                     # ==========================================================
                     
                     # 6. Dọn dẹp session để tránh xung đột
