@@ -522,18 +522,7 @@ def show_tutorial():
         st.warning("🚨 **QUY TẮC VÀNG:** Luôn đổi mật khẩu sau lần đầu đăng nhập!")
         st.write("- Không chia sẻ mật khẩu cho người khác.")
         st.write("- Mọi hành vi gian lận sẽ bị tước bỏ danh hiệu.")
-
-    
-# --- HÀM GHI NHỚ ĐĂNG NHẬP ---
-def save_remember_me(u_id, pwd):
-    with open("login_cache.json", "w") as f:
-        json.dump({"u_id": u_id, "pwd": pwd}, f)
-
-def load_remember_me():
-    if os.path.exists("login_cache.json"):
-        with open("login_cache.json", "r") as f:
-            return json.load(f)
-    return {"u_id": "", "pwd": ""}    
+  
     
 def initialize_accounts_from_excel(file_path):
     if not os.path.exists(file_path):
@@ -1560,9 +1549,7 @@ elif st.session_state.user_role in ["u1", "u2", "u3"]:
 
 
 # ===== GUEST (KHÁCH - CHƯA ĐĂNG NHẬP) =====
-else:
-    remembered_data = load_remember_me()
-    
+else:    
     # --- GIAO DIỆN KHÁCH ---
     col_sidebar, col_main = st.columns([1, 2.5])
 
@@ -1572,11 +1559,7 @@ else:
         with st.form("login_form"):
             # Truyền giá trị đã lưu vào tham số 'value' 
             u_id_input = st.text_input("Mã Học Sĩ (ID):", value=remembered_data.get("u_id", "")).strip().lower()
-            pwd_input = st.text_input("Mật khẩu:", type="password", value=remembered_data.get("pwd", ""))
-            
-            # Thêm checkbox để người dùng chọn có muốn ghi nhớ hay không
-            remember_me = st.checkbox("Ghi nhớ đăng nhập", value=True if remembered_data.get("u_id") else False)
-            
+            pwd_input = st.text_input("Mật khẩu:", type="password", value=remembered_data.get("pwd", ""))               
             btn_login = st.form_submit_button("VÀO HỆ THỐNG 🔥")
         # --- NÚT HƯỚNG DẪN TÂN THỦ TÙY CHỈNH ---
         st.write("") # Tạo một khoảng cách nhỏ
@@ -1610,14 +1593,12 @@ else:
             if u_id_input == "admin" and pwd_input == st.session_state.data.get("admin", {}).get("password", "admin"):
                 st.session_state.user_role = "Admin"
                 st.session_state.user_id = "admin"
-                if remember_me: save_remember_me(u_id_input, pwd_input) 
                 st.session_state.page = None
                 st.rerun()
 
             elif u_id_input in st.session_state.data and pwd_input == st.session_state.data[u_id_input]["password"]:
                 st.session_state.user_role = st.session_state.data[u_id_input]["role"]
                 st.session_state.user_id = u_id_input
-                if remember_me: save_remember_me(u_id_input, pwd_input) 
                 st.session_state.page = None
                 st.rerun()
             else:
