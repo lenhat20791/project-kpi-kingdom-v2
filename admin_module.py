@@ -1072,22 +1072,27 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 for _, row in edited_df.iterrows():
                     u_id = str(row['User ID'])
                     
-                    # Xác định mật khẩu: Nếu tích Reset thì dùng '123', nếu không thì dùng giá trị trong ô mật khẩu
                     new_password = "123" if row['Reset_123'] else str(row['password'])
-                    
-                    # Dịch ngược chức vụ về mã code
                     new_role = role_to_code.get(row['role'], "u3")
                     
-                    # Cập nhật thông tin vào bộ nhớ hệ thống
-                    st.session_state.data[u_id].update({
-                        "team": row['team'],
-                        "role": new_role,
-                        "password": new_password
-                    })
+                    # 🛠️ CẬP NHẬT AN TOÀN: Đảm bảo không làm mất các chỉ số cũ (hp, exp...)
+                    if u_id in st.session_state.data:
+                        st.session_state.data[u_id].update({
+                            "team": row['team'],
+                            "role": new_role,
+                            "password": new_password,
+                            # Đảm bảo có giá trị mặc định nếu chưa có
+                            "hp": st.session_state.data[u_id].get("hp", 100),
+                            "hp_max": st.session_state.data[u_id].get("hp_max", 100),
+                            "level": st.session_state.data[u_id].get("level", 1),
+                            "exp": st.session_state.data[u_id].get("exp", 0),
+                            "kpi": st.session_state.data[u_id].get("kpi", 0)
+                        })
                 
-                # Lưu toàn bộ dữ liệu xuống file data.json
-                save_data_func()
-                st.success("🎉 Đã cập nhật thông tin và reset mật khẩu thành công!")
+                # 🔥 GỌI LƯU TỔNG LỰC (Local + Cloud)
+                save_data(st.session_state.data) 
+                
+                st.success("🎉 Đã cập nhật thông tin và đồng bộ Google Sheets thành công!")
                 st.rerun()
         else:
             st.info("💡 Vương quốc hiện chưa có dân cư. Hãy nạp file Excel ở trên để bắt đầu.")

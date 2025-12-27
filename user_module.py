@@ -805,20 +805,24 @@ def save_data(data):
     except Exception as e:
         print(f"❌ Lỗi khi lưu dữ liệu: {e}")
         return False
+        
 def load_data(file_path=DATA_FILE_PATH):
-    # --- ƯU TIÊN LẤY DỮ LIỆU TỪ CLOUD ---
+    # --- 1. ƯU TIÊN LẤY DỮ LIỆU TỪ CLOUD ---
+    # Luôn thử lấy từ Sheets trước để đảm bảo dữ liệu mới nhất
     cloud_data = load_data_from_sheets()
     
     if cloud_data:
-        # Nếu lấy được từ Cloud, cập nhật luôn file local để backup
+        # Nếu lấy được từ Cloud, cập nhật file local ngay để backup
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(cloud_data, f, indent=4, ensure_ascii=False)
-        except: pass
+        except: 
+            pass
         return cloud_data
         
-    # 1. Nếu file không tồn tại -> Trả về cấu trúc Admin mặc định
+    # --- 2. NẾU CLOUD LỖI, ĐỌC TỪ FILE LOCAL ---
     if not os.path.exists(file_path):
+        # Nếu không có cả local, trả về Admin mặc định
         return {
             "admin": {
                 "name": "Administrator",
@@ -832,33 +836,33 @@ def load_data(file_path=DATA_FILE_PATH):
             }
         }
 
-    # 2. Đọc file và Xử lý lỗi
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
 
-        # --- [QUAN TRỌNG] TỰ ĐỘNG CHUYỂN LIST THÀNH DICT ---
+        # --- 3. [QUAN TRỌNG] TỰ ĐỘNG CHUYỂN LIST THÀNH DICT ---
         if isinstance(data, list):
             print("⚠️ Load Data: Dữ liệu đang ở dạng List -> Đang tự động sửa...")
             new_dict = {}
             for item in data:
                 if isinstance(item, dict):
-                    key = item.get('username') or item.get('u_id') or item.get('id') or item.get('name')
+                    # Tìm key (Khớp với các cột trên Sheets: user_id)
+                    key = item.get('user_id') or item.get('u_id') or item.get('username') or item.get('name')
+                    
                     if item.get('role') == 'admin':
                         key = 'admin'
                     elif not key:
                         continue
                         
+                    # Làm sạch key: viết thường, xóa cách
                     str_key = str(key).strip().lower().replace(" ", "")
                     new_dict[str_key] = item
             
-            # Gán lại data đã sửa
             data = new_dict
-            
-            # 🔥 LƯU NGAY LẬP TỨC ĐỂ SỬA FILE TRONG Ổ CỨNG 🔥
+            # 🔥 Lưu lại ngay vào local để sửa triệt để file JSON
             save_data(data)
 
-        # Kiểm tra lần cuối
+        # Kiểm tra cuối cùng để đảm bảo app không sập
         if not isinstance(data, dict):
             return {"admin": {"name": "Administrator", "password": "admin", "role": "admin"}}
 
