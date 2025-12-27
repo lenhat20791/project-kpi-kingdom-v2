@@ -20,9 +20,9 @@ import zipfile
 
 
 if user_module.IS_DEV_MODE:
+    # Chỉ hiện thông báo này khi bạn đang sửa code ở máy tính (Offline)
     st.info("🛠️ Trạng thái: **DEV MODE (OFFLINE)** - Dữ liệu chỉ lưu tại máy tính này.")
-else:
-    st.success("🌐 Trạng thái: **ONLINE MODE** - Dữ liệu đang đồng bộ với Google Sheets.")
+# Khi IS_DEV_MODE = False (Online), không thực hiện lệnh gì cả -> Dòng thông báo tự biến mất
 
 
         
