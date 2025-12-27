@@ -1558,8 +1558,11 @@ else:
         st.subheader("🔑 ĐĂNG NHẬP")
         with st.form("login_form"):
             # Truyền giá trị đã lưu vào tham số 'value' 
-            u_id_input = st.text_input("Mã Học Sĩ (ID):", value=remembered_data.get("u_id", "")).strip().lower()
-            pwd_input = st.text_input("Mật khẩu:", type="password", value=remembered_data.get("pwd", ""))               
+            u_id_input = st.text_input("Mã Học Sĩ (ID):").strip().lower()
+            
+            # ✅ DÒNG MỚI CHO MẬT KHẨU LUÔN:
+            pwd_input = st.text_input("Mật khẩu:", type="password")             
+            
             btn_login = st.form_submit_button("VÀO HỆ THỐNG 🔥")
         # --- NÚT HƯỚNG DẪN TÂN THỦ TÙY CHỈNH ---
         st.write("") # Tạo một khoảng cách nhỏ
