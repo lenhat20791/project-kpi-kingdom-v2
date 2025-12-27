@@ -18,13 +18,6 @@ from admin_module import hien_thi_thong_bao_he_thong
 from datetime import datetime, timedelta
 import zipfile
 
-
-if user_module.IS_DEV_MODE:
-    # Chỉ hiện thông báo này khi bạn đang sửa code ở máy tính (Offline)
-    st.info("🛠️ Trạng thái: **DEV MODE (OFFLINE)** - Dữ liệu chỉ lưu tại máy tính này.")
-# Khi IS_DEV_MODE = False (Online), không thực hiện lệnh gì cả -> Dòng thông báo tự biến mất
-
-
         
 # --- 🚑 BỘ CỨU HỘ DỮ LIỆU TỪ Ổ CỨNG (SỬA FILE data.json) ---
 def emergency_fix_data_file():
