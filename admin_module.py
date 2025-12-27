@@ -1526,6 +1526,9 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         "kpi": 0.0, 
                         "level": 99
                     }
+                    'players': [], # PHẢI CÓ DÒNG NÀY ĐỂ BÁO HỆ THỐNG LÀ KHÔNG CÓ HỌC SINH
+                    'rank_settings': saved_rank_settings if saved_rank_settings else []
+                }
                     
                     if saved_rank_settings:
                         new_data['rank_settings'] = saved_rank_settings
@@ -1560,6 +1563,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
 
                     st.success("💥 Reset thành công! Toàn bộ dữ liệu cũ đã được làm sạch.")
                     time.sleep(2)
+                    st.cache_data.clear()
                     st.rerun()
 
     elif page == "📥 Sao lưu dữ liệu":
