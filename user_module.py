@@ -788,6 +788,7 @@ def save_data(data):
         
         # 2. Lưu Cloud (Gọi hàm đã có sẵn trong file này)
         save_all_to_sheets(data)
+        
         return True
     except Exception as e:
         print(f"Lỗi tại user_module.save_data: {e}")
