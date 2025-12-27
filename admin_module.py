@@ -1549,7 +1549,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     save_data_func(new_data)
                     
                     # ==========================================================
-                    # 🔥 CODE CHUẨN: XÓA SẠCH VÀ TẠO LẠI TIÊU ĐỀ (ĐÃ CẬP NHẬT CỘT)
+                    # 🔥 CODE FIX: DÙNG APPEND_ROW ĐỂ TẠO TIÊU ĐỀ CHẮC CHẮN HƠN
                     # ==========================================================
                     try:
                         import user_module
@@ -1558,7 +1558,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         if client:
                             sh = client.open(user_module.SHEET_NAME)
                             
-                            # 1. Chọn đúng Tab (Thử 'Players', nếu không có thì lấy Sheet1)
+                            # 1. Chọn Tab (Ưu tiên 'Players')
                             try:
                                 wks = sh.worksheet("Players") 
                             except:
@@ -1569,18 +1569,19 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             # 2. Xóa sạch dữ liệu cũ
                             wks.clear() 
                             
-                            # 3. DANH SÁCH CỘT BẠN VỪA CUNG CẤP
+                            # 3. DANH SÁCH CỘT CHUẨN (Đã tách user_id và name)
+                            # Lưu ý: "user_idname" bạn gửi có vẻ bị dính chữ, tôi đã tách ra thành 2 cột chuẩn.
                             headers = [
                                 "user_id", "name", "team", "password", 
                                 "kpi", "exp", "level", 
                                 "hp", "hp_max", "stats_json"
                             ]
                             
-                            # 4. Ghi đè tiêu đề vào dòng A1
-                            # Dùng wks.update để đảm bảo ghi đúng vào hàng đầu tiên
-                            wks.update(range_name='A1', values=[headers])
+                            # 4. QUAN TRỌNG: Dùng append_row thay vì update
+                            # Hàm này sẽ tự động đặt dòng này vào vị trí đầu tiên nếu bảng trống
+                            wks.append_row(headers)
                             
-                            st.toast(f"✅ Đã khôi phục {len(headers)} cột thành công!", icon="🏗️")
+                            st.toast(f"✅ Đã tạo lại {len(headers)} cột thành công!", icon="🏗️")
 
                         else:
                             st.error("⚠️ Mất kết nối Google Sheets.")
