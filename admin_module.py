@@ -15,6 +15,7 @@ import shutil
 from datetime import datetime, timedelta
 import zipfile
 import unidecode
+from kpi_kingdom_v2 import save_data
 
 def thực_hiện_auto_backup():
     """Tự động sao lưu dữ liệu data.json và loi_dai.json sau mỗi 7 ngày"""
@@ -1090,8 +1091,8 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         })
                 
                 # 🔥 GỌI LƯU TỔNG LỰC (Local + Cloud)
+                st.info("🔄 Hệ thống đang cố gắng đẩy dữ liệu lên Google Sheets...") # Dòng để kiểm tra
                 save_data(st.session_state.data) 
-                
                 st.success("🎉 Đã cập nhật thông tin và đồng bộ Google Sheets thành công!")
                 st.rerun()
         else:
