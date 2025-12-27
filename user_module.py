@@ -777,41 +777,42 @@ def tinh_chi_so_chien_dau(level):
 # Đường dẫn file chung cho toàn bộ hệ thống (Đặt cố định để không bị lệch)
 DATA_FILE_PATH = "data.json"
 
-IS_DEV_MODE = True
+
 def save_data(data):
     """
-    Hàm lưu dữ liệu an toàn vào data.json
-    Tự động chuyển List -> Dict trước khi lưu
+    Hàm lưu dữ liệu an toàn vào data.json và tự động đồng bộ Cloud.
     """
     try:
-        # 1. Chốt chặn an toàn: Nếu data là List -> Chuyển thành Dict
+        # 1. Chốt chặn an toàn: Chuyển List -> Dict (Giữ nguyên logic của bạn)
         if isinstance(data, list):
             fixed_dict = {}
-            print("⚠️ Save Data: Phát hiện List, đang chuyển sang Dict...")
             for item in data:
                 if isinstance(item, dict):
-                    # Tìm key định danh
-                    key = item.get('username') or item.get('u_id') or item.get('id') or item.get('name')
+                    key = item.get('u_id') or item.get('user_id') or item.get('name')
                     if item.get('role') == 'admin': key = 'admin'
-                    
                     if key:
                         clean_key = str(key).strip().lower().replace(" ", "")
                         fixed_dict[clean_key] = item
-            data = fixed_dict # Gán lại dữ liệu đã sửa để lưu
+            data = fixed_dict
 
-        # 2. Ghi đè vào file data.json
+        # 2. Ghi đè vào file data.json local
         with open(DATA_FILE_PATH, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
         
-        # 3. CHỈ ĐẨY LÊN SHEETS NẾU KHÔNG PHẢI DEV MODE
+        # 3. ĐỒNG BỘ CLOUD (Quan trọng: Phải gọi đúng hàm bạn vừa gửi)
+        # Nếu IS_DEV_MODE = False thì mới đẩy lên mạng
         if not IS_DEV_MODE:
-            save_all_to_sheets(data)
+            # Gọi hàm 'tổng lực' của bạn ở đây
+            success = save_all_to_sheets(data) 
+            if success:
+                print("✅ Đồng bộ Cloud thành công.")
+            else:
+                print("⚠️ Lưu local ok nhưng Cloud thất bại.")
         else:
-            print("🧪 [DEV MODE] Dữ liệu đã lưu local, không đẩy lên Sheets.")
+            print("🧪 [DEV MODE] Chỉ lưu local.")
 
-    except Exception as e:  # <--- BẠN ĐANG THIẾU CÁC DÒNG NÀY
-        print(f"❌ Lỗi khi lưu dữ liệu: {e}")
-
+    except Exception as e:
+        print(f"❌ Lỗi nghiêm trọng khi lưu dữ liệu: {e}")
 def load_data(file_path=DATA_FILE_PATH):
     # --- ƯU TIÊN LẤY DỮ LIỆU TỪ CLOUD ---
     cloud_data = load_data_from_sheets()
