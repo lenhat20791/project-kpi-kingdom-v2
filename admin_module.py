@@ -944,6 +944,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             save_data_func()
                             st.success(f"🎊 Chúc mừng! Đã kích hoạt {len(new_data)-1} tài khoản Học Sĩ (Admin vẫn an toàn).")
                             st.balloons()
+                            import time
                             time.sleep(1) # Đợi xíu cho bóng bay lên
                             st.rerun()
                             
