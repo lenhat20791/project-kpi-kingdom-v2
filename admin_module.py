@@ -1503,9 +1503,10 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 if confirm_text == "RESET":
                     import os
                     import time
+                    import json
+
                     # 1. Thực hiện dọn dẹp backup cũ
                     try:
-                        # Gọi hàm dọn dẹp đã định nghĩa ở phần đầu file admin_module
                         dọn_dẹp_backup_reset_năm_học()
                         st.info("🧹 Đã dọn dẹp kho lưu trữ sao lưu cũ.")
                     except:
@@ -1521,17 +1522,14 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             "name": "Administrator",
                             "password": current_admin_pass,
                             "role": "admin",
-                            "grade": "Hệ thống", 
+                            "grade": "Hệ thống",
                             "team": "Quản trị",
-                            "kpi": 0.0, 
+                            "kpi": 0.0,
                             "level": 99
                         },
-                        'players': [], # PHẢI CÓ DÒNG NÀY ĐỂ BÁO HỆ THỐNG LÀ KHÔNG CÓ HỌC SINH
+                        'players': [],
                         'rank_settings': saved_rank_settings if saved_rank_settings else []
                     }
-                    
-                    if saved_rank_settings:
-                        new_data['rank_settings'] = saved_rank_settings
 
                     # 4. Reset file Lôi đài an toàn
                     path_loi_dai = "loi_dai.json" 
