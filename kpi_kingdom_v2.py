@@ -629,7 +629,13 @@ def save_data(data_to_save=None):
     
     # Gọi hàm lưu thực tế từ user_module
     user_module.save_data(data_to_save)
-
+    
+    # 2. 🔥 LỆNH CƯỠNG BỨC: Đẩy lên Cloud ngay lập tức
+    try:
+        user_module.save_all_to_sheets(data_to_save)
+    except Exception as e:
+        print(f"⚠️ Không thể đẩy lên Cloud ngay: {e}")
+        
 # --- KHỞI TẠO DỮ LIỆU ---
 if 'data' not in st.session_state:
     # Gọi hàm load_data xịn từ user_module
