@@ -622,24 +622,24 @@ def load_shop_data():
 
 
 # --- HÀM LƯU DỮ LIỆU ---
-def save_data(data_to_save=None):
-    # Nếu không truyền gì vào, mặc định lấy dữ liệu từ session_state
-    if data_to_save is None:
-        data_to_save = st.session_state.data
+import user_module # Đảm bảo đã import
+
+def save_data(data=None):
+    """Hàm này bây giờ chỉ đóng vai trò là 'người đưa tin'"""
+    if data is None:
+        data = st.session_state.data
     
-    # Gọi hàm lưu thực tế từ user_module
-    user_module.save_data(data_to_save)
-    
-    # 2. 🔥 LỆNH CƯỠNG BỨC: Đẩy lên Cloud ngay lập tức
-    try:
-        user_module.save_all_to_sheets(data_to_save)
-    except Exception as e:
-        print(f"⚠️ Không thể đẩy lên Cloud ngay: {e}")
+    # Chuyển việc cho user_module làm
+    return user_module.save_data(data)
         
 # --- KHỞI TẠO DỮ LIỆU ---
 if 'data' not in st.session_state:
     # Gọi hàm load_data xịn từ user_module
     st.session_state.data = user_module.load_data()
+    # Nếu load ra bị None hoặc lỗi, phải khởi tạo Dict rỗng để tránh crash
+    if st.session_state.data is None:
+        st.session_state.data = {}
+        
     # 👇 THÊM DÒNG NÀY ĐỂ DEBUG 👇
     print(f"🧐 Dữ liệu sau khi load: {type(st.session_state.data)}")
 # --- 👇 DÁN TIẾP ĐOẠN NÀY VÀO ĐỂ KHỞI TẠO SHOP 👇 ---

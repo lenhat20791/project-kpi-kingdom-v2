@@ -778,32 +778,19 @@ def tinh_chi_so_chien_dau(level):
 DATA_FILE_PATH = "data.json"
 
 
+# Trong user_module.py
 def save_data(data):
+    """Hàm thực hiện lưu dữ liệu vào JSON và đẩy lên Google Sheets"""
     try:
-        # 1. Chốt chặn an toàn: Chuyển List -> Dict (Giữ nguyên logic bảo vệ của bạn)
-        if isinstance(data, list):
-            fixed_dict = {}
-            for item in data:
-                if isinstance(item, dict):
-                    key = item.get('u_id') or item.get('user_id') or item.get('username') or item.get('name')
-                    if item.get('role') == 'admin': key = 'admin'
-                    if key:
-                        clean_key = str(key).strip().lower().replace(" ", "")
-                        fixed_dict[clean_key] = item
-            data = fixed_dict
-
-        # 2. Ghi vào file data.json local (để app truy xuất nhanh)
-        with open(DATA_FILE_PATH, 'w', encoding='utf-8') as f:
+        # 1. Lưu Local
+        with open("data.json", "w", encoding='utf-8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
         
-        # 3. ĐỒNG BỘ CLOUD NGAY LẬP TỨC
-        # Không còn check IS_DEV_MODE nữa, cứ lưu là đẩy lên Sheets
+        # 2. Lưu Cloud (Gọi hàm đã có sẵn trong file này)
         save_all_to_sheets(data)
-        
         return True
-
     except Exception as e:
-        print(f"❌ Lỗi khi lưu dữ liệu: {e}")
+        print(f"Lỗi tại user_module.save_data: {e}")
         return False
         
 def load_data(file_path=DATA_FILE_PATH):
