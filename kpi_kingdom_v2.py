@@ -1628,12 +1628,25 @@ else:
             
         # Xử lý sự kiện bấm nút đăng nhập
         if btn_login:
-            # 1. Chuẩn hóa ID nhập vào (viết thường, không dấu cách)
-            u_id_clean = str(u_id_input).strip().lower()
-            vietnamese_map = {'à':'a', 'á':'a', 'đ':'d', ' ': '', ...} # (Copy lại cái map dài ở trên vào đây)
+            # 1. Chuẩn hóa ID nhập vào (viết thường, KHỬ DẤU TIẾNG VIỆT)
+            raw_input = str(u_id_input).strip().lower()
+            
+            # --- BẢNG MÃ ĐẦY ĐỦ (KHÔNG ĐƯỢC CÓ DẤU BA CHẤM ...) ---
+            vietnamese_map = {
+                'à': 'a', 'á': 'a', 'ạ': 'a', 'ả': 'a', 'ã': 'a', 'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ậ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ặ': 'a', 'ẳ': 'a', 'ẵ': 'a',
+                'è': 'e', 'é': 'e', 'ẹ': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ê': 'e', 'ề': 'e', 'ế': 'e', 'ệ': 'e', 'ể': 'e', 'ễ': 'e',
+                'ò': 'o', 'ó': 'o', 'ọ': 'o', 'ỏ': 'o', 'õ': 'o', 'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ộ': 'o', 'ổ': 'o', 'ỗ': 'o', 'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ợ': 'o', 'ở': 'o', 'ỡ': 'o',
+                'ù': 'u', 'ú': 'u', 'ụ': 'u', 'ủ': 'u', 'ũ': 'u', 'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ự': 'u', 'ử': 'u', 'ữ': 'u',
+                'ì': 'i', 'í': 'i', 'ị': 'i', 'ỉ': 'i', 'ĩ': 'i',
+                'ỳ': 'y', 'ý': 'y', 'ỵ': 'y', 'ỷ': 'y', 'ỹ': 'y',
+                'đ': 'd', ' ': '' # Dòng này xóa khoảng trắng
+            }
 
+            # Chạy vòng lặp để thay thế ký tự
+            u_id_clean = raw_input
             for char, replacement in vietnamese_map.items():
                 u_id_clean = u_id_clean.replace(char, replacement)
+            
             # 2. Chuẩn hóa mật khẩu nhập vào (xóa khoảng trắng đầu cuối)
             input_pass = str(pwd_input).strip()
 
