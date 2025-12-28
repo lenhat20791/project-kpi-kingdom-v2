@@ -1599,43 +1599,53 @@ else:
             
         # Xử lý sự kiện bấm nút đăng nhập
         if btn_login:
-            # 1. Làm sạch ID nhập vào: viết thường, xóa khoảng trắng đầu cuối và ở giữa
+            # 1. Chuẩn hóa ID nhập vào (viết thường, không dấu cách)
             u_id_clean = str(u_id_input).strip().lower().replace(" ", "")
             
-            # 2. Lấy dữ liệu Admin để kiểm tra riêng (phòng trường hợp data lỗi)
-            admin_data = st.session_state.data.get("admin", {})
-            admin_password = admin_data.get("password", "admin")
+            # 2. Chuẩn hóa mật khẩu nhập vào (xóa khoảng trắng đầu cuối)
+            input_pass = str(pwd_input).strip()
 
-            # --- TRƯỜNG HỢP 1: ĐĂNG NHẬP ADMIN ---
-            if u_id_clean == "admin" and pwd_input == admin_password:
-                st.session_state.user_role = "admin"
-                st.session_state.user_id = "admin"
-                st.session_state.page = None
-                st.success("🔓 Chào mừng Quản trị viên!")
-                st.rerun()
-
-            # --- TRƯỜNG HỢP 2: ĐĂNG NHẬP NGƯỜI CHƠI ---
-            # Kiểm tra ID đã làm sạch có tồn tại trong Dictionary data không
-            elif u_id_clean in st.session_state.data:
+            # 3. Kiểm tra sự tồn tại của tài khoản trong dữ liệu
+            if u_id_clean in st.session_state.data:
                 user_info = st.session_state.data[u_id_clean]
                 
-                # Kiểm tra mật khẩu (ép kiểu về string để so sánh chính xác)
-                if str(pwd_input) == str(user_info.get("password", "")):
+                # --- XỬ LÝ MẬT KHẨU TỪ HỆ THỐNG/GGSHEETS ---
+                # Ép kiểu về chuỗi và xóa khoảng trắng
+                raw_stored_pass = str(user_info.get("password", "")).strip()
+                
+                # Xử lý trường hợp mật khẩu bị biến thành số thực (ví dụ: "123456.0")
+                stored_pass = raw_stored_pass
+                if "." in stored_pass and stored_pass.split('.')[-1] == '0':
+                    stored_pass = stored_pass.split('.')[0]
+                
+                # --- [DEBUG CHẾ ĐỘ ADMIN] ---
+                # Nếu bạn vẫn không vào được, hãy bỏ comment 2 dòng dưới đây để soi lỗi:
+                # st.write(f"DEBUG: Nhập vào '{input_pass}' | Trong máy '{stored_pass}'")
+                # st.write(f"Khớp hay không: {input_pass == stored_pass}")
+
+                # 4. So sánh mật khẩu
+                if input_pass == stored_pass:
+                    # Đăng nhập thành công
                     st.session_state.user_role = user_info.get("role", "player")
                     st.session_state.user_id = u_id_clean
                     st.session_state.page = None
+                    
+                    # Thông báo và chuyển trang
+                    if st.session_state.user_role.lower() == "admin":
+                        st.success("🔓 Chào mừng Quản trị viên!")
+                    else:
+                        st.success(f"🔓 Chào mừng {user_info.get('name', 'Chiến binh')}!")
+                    
                     st.rerun()
                 else:
                     st.error("❌ Mật khẩu không chính xác!")
-            
-            # --- TRƯỜNG HỢP 3: KHÔNG TÌM THẤY TÀI KHOẢN ---
             else:
-                st.error("❌ Tài khoản không tồn tại trên hệ thống!")
+                st.error(f"❌ Tài khoản '{u_id_clean}' không tồn tại trên hệ thống!")
+                # Gợi ý: Kiểm tra xem ID trên Google Sheets có dấu cách ở giữa không? 
+                # Nếu Sheets là "Nguyen Van A" thì key phải là "nguyenvana"
 
         # 👇👇👇 [MỚI] CHÈN BẢNG VÀNG VÀO ĐÂY (Vẫn nằm trong with col_sidebar) 👇👇👇
-        st.write("") # Tạo khoảng trống cho thoáng
-        st.write("") 
-        
+        st.write("") # Tạo khoảng trống cho thoáng       
         # Gọi hàm hiển thị bảng vàng (Bạn đã tạo ở Bước 3)
         # Lưu ý: Cần đảm bảo hàm này đã được import hoặc định nghĩa ở đầu file
         try:
