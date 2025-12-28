@@ -816,57 +816,45 @@ def save_data(data):
 
 def load_data(file_path=DATA_FILE_PATH):
     """
-    Hàm này CHỈ tải từ Google Sheets.
-    Tuyệt đối KHÔNG đọc file local cũ để tránh ghi đè dữ liệu sai.
+    Hàm này 100% lấy dữ liệu từ Cloud. 
+    Nếu Cloud không có Admin, hệ thống sẽ báo lỗi thay vì tự tạo Admin giả.
     """
     try:
-        # Xóa Cache cũ để đảm bảo không lưu luyến quá khứ
-        # st.cache_data.clear() 
-
-        print("☁️ [ONLINE MODE] Đang tải dữ liệu mới nhất từ Google Sheets...")
+        print("☁️ [ONLINE MODE] Đang kết nối Google Sheets...")
         
-        # Gọi hàm tải dữ liệu (đã có bộ lọc khử dấu ở bước trước)
+        # Gọi hàm tải dữ liệu gốc từ Sheets
         cloud_data = load_data_from_sheets()
         
-        # TRƯỜNG HỢP 1: Tải thành công
         if cloud_data:
-            # Đánh dấu nguồn dữ liệu là Cloud
+            # KIỂM TRA QUAN TRỌNG: Nếu trong cloud_data không có ai là admin
+            # thì phải báo động ngay, không được tự ý thêm vào.
+            has_admin = any(str(info.get('role', '')).lower() == 'admin' for info in cloud_data.values())
+            
+            if not has_admin:
+                st.warning("⚠️ Cảnh báo: Google Sheets không có tài khoản Admin nào!")
+
             st.session_state['data_source'] = 'cloud'
             
-            # (Tùy chọn) Vẫn lưu file backup xuống máy chỉ để... ngắm, 
-            # hoặc để debug, chứ code này sẽ KHÔNG bao giờ đọc lại nó.
+            # Ghi file backup (chỉ để xem, không dùng để load)
             try:
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(cloud_data, f, indent=4, ensure_ascii=False)
-            except: 
-                pass
+            except: pass
                 
             return cloud_data
 
-        # TRƯỜNG HỢP 2: Tải thất bại (Mất mạng hoặc Lỗi API)
         else:
-            print("❌ Lỗi kết nối Google Sheets!")
-            # Thay vì đọc file cũ, ta trả về rỗng hoặc thông báo lỗi luôn
-            # Để người dùng biết mà không nhập liệu tiếp.
+            # Trường hợp Sheets rỗng hoặc lỗi kết nối
             st.session_state['data_source'] = 'error'
-            
-            st.error("⛔ KHÔNG THỂ KẾT NỐI SERVER! Vui lòng kiểm tra mạng hoặc Google Sheets.")
-            
-            # Trả về duy nhất Admin mặc định để vào sửa lỗi
-            return {
-                "admin": {
-                    "name": "Administrator", 
-                    "password": "admin", 
-                    "role": "admin", 
-                    "level": 99,
-                    "kpi": 0, "exp": 0
-                }
-            }
+            st.error("⛔ LỖI: Không thể lấy dữ liệu từ Google Sheets.")
+            # Trả về dict rỗng để hệ thống dừng lại, không tự tạo Admin
+            return {}
 
     except Exception as e:
-        print(f"❌ Lỗi nghiêm trọng tại load_data: {e}")
-        return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
+        st.error(f"❌ Lỗi load_data: {e}")
+        return {}
+        
 import random
 
 def tinh_va_tra_thuong_global(killer_id, boss_data, all_users):
