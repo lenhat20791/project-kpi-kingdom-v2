@@ -816,26 +816,16 @@ def save_data(data):
 
 def load_data(file_path=DATA_FILE_PATH):
     try:
+        # Chỉ tải từ Sheets
         cloud_data = load_data_from_sheets()
         
-        # Kiểm tra nếu cloud_data bị trả về dạng List (do lỗi code cũ)
-        if isinstance(cloud_data, list):
-            st.error("⚠️ Dữ liệu từ Sheets trả về sai định dạng (List). Đang chuẩn hóa...")
-            # Chuyển đổi tạm thời List thành Dict để không bị lỗi .get()
-            data_dict = {}
-            for item in cloud_data:
-                if isinstance(item, dict):
-                    uid = str(item.get('user_id') or item.get('ID Đăng nhập') or '').strip().lower()
-                    if uid: data_dict[uid] = item
-            cloud_data = data_dict
-
         if cloud_data:
             st.session_state['data_source'] = 'cloud'
-            # KHÔNG tự tạo admin ở đây nữa
+            # KHÔNG tự tạo thêm bất kỳ "Administrator" nào ở đây nữa
             return cloud_data
         else:
-            st.error("⛔ Không lấy được dữ liệu từ Sheets.")
-            return {} # Trả về dict rỗng thay vì admin giả
+            st.error("⛔ Dữ liệu từ Google Sheets đang trống hoặc lỗi kết nối!")
+            return {} # Trả về rỗng để hệ thống dừng lại
 
     except Exception as e:
         st.error(f"❌ Lỗi load_data: {e}")
