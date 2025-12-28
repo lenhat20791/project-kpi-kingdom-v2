@@ -815,41 +815,27 @@ def save_data(data):
 # DATA_FILE_PATH = 'data/data.json' 
 
 def load_data(file_path=DATA_FILE_PATH):
-    """
-    Hàm này 100% lấy dữ liệu từ Cloud. 
-    Nếu Cloud không có Admin, hệ thống sẽ báo lỗi thay vì tự tạo Admin giả.
-    """
     try:
-        print("☁️ [ONLINE MODE] Đang kết nối Google Sheets...")
-        
-        # Gọi hàm tải dữ liệu gốc từ Sheets
         cloud_data = load_data_from_sheets()
         
+        # Kiểm tra nếu cloud_data bị trả về dạng List (do lỗi code cũ)
+        if isinstance(cloud_data, list):
+            st.error("⚠️ Dữ liệu từ Sheets trả về sai định dạng (List). Đang chuẩn hóa...")
+            # Chuyển đổi tạm thời List thành Dict để không bị lỗi .get()
+            data_dict = {}
+            for item in cloud_data:
+                if isinstance(item, dict):
+                    uid = str(item.get('user_id') or item.get('ID Đăng nhập') or '').strip().lower()
+                    if uid: data_dict[uid] = item
+            cloud_data = data_dict
+
         if cloud_data:
-            # KIỂM TRA QUAN TRỌNG: Nếu trong cloud_data không có ai là admin
-            # thì phải báo động ngay, không được tự ý thêm vào.
-            has_admin = any(str(info.get('role', '')).lower() == 'admin' for info in cloud_data.values())
-            
-            if not has_admin:
-                st.warning("⚠️ Cảnh báo: Google Sheets không có tài khoản Admin nào!")
-
             st.session_state['data_source'] = 'cloud'
-            
-            # Ghi file backup (chỉ để xem, không dùng để load)
-            try:
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                with open(file_path, 'w', encoding='utf-8') as f:
-                    json.dump(cloud_data, f, indent=4, ensure_ascii=False)
-            except: pass
-                
+            # KHÔNG tự tạo admin ở đây nữa
             return cloud_data
-
         else:
-            # Trường hợp Sheets rỗng hoặc lỗi kết nối
-            st.session_state['data_source'] = 'error'
-            st.error("⛔ LỖI: Không thể lấy dữ liệu từ Google Sheets.")
-            # Trả về dict rỗng để hệ thống dừng lại, không tự tạo Admin
-            return {}
+            st.error("⛔ Không lấy được dữ liệu từ Sheets.")
+            return {} # Trả về dict rỗng thay vì admin giả
 
     except Exception as e:
         st.error(f"❌ Lỗi load_data: {e}")
