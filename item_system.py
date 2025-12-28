@@ -181,17 +181,17 @@ def apply_item_effect(user_id, item_object, current_data):
     return current_data
 
     # Thêm vào trong hàm apply_item_effect 
+    # Tìm hàm apply_item_effect và thêm nhánh này
     elif behavior == "BOSS_RESET":
-        # Logic: Đưa mốc thời gian kết thúc chờ đợi về thời điểm hiện tại hoặc quá khứ
-        # giúp hệ thống hiểu là thời gian chờ đã hết.
-        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Xóa mốc thời gian chờ bằng cách đưa nó về quá khứ (Ví dụ: 1 năm trước)
+        past_time = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d %H:%M:%S")
+        current_data[user_id]['reborn_at'] = past_time
         
-        # Cập nhật trực tiếp vào dữ liệu người chơi
-        current_data[user_id]['boss_cooldown_end'] = now_str
-        
-        # Debug để giáo viên kiểm tra
-        print(f"DEBUG: Vật phẩm đã xóa thời gian chờ Boss cho {user_id}. Sẵn sàng tái đấu!")
-
+        # Cập nhật cả vào session_state để giao diện đổi ngay lập tức
+        if 'data' in st.session_state:
+            st.session_state.data[user_id]['reborn_at'] = past_time
+            
+        st.success("✨ Vật phẩm đã được kích hoạt! Bạn đã hồi phục hoàn toàn và có thể đấu Boss ngay.")
 def get_active_combat_stats(user_id, current_data):
     """
     Quét danh sách active_buffs, xóa bỏ buff hết hạn và trả về tổng chỉ số cộng thêm.

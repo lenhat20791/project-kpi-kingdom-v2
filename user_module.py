@@ -1118,12 +1118,12 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
     if player.get("reborn_at"):
         try:
             reborn_time = datetime.strptime(player["reborn_at"], "%Y-%m-%d %H:%M:%S")
+            # Chỉ hiện màn hình trọng thương nếu thời gian hiện tại vẫn chưa tới lúc hồi sinh
             if datetime.now() < reborn_time:
                 time_left = reborn_time - datetime.now()
-                phut_con_lai = int(time_left.total_seconds() // 60) + 1 # +1 cho người dùng đỡ sốt ruột
+                phut_con_lai = int(time_left.total_seconds() // 60) + 1
                 
-                defeat_info = player.get('last_defeat', {"boss_name": "Giáo Viên", "damage_taken": "hiểm hóc"})
-                
+                defeat_info = player.get('last_defeat', {"boss_name": "Giáo Viên", "damage_taken": "hiểm hóc"})                
                 # Giao diện màn hình chờ hồi sinh
                 st.markdown(f"""
                     <div style="background: linear-gradient(135deg, #2c3e50, #000000); padding: 20px; border-radius: 15px; border: 1px solid #ff4b4b; text-align: center; margin-bottom: 20px;">
