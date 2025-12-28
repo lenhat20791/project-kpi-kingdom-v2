@@ -3382,30 +3382,4 @@ def load_data_from_sheets():
         print(f"❌ Lỗi nghiêm trọng khi tải dữ liệu từ Cloud: {e}")
         return None
         
-def update_setting_on_sheet(config_key, new_value_data):
-    """
-    Hàm cập nhật giá trị trong Tab Settings trên Google Sheets
-    config_key: Tên khóa (ví dụ: 'rank_settings')
-    new_value_data: Dữ liệu list/dict cần lưu (sẽ tự chuyển thành JSON)
-    """
-    try:
-        sh = CLIENT.open(SHEET_NAME)
-        wks = sh.worksheet("Settings")
-        
-        # Tìm dòng chứa key (Cột A là Config_Key)
-        cell = wks.find(config_key, in_column=1)
-        
-        if cell:
-            # Chuyển dữ liệu thành chuỗi JSON để lưu
-            json_str = json.dumps(new_value_data, ensure_ascii=False)
-            
-            # Cập nhật vào cột B (Cột 2 - Value)
-            wks.update_cell(cell.row, 2, json_str)
-            print(f"✅ Đã cập nhật {config_key} lên Google Sheets.")
-            return True
-        else:
-            print(f"❌ Không tìm thấy key '{config_key}' trong tab Settings.")
-            return False
-    except Exception as e:
-        print(f"❌ Lỗi cập nhật Settings: {e}")
-        return False        
+    
