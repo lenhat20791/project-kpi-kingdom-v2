@@ -740,25 +740,40 @@ def tinh_atk_tong_hop(user_info):
 
 def check_up_level(user_id):
     """
-    Công thức: Level tiếp theo cần (Level hiện tại * 100) EXP
-    Cấp 1 lên 2 cần 100, Cấp 2 lên 3 cần 200...
+    Công thức: Level tiếp theo cần (Level hiện tại * 100) EXP.
+    Tự động tăng chỉ số HP và ATK khi lên cấp.
     """
+    if user_id not in st.session_state.data:
+        return
+
     user = st.session_state.data[user_id]
     current_lvl = user.get('level', 1)
     current_exp = user.get('exp', 0)
-    current_kpi = user.get('kpi', 0.0)
     
+    # Tính EXP cần thiết để lên cấp tiếp theo
     exp_required = current_lvl * 100
     
     if current_exp >= exp_required:
+        # 1. Nâng cấp độ và trừ EXP
         user['level'] += 1
-        user['exp'] = current_exp - exp_required
-        # Cập nhật máu phó bản mới
-        user['max_hp'] = current_kpi + (user['level'] * 20)
-        user['hp'] = user['max_hp'] # Hồi đầy máu khi lên cấp
+        user['exp'] = round(current_exp - exp_required, 2)
         
+        # 2. Cập nhật chỉ số Máu (HP) - Đổi max_hp thành hp_max cho khớp hàm Save Sheets
+        # Công thức của bạn: Máu tăng theo KPI và Level
+        current_kpi = user.get('kpi', 0.0)
+        user['hp_max'] = int(current_kpi + (user['level'] * 20))
+        user['hp'] = user['hp_max'] # Hồi đầy máu khi lên cấp [cite: 17]
+        
+        # 3. Cập nhật chỉ số Tấn công (ATK) vĩnh viễn
+        # Giả sử mỗi cấp tăng thêm 5 ATK cơ bản
+        if 'bonus_stats' not in user:
+            user['bonus_stats'] = {"hp": 0, "atk": 0}
+        user['bonus_stats']['atk'] = user['bonus_stats'].get('atk', 0) + 5
+        
+        # Thông báo hiệu ứng
         st.toast(f"🎊 CHÚC MỪNG! Bạn đã đạt LEVEL {user['level']}!", icon="🔥")
-        # Đệ quy để kiểm tra nếu đủ EXP lên nhiều cấp liên tục
+        
+        # 4. Đệ quy để kiểm tra nếu đủ EXP lên nhiều cấp liên tục
         check_up_level(user_id)
         
 def tinh_chi_so_chien_dau(level):
@@ -865,8 +880,7 @@ import random
 def tinh_va_tra_thuong_global(killer_id, boss_data, all_users):
     """
     Hàm này chạy 1 lần duy nhất khi Boss chết.
-    Nhiệm vụ: Duyệt qua danh sách đóng góp và phát quà cho TẤT CẢ mọi người.
-    Trả về: Danh sách quà của riêng người Kết liễu (để hiển thị lên màn hình người đó).
+    Cập nhật: Tích hợp thưởng EXP theo tỷ lệ từ Admin.
     """
     boss = boss_data['active_boss']
     contributions = boss.get("contributions", {})
@@ -875,72 +889,96 @@ def tinh_va_tra_thuong_global(killer_id, boss_data, all_users):
         return [], 0
 
     # 1. Tìm MVP (Người gây sát thương cao nhất)
-    # Lấy ID người có damage to nhất
     mvp_id = max(contributions, key=contributions.get) 
     
-    killer_rewards_display = [] # List quà để hiển thị cho người đang chơi (Killer)
+    killer_rewards_display = [] 
     killer_total_dmg = 0
 
-    # 2. Vòng lặp phát lương cho từng người
+    # 2. Vòng lặp phát lương cho từng người tham gia
     for uid, damage in contributions.items():
-        # Bỏ qua nếu user không tồn tại trong data (đề phòng lỗi)
         if uid not in all_users:
             continue
             
         player = all_users[uid]
-        player_rewards = [] # Log quà của từng người
+        player_rewards = [] 
 
-        # --- A. THƯỞNG CƠ BẢN (Theo sát thương) ---
-        # Công thức: 1000 damage = 1 KPI (hoặc tùy rate)
-        # Dùng max(1, ...) để đảm bảo ít nhất cũng được 1 chút
-        kpi_base = round((damage / 1000) * boss.get('kpi_rate', 1.0), 2)
-        if kpi_base < 0.1: kpi_base = 0.1 # An ủi tối thiểu
+        # --- A. THƯỞNG CƠ BẢN (KPI & EXP) ---
+        # Lấy rate từ cấu hình Boss (mặc định kpi_rate=1.0, exp_rate=5.0 nếu thiếu)
+        k_rate = boss.get('kpi_rate', 1.0)
+        e_rate = boss.get('exp_rate', 5.0)
+
+        # Tính KPI (làm tròn 2 chữ số)
+        kpi_base = round((damage / 1000) * k_rate, 2)
+        if kpi_base < 0.1: kpi_base = 0.1
         
-        player['kpi'] = player.get('kpi', 0) + kpi_base
-        player_rewards.append(f"💰 +{kpi_base} KPI (Sát thương)")
+        # Tính EXP (mới thêm)
+        exp_base = round((damage / 1000) * e_rate, 2)
+        if exp_base < 0.5: exp_base = 0.5 # An ủi tối thiểu cho EXP
 
+        # Cộng vào data
+        player['kpi'] = round(player.get('kpi', 0) + kpi_base, 2)
+        player['exp'] = round(player.get('exp', 0) + exp_base, 2)
+        
+        player_rewards.append(f"💰 +{kpi_base} KPI")
+        player_rewards.append(f"✨ +{exp_base} EXP")
+
+        
+        
         # --- B. THƯỞNG RƠI ĐỒ (DROP CHANCE) ---
-        # Mỗi người đều có cơ hội nhận đồ riêng (Ai may người nấy hưởng)
         drop_table = boss.get('drop_table', [])
         if drop_table:
-            # Chọn 1 món theo tỷ lệ
             weights = [item['rate'] for item in drop_table]
             chosen = random.choices(drop_table, weights=weights, k=1)[0]
             
             if chosen['type'] != 'none':
                 if chosen['type'] == 'currency':
-                    player['Tri_Thuc'] = player.get('Tri_Thuc', 0) + chosen['amount']
-                    player_rewards.append(f"📘 +{chosen['amount']} Tri Thức")
+                    target_key = chosen.get('id', 'Tri_Thuc')
+                    player[target_key] = player.get(target_key, 0) + chosen['amount']
+                    player_rewards.append(f"📘 +{chosen['amount']} {target_key}")
                     
                 elif chosen['type'] == 'item':
-                    # Thêm vào kho đồ
                     if 'inventory' not in player: player['inventory'] = {}
                     item_id = chosen['id']
                     player['inventory'][item_id] = player['inventory'].get(item_id, 0) + chosen['amount']
-                    player_rewards.append(f"📦 Nhận: {chosen['id']} (x{chosen['amount']})")
+                    player_rewards.append(f"📦 {item_id} (x{chosen['amount']})")
 
-        # --- C. THƯỞNG ĐẶC BIỆT (BONUS) ---
-        
-        # 👑 Thưởng MVP (Top Damage) - Ví dụ thưởng thêm 50 KPI
+        # --- C. THƯỞNG ĐẶC BIỆT (MVP & LAST HIT) ---
+        # Thưởng thêm cho MVP
         if uid == mvp_id:
-            bonus_mvp = 50.0 
-            player['kpi'] += bonus_mvp
-            player_rewards.append(f"👑 +{bonus_mvp} KPI (MVP - Top Damage)")
+            bonus_mvp_kpi = 50.0 
+            bonus_mvp_exp = 100.0 # Thưởng thêm EXP cho người giỏi nhất
+            player['kpi'] += bonus_mvp_kpi
+            player['exp'] += bonus_mvp_exp
+            player_rewards.append(f"👑 MVP: +{bonus_mvp_kpi} KPI & +{bonus_mvp_exp} EXP")
             
-        # 🗡️ Thưởng Last Hit (Người kết liễu) - Ví dụ thưởng thêm 20 KPI
+        # Thưởng thêm cho người kết liễu
         if uid == killer_id:
-            bonus_kill = 20.0
-            player['kpi'] += bonus_kill
-            player_rewards.append(f"🗡️ +{bonus_kill} KPI (Người kết liễu)")
+            bonus_kill_kpi = 20.0
+            player['kpi'] += bonus_kill_kpi
+            player_rewards.append(f"🗡️ Kết liễu: +{bonus_kill_kpi} KPI")
 
-        # --- D. LƯU LẠI LOG ĐỂ HIỂN THỊ ---
-        # Nếu đây là người đang chơi (Killer), lưu lại để return ra hiển thị bong bóng/rương quà
+        # --- D. KIỂM TRA LÊN CẤP (LEVEL UP) ---
+        # Gọi hàm check level up tại đây nếu bạn đã có
+        # check_level_up(uid, all_users)
+        check_up_level(uid)
+        # Lưu log hiển thị cho người đang thực hiện cú đánh cuối (Killer)
         if uid == killer_id:
             killer_rewards_display = player_rewards
             killer_total_dmg = damage
-            
-    # Lưu ý: Hàm này chỉ thay đổi biến `all_users` trong RAM. 
-    # Bên ngoài hàm này PHẢI gọi save_data(all_users) để ghi xuống file ngay lập tức.
+    with open('data/boss_config.json', 'w', encoding='utf-8') as f:
+        json.dump({"active_boss": None}, f, indent=4, ensure_ascii=False)        
+    save_all_to_sheets(st.session_state.data)
+    
+    # 1. Xóa trạng thái Boss đang hoạt động (vì Boss đã chết)
+    try:
+        with open('data/boss_config.json', 'w', encoding='utf-8') as f:
+            json.dump({"active_boss": None}, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"Lỗi reset Boss Local: {e}")
+
+    # 2. Gọi hàm lưu tổng lực để đẩy KPI/EXP mới của học sinh và trạng thái Boss lên Google Sheets
+    # Giả sử all_users là bộ dữ liệu tổng của bạn
+    save_all_to_sheets(all_users)
     
     return killer_rewards_display, killer_total_dmg
     
@@ -3105,7 +3143,7 @@ def save_all_to_sheets(all_data):
                 info.get('hp', 100),
                 info.get('hp_max', 100),
                 json.dumps(stats_data, ensure_ascii=False),
-                json.dumps(info.get('inventory', {}), ensure_ascii=False),
+                json.dumps(info.get('properties', {}), ensure_ascii=False),
                 json.dumps(info.get('dungeon_progress', {}), ensure_ascii=False)
             ]
             player_rows.append(row)
@@ -3125,7 +3163,31 @@ def save_all_to_sheets(all_data):
                 sh_settings.update('A1', settings_rows)
             except Exception as e:
                 print(f"⚠️ Lỗi tab Settings: {e}")
-
+        # --- 2.1 ĐỒNG BỘ BOSS (Bổ sung vào Tab Settings) ---
+        if os.path.exists('data/boss_config.json'):
+            try:
+                with open('data/boss_config.json', 'r', encoding='utf-8') as f:
+                    boss_current_data = json.load(f)
+                
+                sh_settings = spreadsheet.worksheet("Settings")
+                # Lấy dữ liệu cũ để tránh ghi đè mất các key khác như rank_settings
+                existing_settings = sh_settings.get_all_values()
+                
+                # Tìm xem đã có dòng active_boss chưa, nếu có thì cập nhật, chưa thì thêm mới
+                boss_string = json.dumps(boss_current_data, ensure_ascii=False)
+                
+                # Đơn giản nhất: Ghi đè hoặc nối thêm vào cột Settings
+                # Ở đây ta dùng cách an toàn: Cập nhật lại toàn bộ Settings bao gồm cả Boss
+                settings_rows = [["Config_Key", "Value"]]
+                if "rank_settings" in all_data:
+                    settings_rows.append(["rank_settings", json.dumps(all_data["rank_settings"], ensure_ascii=False)])
+                
+                settings_rows.append(["active_boss", boss_string])
+                
+                sh_settings.clear()
+                sh_settings.update('A1', settings_rows)
+            except Exception as e:
+                print(f"⚠️ Lỗi đồng bộ Boss lên Settings: {e}")
         # --- 3. ĐỒNG BỘ TAB "Shop" (Tiệm tạp hóa) ---
         # Lấy từ session_state vì Shop thường được quản lý riêng
         if 'shop_items' in st.session_state:
@@ -3212,7 +3274,7 @@ def load_data_from_sheets():
         except Exception as e:
             print(f"⚠️ Lỗi đọc tab Players: {e}")
 
-        # --- PHẦN 2: TẢI CẤU HÌNH HỆ THỐNG (Tab Settings) ---
+        # Trong PHẦN 2 của load_data_from_sheets:
         try:
             sh_settings = spreadsheet.worksheet("Settings")
             settings_records = sh_settings.get_all_records()
@@ -3220,9 +3282,15 @@ def load_data_from_sheets():
                 key = row.get('Config_Key')
                 value = row.get('Value')
                 if key and value:
-                    new_data[key] = json.loads(value)
+                    decoded_val = json.loads(value)
+                    new_data[key] = decoded_val
+                    
+                    # THÊM ĐOẠN NÀY: Nếu thấy key là active_boss, ghi đè vào file local ngay
+                    if key == "active_boss":
+                        with open('data/boss_config.json', 'w', encoding='utf-8') as f:
+                            json.dump(decoded_val, f, indent=4, ensure_ascii=False)
         except Exception as e:
-            print(f"ℹ️ Tab Settings chưa có hoặc trống: {e}")
+            print(f"ℹ️ Tab Settings chưa có Boss: {e}")
 
         # --- PHẦN 3: TẢI TIỆM TẠP HÓA (Tab Shop) ---
         try:
@@ -3238,7 +3306,7 @@ def load_data_from_sheets():
                     "price": r.get('Price', 0),
                     "stock": r.get('Stock', 0),
                     "description": r.get('Description', ''),
-                    "effects": json.loads(r.get('Effect_JSON', '{}'))
+                    "properties": json.loads(r.get('Effect_JSON', '{}'))
                 }
             # Cập nhật trực tiếp vào session_state để các module Shop sử dụng được ngay
             st.session_state.shop_items = shop_dict

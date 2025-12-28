@@ -549,7 +549,7 @@ def admin_quan_ly_boss():
     
     st.divider()
 
-    # --- PHẦN 2: QUẢN LÝ BOSS & ITEM POOL (ĐÃ CẬP NHẬT) ---
+   # --- PHẦN 2: QUẢN LÝ BOSS & ITEM POOL (ĐÃ CẬP NHẬT) ---
     # Nạp dữ liệu Boss từ file
     if os.path.exists('data/boss_config.json'):
         with open('data/boss_config.json', 'r', encoding='utf-8') as f:
@@ -565,10 +565,12 @@ def admin_quan_ly_boss():
             ten_boss = st.text_input("Tên Giáo Viên:", "Pháp Sư Toán Học")
             mon_hoc = st.selectbox("Môn Thử Thách:", ["toan", "van", "anh", "ly", "hoa", "sinh"])
             hp_boss = st.number_input("Tổng Sinh Mệnh (HP):", min_value=1000, value=10000, step=1000)
+            anh_boss = st.text_input("Ảnh Boss (URL):", f"assets/teachers/{mon_hoc}.png") # Chuyển xuống đây cho gọn col1
         with c2:
             damage_boss = st.number_input("Sát Thương Boss:", value=20)
             kpi_rate = st.number_input("Tỷ lệ thưởng KPI (mỗi 1000 dmg):", value=1.0)
-            anh_boss = st.text_input("Ảnh Boss (URL):", f"assets/teachers/{mon_hoc}.png")
+            # --- CẬP NHẬT MỚI TẠI ĐÂY ---
+            exp_rate = st.number_input("Tỷ lệ thưởng EXP (mỗi 1000 dmg):", value=5.0) 
 
         st.divider()
         st.subheader("🎁 THIẾT LẬP ITEM POOL (Tỷ lệ rơi quà)")
@@ -596,8 +598,9 @@ def admin_quan_ly_boss():
             "hp_current": hp_boss,
             "damage": damage_boss,
             "kpi_rate": kpi_rate,
+            "exp_rate": exp_rate, # <--- LƯU THÊM CHỈ SỐ EXP
             "anh": anh_boss,
-            "drop_table": clean_drop_table, # <--- Dữ liệu đã sạch
+            "drop_table": clean_drop_table,
             "status": "active",
             "contributions": {},
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -609,40 +612,10 @@ def admin_quan_ly_boss():
                 json.dump({"active_boss": new_boss}, f, indent=4, ensure_ascii=False)
             st.success(f"✅ Đã triệu hồi {ten_boss} thành công!")
             st.balloons()
-            time.sleep(1) # Chờ xíu rồi reload
+            time.sleep(1) 
             st.rerun()
         except Exception as e:
             st.error(f"Lỗi khi lưu Boss: {e}")
-
-    # --- PHẦN 3: HIỂN THỊ THÔNG TIN BOSS ĐANG CHẠY & LOG ---
-    st.divider()
-    
-    if boss_data.get("active_boss"):
-        boss_hien_tai = boss_data["active_boss"]
-        
-        # THỐNG KÊ CHIẾN TRƯỜNG
-        st.subheader("📊 THỐNG KÊ CHIẾN TRƯỜNG")
-        if os.path.exists('data/boss_logs.json'):
-            with open('data/boss_logs.json', 'r', encoding='utf-8') as f:
-                logs_data = json.load(f)
-            
-            current_logs = [l for l in logs_data if l.get('boss_name') == boss_hien_tai['ten']]
-            
-            if current_logs:
-                st.dataframe(
-                    current_logs,
-                    column_config={
-                        "user_id": "Học Sĩ",
-                        "damage": st.column_config.NumberColumn("Sát Thương", format="%d ⚔️"),
-                        "rewards": "Vật Phẩm Nhận Được",
-                        "time": "Thời Gian"
-                    },
-                    use_container_width=True
-                )
-            else:
-                st.info("Chưa có học sĩ nào tấn công con Boss này.")
-        else:
-            st.info("Chưa có dữ liệu lịch sử chiến đấu.")
 
         st.divider()
 
