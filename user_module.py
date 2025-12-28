@@ -2516,6 +2516,8 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
     }
 
     with tab_tiem:
+        all_items = st.session_state.shop_items
+        shop_items_visible = [(name, info) for name, info in all_items.items() if info.get('is_listed', True)]
         if not st.session_state.shop_items:
             st.info("Cửa hàng hiện đang nhập thêm hàng, bạn quay lại sau nhé!")
         else:
