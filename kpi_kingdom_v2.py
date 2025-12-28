@@ -1626,7 +1626,10 @@ else:
                 # 4. So sánh mật khẩu
                 if input_pass == stored_pass:
                     # Đăng nhập thành công
-                    st.session_state.user_role = user_info.get("role", "player")
+                    raw_role = user_info.get("role", "player")
+                    final_role = str(raw_role).strip().lower()
+                    
+                    st.session_state.user_role = final_role
                     st.session_state.user_id = u_id_clean
                     st.session_state.page = None
                     
