@@ -886,10 +886,20 @@ if os.path.exists('data/world_announcements.json'):
 # MENU SIDEBAR ĐIỀU HƯỚNG
 # ==================================================
 
-if st.session_state.user_role is not None:
+if st.session_state.get("user_role") is not None:
+    
+    # 1. LẤY ROLE VÀ CHUẨN HÓA VỀ CHỮ THƯỜNG (Để so sánh chính xác)
+    # Ví dụ: "Admin" -> "admin", "U1" -> "u1"
+    current_role_menu = str(st.session_state.user_role).strip().lower()
+
     with st.sidebar:
-        # ===== MENU THEO ROLE =====
-        if st.session_state.user_role == "Admin":
+        # Hiển thị thông tin người dùng (Tuỳ chọn - cho đẹp)
+        st.write(f"👤 Xin chào: **{st.session_state.get('user_id', 'Khách')}**")
+        st.caption(f"Vai trò: {current_role_menu.upper()}")
+        st.divider()
+        # ===== MENU DÀNH CHO ADMIN =====
+        # So sánh với "admin" chữ thường
+        if current_role_menu == "admin":
             menu = [
                 "🏠 Thống kê KPI lớp",
                 "👥 Quản lý nhân sự",
@@ -904,7 +914,7 @@ if st.session_state.user_role is not None:
                 "🏪 Quản lý Tiệm tạp hóa"
             ]
 
-        elif st.session_state.user_role == "u1":
+        elif current_role_menu == "u1":
             menu = [
                 "📜 Chỉ số Học sĩ",
                 "👥 Quản lý nhân sự Tổ",
@@ -917,7 +927,7 @@ if st.session_state.user_role is not None:
                 "📊 Quản lý KPI tổ"
             ]
 
-        elif st.session_state.user_role in ["u2", "u3"]:
+        elif current_role_menu in ["u2", "u3", "player", "student"]:
             menu = [
                 "📜 Chỉ số Học sĩ",
                 "⚔️ Đại chiến Giáo viên",
@@ -929,10 +939,20 @@ if st.session_state.user_role is not None:
                 
             ]
 
+        # ===== TRƯỜNG HỢP LẠ (Role chưa định nghĩa) =====
         else:
+            st.warning(f"⚠️ Role '{current_role_menu}' chưa được cấp quyền Menu!")
             menu = []
 
-        st.session_state.page = st.radio("📌 MENU", menu, key="main_menu")
+        # Hiển thị Radio Button
+        if menu:
+            st.session_state.page = st.radio("📌 MENU ĐIỀU HƯỚNG", menu, key="main_menu")
+        
+        # Nút Đăng xuất (Thêm vào cuối Sidebar cho tiện)
+        st.divider()
+        if st.button("🚪 Đăng xuất"):
+            st.session_state.clear()
+            st.rerun()
         # ==============================================================================
         # 🔥 CƠ CHẾ TỰ ĐỘNG THOÁT PHÓ BẢN (AUTO-EXIT)
         # ==============================================================================
@@ -1373,6 +1393,12 @@ def hien_thi_banner_vinh_quang():
 </div>"""
 
     st.markdown(final_html, unsafe_allow_html=True)
+
+# 1. Lấy role hiện tại (chuyển về chữ thường để so sánh chuẩn xác)
+current_role = str(st.session_state.get("user_role", "")).lower().strip()
+
+# --- DEBUG: HIỆN ROLE RA ĐỂ KIỂM TRA (Xóa sau khi chạy ngon) ---
+st.info(f"DEBUG ROUTER: Role hiện tại là [{current_role}]")
 
 # ===== ADMIN =====
 if st.session_state.user_role and st.session_state.user_role.lower() == "admin":
