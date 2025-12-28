@@ -3075,21 +3075,22 @@ from datetime import datetime
 
 def save_all_to_sheets(all_data):
     """
-    Hàm tổng lực: Tự động phân loại dữ liệu và đẩy lên 4 Tab trên Google Sheets.
+    Hàm tổng lực: Tự động phân loại dữ liệu và đẩy lên các Tab trên Google Sheets.
+    Đã tích hợp: Players, Settings (Rank), Shop và Logs.
     """
     try:
-        # 1. Đồng bộ Tab "Players" (Dữ liệu từ data.json)
-        sh_players = CLIENT.open(SHEET_NAME).worksheet("Players")
-        # Tiêu đề khớp 100% với ảnh bạn gửi
+        spreadsheet = CLIENT.open(SHEET_NAME)
+        
+        # --- 1. ĐỒNG BỘ TAB "Players" ---
+        sh_players = spreadsheet.worksheet("Players")
         headers = ["user_id", "name", "team", "password", "kpi", "exp", "level", "hp", "hp_max", "stats_json", "inventory_json", "progress_json"]
-        rows = [headers]
+        player_rows = [headers]
         
         for uid, info in all_data.items():
-            # Loại bỏ các key cấu hình hệ thống không phải là user
-            if uid in ["rank_settings", "system_config"] or not isinstance(info, dict): 
+            # Chỉ xử lý các key là dictionary và không phải key hệ thống
+            if not isinstance(info, dict) or uid in ["rank_settings", "system_config"]:
                 continue
             
-            # Gói các chỉ số phụ (Vinh dự, Chiến tích...) vào stats_json
             stats_keys = ["Vi_Pham", "Bonus", "KTTX", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", "Tri_Thuc", "Chien_Tich", "Vinh_Du", "Vinh_Quang", "total_score", "titles", "best_time"]
             stats_data = {k: info.get(k, 0) for k in stats_keys}
             
@@ -3103,23 +3104,61 @@ def save_all_to_sheets(all_data):
                 info.get('level', 1),
                 info.get('hp', 100),
                 info.get('hp_max', 100),
-                json.dumps(stats_data, ensure_ascii=False),    # Chuyển sang JSON string
+                json.dumps(stats_data, ensure_ascii=False),
                 json.dumps(info.get('inventory', {}), ensure_ascii=False),
                 json.dumps(info.get('dungeon_progress', {}), ensure_ascii=False)
             ]
-            rows.append(row)
+            player_rows.append(row)
         
         sh_players.clear()
-        sh_players.update('A1', rows)
-        
-        # 2. Ghi Log hoạt động (Tab "Logs")
-        try:
-            sh_logs = CLIENT.open(SHEET_NAME).worksheet("Logs")
-            timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            sh_logs.append_row([timestamp, "SYSTEM", "Đã đồng bộ toàn bộ dữ liệu lên Cloud"])
-        except: pass
+        sh_players.update('A1', player_rows)
 
-        st.success("🌟 Vương quốc đã được đồng bộ lên Cloud thành công!")
+        # --- 2. ĐỒNG BỘ TAB "Settings" (Lưu Sảnh Danh Vọng) ---
+        if "rank_settings" in all_data:
+            try:
+                sh_settings = spreadsheet.worksheet("Settings")
+                settings_rows = [
+                    ["Config_Key", "Value"],
+                    ["rank_settings", json.dumps(all_data["rank_settings"], ensure_ascii=False)]
+                ]
+                sh_settings.clear()
+                sh_settings.update('A1', settings_rows)
+            except Exception as e:
+                print(f"⚠️ Lỗi tab Settings: {e}")
+
+        # --- 3. ĐỒNG BỘ TAB "Shop" (Tiệm tạp hóa) ---
+        # Lấy từ session_state vì Shop thường được quản lý riêng
+        if 'shop_items' in st.session_state:
+            try:
+                sh_shop = spreadsheet.worksheet("Shop")
+                shop_headers = ["Item_ID", "Item_Name", "Price", "Stock", "Description", "Effect_JSON"]
+                shop_rows = [shop_headers]
+                
+                for item_id, info in st.session_state.shop_items.items():
+                    row = [
+                        item_id,
+                        info.get('name', ''),
+                        info.get('price', 0),
+                        info.get('stock', 0),
+                        info.get('description', ''),
+                        json.dumps(info.get('effects', {}), ensure_ascii=False)
+                    ]
+                    shop_rows.append(row)
+                
+                sh_shop.clear()
+                sh_shop.update('A1', shop_rows)
+            except Exception as e:
+                print(f"⚠️ Lỗi tab Shop: {e}")
+
+        # --- 4. GHI LOG HOẠT ĐỘNG (Tab Logs) ---
+        try:
+            sh_logs = spreadsheet.worksheet("Logs")
+            timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            sh_logs.append_row([timestamp, "SYSTEM", "Đã đồng bộ toàn bộ vương quốc lên Cloud"])
+        except: 
+            pass
+
+        st.success("🌟 Toàn bộ dữ liệu Vương quốc đã được bảo vệ trên Cloud!")
         return True
         
     except Exception as e:
@@ -3128,49 +3167,90 @@ def save_all_to_sheets(all_data):
         
 def load_data_from_sheets():
     """
-    Truy xuất dữ liệu từ Tab Players trên Google Sheets và chuyển đổi về dạng Dictionary của Python.
+    Truy xuất toàn bộ dữ liệu vương quốc từ Cloud:
+    1. Tab Players: Dữ liệu học sĩ.
+    2. Tab Settings: Danh hiệu & Cấu hình hệ thống.
+    3. Tab Shop: Vật phẩm tiệm tạp hóa.
     """
     try:
-        # Kết nối vào Tab Players
-        sh_players = CLIENT.open(SHEET_NAME).worksheet("Players")
-        records = sh_players.get_all_records()
-        
-        if not records:
-            return {}
-
+        spreadsheet = CLIENT.open(SHEET_NAME)
         new_data = {}
-        for r in records:
-            uid = str(r['user_id']).strip().lower()
-            if not uid: continue
-            
-            # Giải mã các chuỗi JSON (stats, inventory, progress) về lại dạng Python Object
-            try:
-                stats = json.loads(r.get('stats_json', '{}'))
-                inventory = json.loads(r.get('inventory_json', '[]'))
-                progress = json.loads(r.get('progress_json', '{}'))
-            except:
-                stats, inventory, progress = {}, [], {}
 
-            # Xây dựng lại cấu trúc User hoàn chỉnh
-            user_info = {
-                "name": r.get('name', ''),
-                "team": r.get('team', 'Chưa phân tổ'),
-                "password": str(r.get('password', '123456')),
-                "kpi": r.get('kpi', 0),
-                "exp": r.get('exp', 0),
-                "level": r.get('level', 1),
-                "hp": r.get('hp', 100),
-                "hp_max": r.get('hp_max', 100),
-                "inventory": inventory,
-                "dungeon_progress": progress
-            }
-            # Đổ nốt các chỉ số phụ (Tri thức, Chiến tích...) vào
-            user_info.update(stats)
+        # --- PHẦN 1: TẢI DỮ LIỆU HỌC SĨ (Tab Players) ---
+        try:
+            sh_players = spreadsheet.worksheet("Players")
+            player_records = sh_players.get_all_records()
             
-            new_data[uid] = user_info
-            
-        print(f"📥 Đã tải thành công {len(new_data)} học sĩ từ Cloud!")
+            for r in player_records:
+                uid = str(r.get('user_id', '')).strip().lower()
+                if not uid: continue
+                
+                # Giải mã các chuỗi JSON (stats, inventory, progress)
+                try:
+                    stats = json.loads(r.get('stats_json', '{}'))
+                    inventory = json.loads(r.get('inventory_json', '[]'))
+                    progress = json.loads(r.get('progress_json', '{}'))
+                except:
+                    stats, inventory, progress = {}, [], {}
+
+                # Xây dựng cấu trúc User hoàn chỉnh
+                user_info = {
+                    "name": r.get('name', ''),
+                    "team": r.get('team', 'Chưa phân tổ'),
+                    "password": str(r.get('password', '123456')),
+                    "kpi": r.get('kpi', 0),
+                    "exp": r.get('exp', 0),
+                    "level": r.get('level', 1),
+                    "hp": r.get('hp', 100),
+                    "hp_max": r.get('hp_max', 100),
+                    "inventory": inventory,
+                    "dungeon_progress": progress
+                }
+                # Đổ nốt các chỉ số phụ từ stats_json vào user_info
+                user_info.update(stats)
+                new_data[uid] = user_info
+        except Exception as e:
+            print(f"⚠️ Lỗi đọc tab Players: {e}")
+
+        # --- PHẦN 2: TẢI CẤU HÌNH HỆ THỐNG (Tab Settings) ---
+        try:
+            sh_settings = spreadsheet.worksheet("Settings")
+            settings_records = sh_settings.get_all_records()
+            for row in settings_records:
+                key = row.get('Config_Key')
+                value = row.get('Value')
+                if key and value:
+                    new_data[key] = json.loads(value)
+        except Exception as e:
+            print(f"ℹ️ Tab Settings chưa có hoặc trống: {e}")
+
+        # --- PHẦN 3: TẢI TIỆM TẠP HÓA (Tab Shop) ---
+        try:
+            sh_shop = spreadsheet.worksheet("Shop")
+            shop_records = sh_shop.get_all_records()
+            shop_dict = {}
+            for r in shop_records:
+                item_id = str(r.get('Item_ID', ''))
+                if not item_id: continue
+                
+                shop_dict[item_id] = {
+                    "name": r.get('Item_Name', ''),
+                    "price": r.get('Price', 0),
+                    "stock": r.get('Stock', 0),
+                    "description": r.get('Description', ''),
+                    "effects": json.loads(r.get('Effect_JSON', '{}'))
+                }
+            # Cập nhật trực tiếp vào session_state để các module Shop sử dụng được ngay
+            st.session_state.shop_items = shop_dict
+        except Exception as e:
+            print(f"ℹ️ Tab Shop chưa có hoặc trống: {e}")
+
+        if not new_data:
+            return None
+
+        print(f"📥 Cloud Sync thành công: {len(new_data)} học sĩ & {len(shop_dict) if 'shop_dict' in locals() else 0} vật phẩm.")
         return new_data
+
     except Exception as e:
-        print(f"❌ Lỗi khi tải từ Cloud: {e}")
+        print(f"❌ Lỗi nghiêm trọng khi tải dữ liệu từ Cloud: {e}")
         return None
