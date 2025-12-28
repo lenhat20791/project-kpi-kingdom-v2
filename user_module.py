@@ -3373,9 +3373,12 @@ def load_data_from_sheets():
                                     json.dump(decoded_val, f, indent=4, ensure_ascii=False)
                                     
                         except Exception as json_error:
-                            # In lỗi ra để bạn biết sửa trên Sheets
+                            # Thay print bằng st.error để hiện lên web
+                            st.error(f"❌ LỖI CẤU HÌNH JSON (Tab Settings):")
+                            st.code(f"Key: {key}\nLỗi: {json_error}\nNội dung sai: {raw_value}", language="json")
+                            
+                            # Vẫn in ra terminal để backup
                             print(f"❌ LỖI JSON TẠI KEY '{key}': {json_error}")
-                            print(f"   👉 Nội dung lỗi: {raw_value}")
         
         except Exception as e:
             print(f"ℹ️ Lỗi chung tại tab Settings: {e}")
