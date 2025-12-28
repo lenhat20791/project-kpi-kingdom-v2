@@ -815,94 +815,57 @@ def save_data(data):
 # DATA_FILE_PATH = 'data/data.json' 
 
 def load_data(file_path=DATA_FILE_PATH):
+    """
+    Hàm này CHỈ tải từ Google Sheets.
+    Tuyệt đối KHÔNG đọc file local cũ để tránh ghi đè dữ liệu sai.
+    """
     try:
-        # Mặc định trạng thái là chưa rõ
-        if 'data_source' not in st.session_state:
-            st.session_state['data_source'] = 'unknown'
+        # Xóa Cache cũ để đảm bảo không lưu luyến quá khứ
+        # st.cache_data.clear() 
 
-        # --- 1. LẤY DỮ LIỆU TỪ CLOUD HOẶC LOCAL ---
-        print("☁️ Đang kết nối Google Sheets...")
+        print("☁️ [ONLINE MODE] Đang tải dữ liệu mới nhất từ Google Sheets...")
+        
+        # Gọi hàm tải dữ liệu (đã có bộ lọc khử dấu ở bước trước)
         cloud_data = load_data_from_sheets()
         
+        # TRƯỜNG HỢP 1: Tải thành công
         if cloud_data:
-            # TRƯỜNG HỢP 1: ONLINE (Thành công)
-            data = cloud_data
-            st.session_state['data_source'] = 'cloud' # Đánh dấu là Online
+            # Đánh dấu nguồn dữ liệu là Cloud
+            st.session_state['data_source'] = 'cloud'
             
-            # Lưu backup local ngay lập tức
+            # (Tùy chọn) Vẫn lưu file backup xuống máy chỉ để... ngắm, 
+            # hoặc để debug, chứ code này sẽ KHÔNG bao giờ đọc lại nó.
             try:
-                # Tạo thư mục data nếu chưa có
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(cloud_data, f, indent=4, ensure_ascii=False)
-            except Exception as e: 
-                print(f"⚠️ Không thể lưu backup: {e}")
+            except: 
+                pass
+                
+            return cloud_data
+
+        # TRƯỜNG HỢP 2: Tải thất bại (Mất mạng hoặc Lỗi API)
         else:
-            # TRƯỜNG HỢP 2: OFFLINE (Cloud lỗi/trả về None)
-            print("⚠️ Cloud lỗi hoặc rỗng, chuyển sang chế độ Offline...")
+            print("❌ Lỗi kết nối Google Sheets!")
+            # Thay vì đọc file cũ, ta trả về rỗng hoặc thông báo lỗi luôn
+            # Để người dùng biết mà không nhập liệu tiếp.
+            st.session_state['data_source'] = 'error'
             
-            if not os.path.exists(file_path):
-                # Trả về mặc định nếu hoàn toàn không có dữ liệu nào
-                return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
+            st.error("⛔ KHÔNG THỂ KẾT NỐI SERVER! Vui lòng kiểm tra mạng hoặc Google Sheets.")
             
-            # Đọc từ file backup cũ
-            with open(file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            st.session_state['data_source'] = 'local' # Đánh dấu là Offline (Nguy hiểm)
-
-        # --- 2. CHUẨN HÓA DỮ LIỆU THÀNH DICT VỚI KEY SẠCH (KHỬ DẤU) ---
-        new_dict = {}
-        if isinstance(data, (list, dict)):
-            source_items = data.values() if isinstance(data, dict) else data
-            
-            # Bảng mã thay thế tiếng Việt (Full)
-            vietnamese_map = {
-                'à': 'a', 'á': 'a', 'ạ': 'a', 'ả': 'a', 'ã': 'a', 'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ậ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ặ': 'a', 'ẳ': 'a', 'ẵ': 'a',
-                'è': 'e', 'é': 'e', 'ẹ': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ê': 'e', 'ề': 'e', 'ế': 'e', 'ệ': 'e', 'ể': 'e', 'ễ': 'e',
-                'ò': 'o', 'ó': 'o', 'ọ': 'o', 'ỏ': 'o', 'õ': 'o', 'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ộ': 'o', 'ổ': 'o', 'ỗ': 'o', 'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ợ': 'o', 'ở': 'o', 'ỡ': 'o',
-                'ù': 'u', 'ú': 'u', 'ụ': 'u', 'ủ': 'u', 'ũ': 'u', 'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ự': 'u', 'ử': 'u', 'ữ': 'u',
-                'ì': 'i', 'í': 'i', 'ị': 'i', 'ỉ': 'i', 'ĩ': 'i',
-                'ỳ': 'y', 'ý': 'y', 'ỵ': 'y', 'ỷ': 'y', 'ỹ': 'y',
-                'đ': 'd', ' ': '' # Xóa luôn khoảng trắng
+            # Trả về duy nhất Admin mặc định để vào sửa lỗi
+            return {
+                "admin": {
+                    "name": "Administrator", 
+                    "password": "admin", 
+                    "role": "admin", 
+                    "level": 99,
+                    "kpi": 0, "exp": 0
+                }
             }
-
-            for item in source_items:
-                if isinstance(item, dict):
-                    # Lấy ID định danh (Ưu tiên cột user_id, nếu không có lấy tên)
-                    raw_key = item.get('user_id') or item.get('u_id') or item.get('username') or item.get('name')
-                    
-                    # Ưu tiên giữ lại role admin từ Sheets
-                    if str(item.get('role', '')).lower() == 'admin':
-                        str_key = 'admin'
-                    elif raw_key:
-                        # --- XỬ LÝ KHỬ DẤU TIẾNG VIỆT ---
-                        s = str(raw_key).strip().lower()
-                        for char, replacement in vietnamese_map.items():
-                            s = s.replace(char, replacement)
-                        str_key = s
-                        # --------------------------------
-                    else:
-                        continue
-                        
-                    new_dict[str_key] = item
-        
-        # --- 3. KIỂM TRA CUỐI CÙNG (Đảm bảo luôn có Admin) ---
-        if "admin" not in new_dict:
-            new_dict["admin"] = {
-                "name": "Administrator", 
-                "password": "admin", 
-                "role": "admin", 
-                "level": 99,
-                "kpi": 0,
-                "exp": 0
-            }
-
-        return new_dict
 
     except Exception as e:
         print(f"❌ Lỗi nghiêm trọng tại load_data: {e}")
-        # Trả về tài khoản cứu hộ cuối cùng
         return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
 import random
 
@@ -3418,3 +3381,31 @@ def load_data_from_sheets():
     except Exception as e:
         print(f"❌ Lỗi nghiêm trọng khi tải dữ liệu từ Cloud: {e}")
         return None
+        
+def update_setting_on_sheet(config_key, new_value_data):
+    """
+    Hàm cập nhật giá trị trong Tab Settings trên Google Sheets
+    config_key: Tên khóa (ví dụ: 'rank_settings')
+    new_value_data: Dữ liệu list/dict cần lưu (sẽ tự chuyển thành JSON)
+    """
+    try:
+        sh = CLIENT.open(SHEET_NAME)
+        wks = sh.worksheet("Settings")
+        
+        # Tìm dòng chứa key (Cột A là Config_Key)
+        cell = wks.find(config_key, in_column=1)
+        
+        if cell:
+            # Chuyển dữ liệu thành chuỗi JSON để lưu
+            json_str = json.dumps(new_value_data, ensure_ascii=False)
+            
+            # Cập nhật vào cột B (Cột 2 - Value)
+            wks.update_cell(cell.row, 2, json_str)
+            print(f"✅ Đã cập nhật {config_key} lên Google Sheets.")
+            return True
+        else:
+            print(f"❌ Không tìm thấy key '{config_key}' trong tab Settings.")
+            return False
+    except Exception as e:
+        print(f"❌ Lỗi cập nhật Settings: {e}")
+        return False        
