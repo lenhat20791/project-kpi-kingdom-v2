@@ -1467,11 +1467,25 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     except:
                         pass
 
-                    # 2. Sao lưu cấu hình cần giữ
+                    # 2. [QUAN TRỌNG] SAO LƯU CẤU HÌNH CẦN GIỮ (RANK SETTINGS)
+                    # Thử lấy từ Session State trước
                     saved_rank_settings = st.session_state.data.get('rank_settings', [])
+                    
+                    # Nếu Session trống, thử đọc lại từ file data.json gốc để chắc ăn
+                    if not saved_rank_settings:
+                        try:
+                            with open(DATA_FILE_PATH, 'r', encoding='utf-8') as f:
+                                temp_data = json.load(f)
+                                saved_rank_settings = temp_data.get('rank_settings', [])
+                        except:
+                            pass
+                    
+                    # Debug: In ra để kiểm tra (Xóa sau khi chạy xong)
+                    # st.write(f"DEBUG: Số lượng danh hiệu giữ lại: {len(saved_rank_settings)}")
+
                     current_admin_pass = st.session_state.data.get('admin', {}).get('password', 'admin')
 
-                    # 3. Tạo dữ liệu mới
+                    # 3. TẠO DỮ LIỆU MỚI (Vẫn giữ Rank Settings)
                     new_data = {
                         'admin': {
                             "name": "Administrator",
@@ -1480,16 +1494,28 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             "grade": "Hệ thống",
                             "team": "Quản trị",
                             "kpi": 0.0,
-                            "level": 99
+                            "level": 99,
+                            "exp": 0
                         },
-                        'players': [],
-                        'rank_settings': saved_rank_settings if saved_rank_settings else []
+                        # Reset danh sách học sinh về rỗng
+                        'players': [], 
+                        
+                        # [QUAN TRỌNG] Gán lại Rank Settings đã sao lưu
+                        # Nếu vẫn rỗng, thử tạo một list mặc định để không bị lỗi code sau này
+                        'rank_settings': saved_rank_settings if saved_rank_settings else [] 
                     }
+                    
+                    # Nếu rank_settings vẫn rỗng (trường hợp file gốc cũng mất), ta có thể
+                    # (Tùy chọn) Khởi tạo danh hiệu mặc định cơ bản
+                    if not new_data['rank_settings']:
+                         new_data['rank_settings'] = [
+                             {"name": "Tân Thủ", "min_kpi": 0, "color": "#808080"},
+                             {"name": "Học Giả", "min_kpi": 50, "color": "#00FF00"}
+                         ]
 
-                    # 4. Reset file Lôi đài an toàn
+                    # 4. Reset file Lôi đài an toàn (Giữ nguyên code của bạn)
                     path_loi_dai = "loi_dai.json" 
                     default_structure = {"matches": {}, "rankings": {}}
-                    
                     try:
                         with open(path_loi_dai, 'w', encoding='utf-8') as f:
                             json.dump(default_structure, f, ensure_ascii=False, indent=4)
@@ -1500,7 +1526,10 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         st.error(f"⚠️ Lỗi reset lôi đài: {e}")
 
                     # 5. Cập nhật và lưu dữ liệu chính
+                    # Cập nhật vào RAM ngay lập tức
                     st.session_state.data = new_data
+                    
+                    # Lưu xuống file vật lý
                     save_data_func(new_data)
                     
                     # ==========================================================
