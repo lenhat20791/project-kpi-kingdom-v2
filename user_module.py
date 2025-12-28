@@ -810,60 +810,63 @@ def save_data(data):
         return False
         
 def load_data(file_path=DATA_FILE_PATH):
-    try: # Thêm try bao quát toàn bộ logic để bắt lỗi nếu có
+    try:
         # --- 1. LẤY DỮ LIỆU TỪ CLOUD HOẶC LOCAL ---
         cloud_data = load_data_from_sheets()
         
         if cloud_data:
             data = cloud_data
-            # Cập nhật local backup
+            # Lưu backup local
             try:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(cloud_data, f, indent=4, ensure_ascii=False)
             except: 
                 pass
         else:
-            # Nếu Cloud lỗi, đọc từ Local
             if not os.path.exists(file_path):
+                # Trả về mặc định nếu hoàn toàn không có dữ liệu
                 return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
             
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-            except:
-                return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
 
-        # --- 2. [QUAN TRỌNG] CHUẨN HÓA DỮ LIỆU THÀNH DICT VỚI KEY SẠCH ---
+        # --- 2. CHUẨN HÓA DỮ LIỆU THÀNH DICT VỚI KEY SẠCH ---
+        new_dict = {}
         if isinstance(data, (list, dict)):
-            new_dict = {}
             source_items = data.values() if isinstance(data, dict) else data
             
             for item in source_items:
                 if isinstance(item, dict):
-                    # Tìm key định danh
-                    key = item.get('user_id') or item.get('u_id') or item.get('username') or item.get('name')
+                    # Lấy ID định danh
+                    raw_key = item.get('user_id') or item.get('u_id') or item.get('username') or item.get('name')
                     
+                    # Ưu tiên giữ lại role admin từ Sheets
                     if item.get('role') == 'admin':
-                        key = 'admin'
-                    
-                    if not key:
+                        str_key = 'admin'
+                    elif raw_key:
+                        str_key = str(raw_key).strip().lower().replace(" ", "")
+                    else:
                         continue
-                    
-                    # Làm sạch key: viết thường, xóa khoảng trắng
-                    str_key = str(key).strip().lower().replace(" ", "")
+                        
                     new_dict[str_key] = item
-            
-            data = new_dict
+        
+        # --- 3. KIỂM TRA CUỐI CÙNG (CHỈ THÊM NẾU THIẾU) ---
+        # Nếu sau khi load mà vẫn không có tài khoản admin, lúc đó mới thêm mặc định
+        if "admin" not in new_dict:
+            new_dict["admin"] = {
+                "name": "Administrator", 
+                "password": "admin", 
+                "role": "admin", 
+                "level": 99,
+                "kpi": 0,
+                "exp": 0
+            }
 
-        # Kiểm tra cuối cùng
-        if not isinstance(data, dict) or "admin" not in data:
-            if not isinstance(data, dict): data = {}
-            data["admin"] = {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}
-
-        return data
+        return new_dict
 
     except Exception as e:
         print(f"❌ Lỗi nghiêm trọng tại load_data: {e}")
+        # Trả về tài khoản cứu hộ cuối cùng
         return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
 
 import random
