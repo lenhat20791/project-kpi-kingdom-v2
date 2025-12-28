@@ -632,17 +632,20 @@ def save_data(data=None):
     # Chuyển việc cho user_module làm
     return user_module.save_data(data)
         
-# --- KHỞI TẠO DỮ LIỆU ---
+# --- KHỞI TẠO DỮ LIỆU ĐẦU VÀO ---
 if 'data' not in st.session_state:
-    # Gọi hàm load_data xịn từ user_module
-    st.session_state.data = user_module.load_data()
-    # Nếu load ra bị None hoặc lỗi, phải khởi tạo Dict rỗng để tránh crash
-    if st.session_state.data is None:
-        st.session_state.data = {}
+    with st.spinner('📡 Đang kết nối vệ tinh tới Google Sheets...'):
+        st.session_state.data = user_module.load_data()
         
-    # 👇 THÊM DÒNG NÀY ĐỂ DEBUG 👇
-    print(f"🧐 Dữ liệu sau khi load: {type(st.session_state.data)}")
-# --- 👇 DÁN TIẾP ĐOẠN NÀY VÀO ĐỂ KHỞI TẠO SHOP 👇 ---
+    # --- HIỂN THỊ TRẠNG THÁI DỮ LIỆU ---
+    # Nếu đang dùng Local (Offline), hiện cảnh báo đỏ lòm
+    if st.session_state.get('data_source') == 'local':
+        st.error("⚠️ CẢNH BÁO: Mất kết nối Google Sheets! Hệ thống đang dùng dữ liệu CŨ (Offline).")
+        st.warning("⛔ Vui lòng KHÔNG chỉnh sửa hoặc lưu dữ liệu lúc này để tránh lỗi ghi đè.")
+    
+    # Nếu đang dùng Cloud (Online), báo xanh
+    elif st.session_state.get('data_source') == 'cloud':
+        st.toast("✅ Đã đồng bộ dữ liệu mới nhất từ Cloud!", icon="☁️")
 
 if 'shop_items' not in st.session_state:
     # 1. Nếu có file shop_data.json thì load lên
