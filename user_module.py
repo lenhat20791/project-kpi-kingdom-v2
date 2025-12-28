@@ -810,66 +810,57 @@ def save_data(data):
         return False
         
 def load_data(file_path=DATA_FILE_PATH):
-    # --- 1. ƯU TIÊN LẤY DỮ LIỆU TỪ CLOUD ---
-    # Luôn thử lấy từ Sheets trước để đảm bảo dữ liệu mới nhất
+    # --- 1. LẤY DỮ LIỆU TỪ CLOUD HOẶC LOCAL ---
     cloud_data = load_data_from_sheets()
     
     if cloud_data:
-        # Nếu lấy được từ Cloud, cập nhật file local ngay để backup
+        data = cloud_data
+        # Cập nhật local backup
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(cloud_data, f, indent=4, ensure_ascii=False)
         except: 
             pass
-        return cloud_data
+    else:
+        # Nếu Cloud lỗi, đọc từ Local
+        if not os.path.exists(file_path):
+            return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
         
-    # --- 2. NẾU CLOUD LỖI, ĐỌC TỪ FILE LOCAL ---
-    if not os.path.exists(file_path):
-        # Nếu không có cả local, trả về Admin mặc định
-        return {
-            "admin": {
-                "name": "Administrator",
-                "password": "admin",
-                "role": "admin",
-                "grade": "Hệ thống",
-                "team": "Quản trị",
-                "kpi": 0.0,
-                "level": 99,
-                "rank_settings": [] 
-            }
-        }
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except:
+            return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
 
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+    # --- 2. [QUAN TRỌNG] CHUẨN HÓA DỮ LIỆU THÀNH DICT VỚI KEY SẠCH ---
+    # Chạy bước này cho cả dữ liệu từ Cloud và Local
+    if isinstance(data, (list, dict)):
+        new_dict = {}
+        # Nếu là dict, ta duyệt qua các values để chuẩn hóa lại keys
+        source_items = data.values() if isinstance(data, dict) else data
+        
+        for item in source_items:
+            if isinstance(item, dict):
+                # Tìm key định danh
+                key = item.get('user_id') or item.get('u_id') or item.get('username') or item.get('name')
+                
+                if item.get('role') == 'admin':
+                    key = 'admin'
+                
+                if not key:
+                    continue
+                
+                # Làm sạch key: viết thường, xóa khoảng trắng
+                str_key = str(key).strip().lower().replace(" ", "")
+                new_dict[str_key] = item
+        
+        data = new_dict
 
-        # --- 3. [QUAN TRỌNG] TỰ ĐỘNG CHUYỂN LIST THÀNH DICT ---
-        if isinstance(data, list):
-            print("⚠️ Load Data: Dữ liệu đang ở dạng List -> Đang tự động sửa...")
-            new_dict = {}
-            for item in data:
-                if isinstance(item, dict):
-                    # Tìm key (Khớp với các cột trên Sheets: user_id)
-                    key = item.get('user_id') or item.get('u_id') or item.get('username') or item.get('name')
-                    
-                    if item.get('role') == 'admin':
-                        key = 'admin'
-                    elif not key:
-                        continue
-                        
-                    # Làm sạch key: viết thường, xóa cách
-                    str_key = str(key).strip().lower().replace(" ", "")
-                    new_dict[str_key] = item
-            
-            data = new_dict
-            # 🔥 Lưu lại ngay vào local để sửa triệt để file JSON
-            save_data(data)
+    # Kiểm tra cuối cùng
+    if not isinstance(data, dict) or "admin" not in data:
+        data["admin"] = {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}
 
-        # Kiểm tra cuối cùng để đảm bảo app không sập
-        if not isinstance(data, dict):
-            return {"admin": {"name": "Administrator", "password": "admin", "role": "admin"}}
-
-        return data
+    return data
 
     except Exception as e:
         print(f"❌ Lỗi đọc file data: {e}. Trả về dict rỗng.")

@@ -1599,20 +1599,38 @@ else:
             
         # Xử lý sự kiện bấm nút đăng nhập
         if btn_login:
-            # Kiểm tra đăng nhập 
-            if u_id_input == "admin" and pwd_input == st.session_state.data.get("admin", {}).get("password", "admin"):
-                st.session_state.user_role = "Admin"
+            # 1. Làm sạch ID nhập vào: viết thường, xóa khoảng trắng đầu cuối và ở giữa
+            u_id_clean = str(u_id_input).strip().lower().replace(" ", "")
+            
+            # 2. Lấy dữ liệu Admin để kiểm tra riêng (phòng trường hợp data lỗi)
+            admin_data = st.session_state.data.get("admin", {})
+            admin_password = admin_data.get("password", "admin")
+
+            # --- TRƯỜNG HỢP 1: ĐĂNG NHẬP ADMIN ---
+            if u_id_clean == "admin" and pwd_input == admin_password:
+                st.session_state.user_role = "admin"
                 st.session_state.user_id = "admin"
                 st.session_state.page = None
+                st.success("🔓 Chào mừng Quản trị viên!")
                 st.rerun()
 
-            elif u_id_input in st.session_state.data and pwd_input == st.session_state.data[u_id_input]["password"]:
-                st.session_state.user_role = st.session_state.data[u_id_input]["role"]
-                st.session_state.user_id = u_id_input
-                st.session_state.page = None
-                st.rerun()
+            # --- TRƯỜNG HỢP 2: ĐĂNG NHẬP NGƯỜI CHƠI ---
+            # Kiểm tra ID đã làm sạch có tồn tại trong Dictionary data không
+            elif u_id_clean in st.session_state.data:
+                user_info = st.session_state.data[u_id_clean]
+                
+                # Kiểm tra mật khẩu (ép kiểu về string để so sánh chính xác)
+                if str(pwd_input) == str(user_info.get("password", "")):
+                    st.session_state.user_role = user_info.get("role", "player")
+                    st.session_state.user_id = u_id_clean
+                    st.session_state.page = None
+                    st.rerun()
+                else:
+                    st.error("❌ Mật khẩu không chính xác!")
+            
+            # --- TRƯỜNG HỢP 3: KHÔNG TÌM THẤY TÀI KHOẢN ---
             else:
-                st.error("Sai tài khoản hoặc mật khẩu!")
+                st.error("❌ Tài khoản không tồn tại trên hệ thống!")
 
         # 👇👇👇 [MỚI] CHÈN BẢNG VÀNG VÀO ĐÂY (Vẫn nằm trong with col_sidebar) 👇👇👇
         st.write("") # Tạo khoảng trống cho thoáng
