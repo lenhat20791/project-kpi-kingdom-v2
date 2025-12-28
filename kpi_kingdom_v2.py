@@ -1626,8 +1626,11 @@ else:
         # Xử lý sự kiện bấm nút đăng nhập
         if btn_login:
             # 1. Chuẩn hóa ID nhập vào (viết thường, không dấu cách)
-            u_id_clean = str(u_id_input).strip().lower().replace(" ", "")
-            
+            u_id_clean = str(u_id_input).strip().lower()
+            vietnamese_map = {'à':'a', 'á':'a', 'đ':'d', ' ': '', ...} # (Copy lại cái map dài ở trên vào đây)
+
+            for char, replacement in vietnamese_map.items():
+                u_id_clean = u_id_clean.replace(char, replacement)
             # 2. Chuẩn hóa mật khẩu nhập vào (xóa khoảng trắng đầu cuối)
             input_pass = str(pwd_input).strip()
 

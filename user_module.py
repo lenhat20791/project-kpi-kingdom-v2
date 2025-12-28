@@ -830,28 +830,43 @@ def load_data(file_path=DATA_FILE_PATH):
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
-        # --- 2. CHUẨN HÓA DỮ LIỆU THÀNH DICT VỚI KEY SẠCH ---
+        # --- 2. CHUẨN HÓA DỮ LIỆU THÀNH DICT VỚI KEY SẠCH (KHỬ DẤU) ---
         new_dict = {}
         if isinstance(data, (list, dict)):
             source_items = data.values() if isinstance(data, dict) else data
             
+            # Bảng mã thay thế tiếng Việt
+            vietnamese_map = {
+                'à': 'a', 'á': 'a', 'ạ': 'a', 'ả': 'a', 'ã': 'a', 'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ậ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ặ': 'a', 'ẳ': 'a', 'ẵ': 'a',
+                'è': 'e', 'é': 'e', 'ẹ': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ê': 'e', 'ề': 'e', 'ế': 'e', 'ệ': 'e', 'ể': 'e', 'ễ': 'e',
+                'ò': 'o', 'ó': 'o', 'ọ': 'o', 'ỏ': 'o', 'õ': 'o', 'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ộ': 'o', 'ổ': 'o', 'ỗ': 'o', 'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ợ': 'o', 'ở': 'o', 'ỡ': 'o',
+                'ù': 'u', 'ú': 'u', 'ụ': 'u', 'ủ': 'u', 'ũ': 'u', 'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ự': 'u', 'ử': 'u', 'ữ': 'u',
+                'ì': 'i', 'í': 'i', 'ị': 'i', 'ỉ': 'i', 'ĩ': 'i',
+                'ỳ': 'y', 'ý': 'y', 'ỵ': 'y', 'ỷ': 'y', 'ỹ': 'y',
+                'đ': 'd', ' ': '' # Xóa luôn khoảng trắng
+            }
+
             for item in source_items:
                 if isinstance(item, dict):
-                    # Lấy ID định danh
+                    # Lấy ID định danh (Ưu tiên cột user_id, nếu không có lấy tên)
                     raw_key = item.get('user_id') or item.get('u_id') or item.get('username') or item.get('name')
                     
                     # Ưu tiên giữ lại role admin từ Sheets
                     if item.get('role') == 'admin':
                         str_key = 'admin'
                     elif raw_key:
-                        str_key = str(raw_key).strip().lower().replace(" ", "")
+                        # --- XỬ LÝ KHỬ DẤU TIẾNG VIỆT ---
+                        s = str(raw_key).strip().lower()
+                        for char, replacement in vietnamese_map.items():
+                            s = s.replace(char, replacement)
+                        str_key = s
+                        # --------------------------------
                     else:
                         continue
                         
                     new_dict[str_key] = item
         
         # --- 3. KIỂM TRA CUỐI CÙNG (CHỈ THÊM NẾU THIẾU) ---
-        # Nếu sau khi load mà vẫn không có tài khoản admin, lúc đó mới thêm mặc định
         if "admin" not in new_dict:
             new_dict["admin"] = {
                 "name": "Administrator", 
@@ -866,9 +881,7 @@ def load_data(file_path=DATA_FILE_PATH):
 
     except Exception as e:
         print(f"❌ Lỗi nghiêm trọng tại load_data: {e}")
-        # Trả về tài khoản cứu hộ cuối cùng
         return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
-
 import random
 
 def tinh_va_tra_thuong_global(killer_id, boss_data, all_users):
