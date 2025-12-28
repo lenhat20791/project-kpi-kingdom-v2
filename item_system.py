@@ -41,7 +41,7 @@ def get_item_behavior_registry():
                 "feature": "Tính năng kích hoạt",
                 "power_value": "Số lượt/Phần trăm"
             }
-        }
+        },
         "BOSS_RESET": {
             "name": "📜 Lệnh Bài Hồi Sinh Boss",
             "params": {
