@@ -810,61 +810,61 @@ def save_data(data):
         return False
         
 def load_data(file_path=DATA_FILE_PATH):
-    # --- 1. LẤY DỮ LIỆU TỪ CLOUD HOẶC LOCAL ---
-    cloud_data = load_data_from_sheets()
-    
-    if cloud_data:
-        data = cloud_data
-        # Cập nhật local backup
-        try:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(cloud_data, f, indent=4, ensure_ascii=False)
-        except: 
-            pass
-    else:
-        # Nếu Cloud lỗi, đọc từ Local
-        if not os.path.exists(file_path):
-            return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
+    try: # Thêm try bao quát toàn bộ logic để bắt lỗi nếu có
+        # --- 1. LẤY DỮ LIỆU TỪ CLOUD HOẶC LOCAL ---
+        cloud_data = load_data_from_sheets()
         
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-        except:
-            return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
+        if cloud_data:
+            data = cloud_data
+            # Cập nhật local backup
+            try:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    json.dump(cloud_data, f, indent=4, ensure_ascii=False)
+            except: 
+                pass
+        else:
+            # Nếu Cloud lỗi, đọc từ Local
+            if not os.path.exists(file_path):
+                return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
+            
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            except:
+                return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
 
-    # --- 2. [QUAN TRỌNG] CHUẨN HÓA DỮ LIỆU THÀNH DICT VỚI KEY SẠCH ---
-    # Chạy bước này cho cả dữ liệu từ Cloud và Local
-    if isinstance(data, (list, dict)):
-        new_dict = {}
-        # Nếu là dict, ta duyệt qua các values để chuẩn hóa lại keys
-        source_items = data.values() if isinstance(data, dict) else data
-        
-        for item in source_items:
-            if isinstance(item, dict):
-                # Tìm key định danh
-                key = item.get('user_id') or item.get('u_id') or item.get('username') or item.get('name')
-                
-                if item.get('role') == 'admin':
-                    key = 'admin'
-                
-                if not key:
-                    continue
-                
-                # Làm sạch key: viết thường, xóa khoảng trắng
-                str_key = str(key).strip().lower().replace(" ", "")
-                new_dict[str_key] = item
-        
-        data = new_dict
+        # --- 2. [QUAN TRỌNG] CHUẨN HÓA DỮ LIỆU THÀNH DICT VỚI KEY SẠCH ---
+        if isinstance(data, (list, dict)):
+            new_dict = {}
+            source_items = data.values() if isinstance(data, dict) else data
+            
+            for item in source_items:
+                if isinstance(item, dict):
+                    # Tìm key định danh
+                    key = item.get('user_id') or item.get('u_id') or item.get('username') or item.get('name')
+                    
+                    if item.get('role') == 'admin':
+                        key = 'admin'
+                    
+                    if not key:
+                        continue
+                    
+                    # Làm sạch key: viết thường, xóa khoảng trắng
+                    str_key = str(key).strip().lower().replace(" ", "")
+                    new_dict[str_key] = item
+            
+            data = new_dict
 
-    # Kiểm tra cuối cùng
-    if not isinstance(data, dict) or "admin" not in data:
-        data["admin"] = {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}
+        # Kiểm tra cuối cùng
+        if not isinstance(data, dict) or "admin" not in data:
+            if not isinstance(data, dict): data = {}
+            data["admin"] = {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}
 
-    return data
+        return data
 
     except Exception as e:
-        print(f"❌ Lỗi đọc file data: {e}. Trả về dict rỗng.")
-        return {}
+        print(f"❌ Lỗi nghiêm trọng tại load_data: {e}")
+        return {"admin": {"name": "Administrator", "password": "admin", "role": "admin", "level": 99}}
 
 import random
 
