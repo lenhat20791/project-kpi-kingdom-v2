@@ -1375,7 +1375,7 @@ def hien_thi_banner_vinh_quang():
     st.markdown(final_html, unsafe_allow_html=True)
 
 # ===== ADMIN =====
-if st.session_state.user_role == "Admin":
+if st.session_state.user_role and st.session_state.user_role.lower() == "admin":
     import admin_module
     
     # 1. Trang Quản lý Boss (Đại chiến giáo viên)
