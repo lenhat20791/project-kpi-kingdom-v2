@@ -3068,31 +3068,42 @@ def save_all_to_sheets(all_data):
     try:
         spreadsheet = CLIENT.open(SHEET_NAME)
         
-        # --- 1. ĐỒNG BỘ TAB "Players" ---
+        # --- 1. ĐỒNG BỘ TAB "Players" (BẢN FIX AN TOÀN) ---
         sh_players = spreadsheet.worksheet("Players")
-        headers = ["user_id", "name", "team", "password", "kpi", "exp", "level", "hp", "hp_max", "stats_json", "inventory_json", "progress_json"]
+        
+        # THÊM 'role' VÀ 'chat_count' VÀO ĐÂY ĐỂ GOOGLE SHEETS KHÔNG XÓA
+        headers = [
+            "user_id", "name", "team", "role", "password", 
+            "kpi", "exp", "level", "hp", "hp_max", 
+            "world_chat_count", "stats_json", "inventory_json", "progress_json"
+        ]
         player_rows = [headers]
         
         for uid, info in all_data.items():
-            # Chỉ xử lý các key là dictionary và không phải key hệ thống
             if not isinstance(info, dict) or uid in ["rank_settings", "system_config"]:
                 continue
             
+            # Gom các chỉ số game vào stats_json
             stats_keys = ["Vi_Pham", "Bonus", "KTTX", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", "Tri_Thuc", "Chien_Tich", "Vinh_Du", "Vinh_Quang", "total_score", "titles", "best_time"]
             stats_data = {k: info.get(k, 0) for k in stats_keys}
+            
+            # Lấy số lượt chat từ cấu trúc lồng nhau
+            chat_count = info.get('special_permissions', {}).get('world_chat_count', 0)
             
             row = [
                 uid,
                 info.get('name', ''),
                 info.get('team', 'Chưa phân tổ'),
+                info.get('role', 'u3'),           # Ghi cột role
                 info.get('password', '123456'),
                 info.get('kpi', 0),
                 info.get('exp', 0),
                 info.get('level', 1),
                 info.get('hp', 100),
                 info.get('hp_max', 100),
+                chat_count,                        # Ghi cột world_chat_count
                 json.dumps(stats_data, ensure_ascii=False),
-                json.dumps(info.get('properties', {}), ensure_ascii=False),
+                json.dumps(info.get('inventory', {}), ensure_ascii=False), # Sửa lại 'inventory' thay vì 'properties'
                 json.dumps(info.get('dungeon_progress', {}), ensure_ascii=False)
             ]
             player_rows.append(row)

@@ -1052,37 +1052,48 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 hide_index=True
             )
             
-            # 6. NÚT XÁC NHẬN LƯU THAY ĐỔI
+            # 6. NÚT XÁC NHẬN LƯU THAY ĐỔI (BẢN FIX AN TOÀN)
             if st.button("💾 XÁC NHẬN THAY ĐỔI TOÀN BỘ", use_container_width=True):
                 role_to_code = {"Tổ trưởng": "u1", "Tổ phó": "u2", "Tổ viên": "u3"}
+                
+                # Tạo một bản sao dữ liệu hiện tại để tránh lỗi tham chiếu
+                temp_data = st.session_state.data.copy()
                 
                 for _, row in edited_df.iterrows():
                     u_id = str(row['User ID'])
                     
-                    new_password = "123" if row['Reset_123'] else str(row['password'])
-                    new_role = role_to_code.get(row['role'], "u3")
+                    # Xác định mật khẩu và chức vụ mới
+                    new_password = "123" if row.get('Reset_123') else str(row.get('password', '123456'))
+                    new_role = role_to_code.get(row.get('role'), "u3")
                     
-                    # 🛠️ CẬP NHẬT AN TOÀN: Đảm bảo không làm mất các chỉ số cũ (hp, exp...)
-                    if u_id in st.session_state.data:
-                        st.session_state.data[u_id].update({
-                            "team": row['team'],
-                            "role": new_role,
-                            "password": new_password,
-                            # Đảm bảo có giá trị mặc định nếu chưa có
-                            "hp": st.session_state.data[u_id].get("hp", 100),
-                            "hp_max": st.session_state.data[u_id].get("hp_max", 100),
-                            "level": st.session_state.data[u_id].get("level", 1),
-                            "exp": st.session_state.data[u_id].get("exp", 0),
-                            "kpi": st.session_state.data[u_id].get("kpi", 0)
-                        })
+                    if u_id in temp_data:
+                        # Cập nhật thông tin cơ bản
+                        temp_data[u_id]["team"] = row.get('team', temp_data[u_id].get('team', 'Chưa phân tổ'))
+                        temp_data[u_id]["role"] = new_role
+                        temp_data[u_id]["password"] = new_password
+                        
+                        # --- QUAN TRỌNG: Đảm bảo các key cần thiết cho hàm save_all_to_sheets tồn tại ---
+                        # Nếu thiếu các key này, hàm lưu sẽ tạo ra dòng dữ liệu lỗi/rỗng
+                        keys_to_check = ['exp', 'level', 'hp', 'hp_max', 'kpi', 'inventory', 'dungeon_progress']
+                        for k in keys_to_check:
+                            if k not in temp_data[u_id]:
+                                # Khởi tạo giá trị mặc định nếu dữ liệu cũ bị thiếu
+                                temp_data[u_id][k] = {} if 'inventory' in k or 'progress' in k else 0
+                                if k == 'hp' or k == 'hp_max': temp_data[u_id][k] = 100
+
+                # Cập nhật lại vào session_state
+                st.session_state.data = temp_data
                 
-                # 🔥 GỌI LƯU TỔNG LỰC (Local + Cloud)
-                st.info("🔄 Hệ thống đang cố gắng đẩy dữ liệu lên Google Sheets...") # Dòng để kiểm tra
-                save_data(st.session_state.data) 
-                st.success("🎉 Đã cập nhật thông tin và đồng bộ Google Sheets thành công!")
-                st.rerun()
-        else:
-            st.info("💡 Vương quốc hiện chưa có dân cư. Hãy nạp file Excel ở trên để bắt đầu.")
+                # Kiểm tra lần cuối trước khi đẩy lên Cloud
+                if len(st.session_state.data) > 0:
+                    st.info("🔄 Đang đồng bộ an toàn lên Google Sheets...")
+                    if save_data(st.session_state.data):
+                        st.success("🎉 Đã cập nhật và đồng bộ thành công!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Lỗi trong quá trình lưu dữ liệu.")
+                else:
+                    st.error("⚠️ Không có dữ liệu để lưu. Đã ngăn chặn việc xóa Sheets!")
 
     elif page == "🏪 Quản lý Tiệm tạp hóa":
         st.subheader("🛠️ CÔNG XƯỞNG CHẾ TẠO TRANG BỊ & VẬT PHẨM")
