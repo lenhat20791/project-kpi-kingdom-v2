@@ -3336,28 +3336,49 @@ def load_data_from_sheets():
             print(f"⚠️ Lỗi đọc tab Players: {e}")
 
         # --- PHẦN 2: TẢI CẤU HÌNH (Tab Settings) ---
+        # --- PHẦN 2: TẢI CẤU HÌNH (Tab Settings) ---
         try:
-            sh_settings = spreadsheet.worksheet("Settings")
-            settings_records = sh_settings.get_all_records()
-            for row in settings_records:
-                key = row.get('Config_Key')
-                value = row.get('Value')
-                if key and value:
-                    try:
-                        decoded_val = json.loads(value)
-                        new_data[key] = decoded_val
-                        
-                        # Nếu thấy key là active_boss, ghi đè vào file local ngay để Admin Module dùng
-                        if key == "active_boss":
-                            # Tạo thư mục data nếu chưa có
-                            if not os.path.exists('data'):
-                                os.makedirs('data')
-                            with open('data/boss_config.json', 'w', encoding='utf-8') as f:
-                                json.dump(decoded_val, f, indent=4, ensure_ascii=False)
-                    except:
-                        pass # Bỏ qua dòng lỗi JSON
+            # Kiểm tra xem tab Settings có tồn tại không
+            try:
+                sh_settings = spreadsheet.worksheet("Settings")
+            except:
+                print("⚠️ Không tìm thấy tab 'Settings'. Đang bỏ qua...")
+                sh_settings = None
+
+            if sh_settings:
+                settings_records = sh_settings.get_all_records()
+                print(f"⚙️ Đang quét {len(settings_records)} dòng cấu hình...")
+
+                for row in settings_records:
+                    key = str(row.get('Config_Key', '')).strip()
+                    raw_value = str(row.get('Value', ''))
+                    
+                    if key and raw_value:
+                        try:
+                            # --- [QUAN TRỌNG] FIX LỖI SMART QUOTES TỪ GOOGLE SHEETS ---
+                            # Chuyển dấu ngoặc kép cong (Word/Excel) thành ngoặc thẳng chuẩn JSON
+                            clean_value = raw_value.replace("“", '"').replace("”", '"').replace("’", "'")
+                            
+                            # Parse JSON
+                            decoded_val = json.loads(clean_value)
+                            new_data[key] = decoded_val
+                            
+                            # Log để biết đã tải được
+                            # print(f"   ✅ Đã tải: {key}")
+
+                            # Xử lý riêng cho active_boss (lưu file local)
+                            if key == "active_boss":
+                                if not os.path.exists('data'): os.makedirs('data')
+                                with open('data/boss_config.json', 'w', encoding='utf-8') as f:
+                                    json.dump(decoded_val, f, indent=4, ensure_ascii=False)
+                                    
+                        except Exception as json_error:
+                            # In lỗi ra để bạn biết sửa trên Sheets
+                            print(f"❌ LỖI JSON TẠI KEY '{key}': {json_error}")
+                            print(f"   👉 Nội dung lỗi: {raw_value}")
+        
         except Exception as e:
-            print(f"ℹ️ Tab Settings chưa có hoặc lỗi: {e}")
+            print(f"ℹ️ Lỗi chung tại tab Settings: {e}")
 
         # --- PHẦN 3: TẢI TIỆM TẠP HÓA (Tab Shop) ---
         try:
