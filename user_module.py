@@ -1040,8 +1040,8 @@ def hien_thi_ruong_bau(user_id, total_dmg, rewards_from_boss):
 
 def xu_ly_mo_ruong(user_id, item_id, item_data, all_users, save_data_func):
     """
-    Hàm xử lý logic mở rương: Trừ rương -> Quay random -> Cộng quà -> Lưu data
-    Trả về: Danh sách quà nhận được (để hiển thị)
+    Hàm xử lý logic mở rương theo tỷ lệ rơi độc lập:
+    Duyệt qua từng món trong Loot Table -> Tung xúc xắc -> Cộng tất cả món trúng.
     """
     player = all_users[user_id]
     
@@ -1051,56 +1051,47 @@ def xu_ly_mo_ruong(user_id, item_id, item_data, all_users, save_data_func):
         if player['inventory'][item_id] <= 0:
             del player['inventory'][item_id]
     
-    # 2. Lấy danh sách phần thưởng (Loot Table) từ dữ liệu rương
+    # 2. Lấy danh sách phần thưởng (Loot Table)
     props = item_data.get('properties', {})
     loot_table = props.get('loot_table', [])
     
-    rewards_received = []
-    
+    rewards_received = [] # Chứa các tin nhắn thông báo
+    items_to_display = [] # Chứa data để hiển thị icon (nếu cần dùng cho hàm hien_thi_ruong_bau)
+
     if not loot_table:
-        return [] # Rương rỗng (Lỗi admin)
+        return []
 
-    # 3. Thuật toán Quay Gacha (Weighted Random)
-    # Tách danh sách item và trọng số
-    items_to_roll = loot_table
-    weights = [item['rate'] for item in items_to_roll]
-    
-    # Xử lý trường hợp tổng rate < 100 (Có tỷ lệ xịt)
-    total_rate = sum(weights)
-    if total_rate < 100:
-        items_to_roll.append({"type": "miss", "rate": 100 - total_rate})
-        weights.append(100 - total_rate)
+    # 3. THUẬT TOÁN DROP ĐỘC LẬP (Independent Drop Rate)
+    for gift in loot_table:
+        rate = float(gift.get('rate', 0))
+        # Tung xúc xắc ngẫu nhiên từ 0.0 đến 100.0
+        roll = random.uniform(0, 100)
+        
+        # Nếu trúng tỷ lệ
+        if roll <= rate:
+            gift_type = gift.get('type')
+            target_id = gift.get('id')
+            amount = gift.get('amount', 1)
 
-    # QUAY SỐ (Chọn 1 phần thưởng)
-    result = random.choices(items_to_roll, weights=weights, k=1)[0]
-    
-    # 4. Xử lý phần thưởng trúng được
-    if result.get('type') == 'miss':
-        rewards_received.append({"type": "miss", "msg": "💨 Rương trống rỗng... Chúc may mắn lần sau!"})
-        
-    elif result.get('type') == 'currency':
-        # Cộng tiền
-        curr_key = result['id']
-        amount = result['amount']
-        player[curr_key] = player.get(curr_key, 0) + amount
-        
-        # Mapping tên hiển thị cho đẹp
-        name_map = {"kpi": "KPI", "Tri_Thuc": "Tri Thức", "Chien_Tich": "Chiến Tích"}
-        display_name = name_map.get(curr_key, curr_key)
-        rewards_received.append({"type": "currency", "msg": f"💰 +{amount} {display_name}"})
-        
-    elif result.get('type') == 'item':
-        # Cộng item
-        target_id = result['id']
-        amount = result['amount']
-        
-        if 'inventory' not in player: player['inventory'] = {}
-        player['inventory'][target_id] = player['inventory'].get(target_id, 0) + amount
-        
-        rewards_received.append({"type": "item", "msg": f"📦 Nhận vật phẩm: {target_id} (x{amount})"})
+            if gift_type == 'currency':
+                # Cộng tiền/tài nguyên
+                player[target_id] = player.get(target_id, 0) + amount
+                name_map = {"kpi": "KPI", "Tri_Thuc": "Tri Thức", "Chien_Tich": "Chiến Tích"}
+                display_name = name_map.get(target_id, target_id)
+                rewards_received.append({"type": "currency", "msg": f"💰 +{amount} {display_name}"})
+                
+            elif gift_type == 'item':
+                # Cộng vật phẩm vào kho
+                if 'inventory' not in player: player['inventory'] = {}
+                player['inventory'][target_id] = player['inventory'].get(target_id, 0) + amount
+                rewards_received.append({"type": "item", "msg": f"📦 Nhận: {target_id} (x{amount})"})
 
-    # 5. Lưu dữ liệu ngay lập tức
+    # 4. Lưu dữ liệu ngay lập tức
     save_data_func(all_users)
+    
+    # Nếu vòng lặp xong mà không trúng món nào
+    if not rewards_received:
+        rewards_received.append({"type": "miss", "msg": "💨 Rương trống rỗng... Chúc may mắn lần sau!"})
     
     return rewards_received
 
