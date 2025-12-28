@@ -910,27 +910,37 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                 }
                             
                             # --- [BƯỚC 3] TRẢ LẠI ADMIN & CẤU HÌNH VÀO DATA MỚI ---
+                            # 1. Bảo vệ dữ liệu Admin và các quyền đặc biệt
+                            if 'admin' in st.session_state.data:
+                                # Lấy lại special_permissions của admin cũ nếu có, nếu không thì tạo mới
+                                admin_perms = st.session_state.data['admin'].get('special_permissions', {"world_chat_count": 5})
+                                preserved_admin['special_permissions'] = admin_perms
+
                             new_data['admin'] = preserved_admin
-                            
+
                             if preserved_ranks:
                                 new_data['rank_settings'] = preserved_ranks
+
+                            # 2. KIỂM TRA AN TOÀN TRƯỚC KHI LƯU
+                            if len(new_data) > 1: # Ít nhất phải có Admin + 1 User
+                                # Cập nhật Session State
+                                st.session_state.data = new_data
+                                
+                                try:
+                                    # Gọi hàm lưu - Hãy đảm bảo save_data của bạn nhận diện được dict lồng nhau
+                                    save_data(st.session_state.data) 
+                                    
+                                    st.success(f"🎊 Chúc mừng! Đã kích hoạt {len(new_data)-1} tài khoản (Cột và Quyền lợi đã được bảo vệ).")
+                                    st.balloons()
+                                    import time
+                                    time.sleep(1)
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"❌ Lỗi khi ghi dữ liệu lên Sheets: {e}")
+                            else:
+                                st.warning("⚠️ Cảnh báo: Dữ liệu mới đang trống, hệ thống đã ngăn chặn việc ghi đè để bảo vệ Sheets!")
+
                             # ------------------------------------------------------
-
-                            # Cập nhật Session State và Lưu file JSON
-                            st.session_state.data = new_data
-                            save_data_func()
-                            st.success(f"🎊 Chúc mừng! Đã kích hoạt {len(new_data)-1} tài khoản Học Sĩ (Admin vẫn an toàn).")
-                            st.balloons()
-                            import time
-                            time.sleep(1) # Đợi xíu cho bóng bay lên
-                            st.rerun()
-                            
-                        st.divider()
-                        st.write("🔍 **Xem trước dữ liệu:**")
-                        st.dataframe(df[[name_col]].head(10), use_container_width=True)
-
-                except Exception as e:
-                    st.error(f"Lỗi hệ thống: {e}")
 
         st.divider()
         # --- (Các phần Thiết lập tổ và Bảng chỉnh sửa chi tiết bên dưới giữ nguyên) ---
