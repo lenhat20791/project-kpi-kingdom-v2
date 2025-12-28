@@ -1670,7 +1670,7 @@ else:
                 # Đảm bảo bạn đã import load_data ở đầu file
                 st.session_state.data = load_data() 
                 st.success("Đã tải lại! Hãy thử đăng nhập lại ngay.")
-                st.rerun()
+                st.rerun() 
         
         # 👇👇👇 [MỚI] CHÈN BẢNG VÀNG VÀO ĐÂY (Vẫn nằm trong with col_sidebar) 👇👇👇
         st.write("") # Tạo khoảng trống cho thoáng       
