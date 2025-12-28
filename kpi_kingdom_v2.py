@@ -1521,7 +1521,7 @@ elif st.session_state.user_role in ["u1", "u2", "u3"]:
         if current_user_id and current_user_id in st.session_state.data:
             
             # 1. Tính toán số lượt chat TRƯỚC khi dùng
-            user_info = st.session_state.data[current_user_id]
+            user_info = st.session_state.data.get(current_user_id, {})
             chat_count = user_info.get('special_permissions', {}).get('world_chat_count', 0)
             
             # 2. Chỉ hiện khung nhập nếu còn lượt

@@ -895,8 +895,11 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                     "grade": grade_folder,
                                     "role": str(row.get('role', 'u3')).lower(),
                                     "password": str(row.get('Password', '123456')), # Mật khẩu mặc định
-                                    "kpi": int(row.get('KPI', 100)), # KPI mặc định 100
-                                    
+                                    "kpi": int(row.get('KPI', 0)), # KPI mặc định 100
+                                    # --- THÊM DÒNG NÀY ĐỂ FIX LỖI MẤT CỘT ---
+                                    "special_permissions": {
+                                        "world_chat_count":0
+                                    },    
                                     # Các chỉ số game
                                     "Vi_Pham": 0, "Bonus": 0, "KTTX": 0, "KT Sản phẩm": 0,
                                     "KT Giữa kỳ": 0, "KT Cuối kỳ": 0, "Tri_Thuc": 0,
@@ -1556,7 +1559,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             # 3. DANH SÁCH CỘT CHUẨN (Đã tách user_id và name)
                             # Lưu ý: "user_idname" bạn gửi có vẻ bị dính chữ, tôi đã tách ra thành 2 cột chuẩn.
                             headers = [
-                                "user_id", "name", "team", "password", 
+                                "user_id", "name", "role", "world_chat_count", "team", "password", 
                                 "kpi", "exp", "level", 
                                 "hp", "hp_max", "stats_json"
                             ]
