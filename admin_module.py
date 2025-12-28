@@ -1398,56 +1398,51 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
             
     # ===== 🏅 QUẢN LÝ DANH HIỆU =====
     elif page == "🏅 Quản lý danh hiệu":
-        st.subheader("🏛️ THIẾT LẬP HỆ THỐNG DANH HIỆU (ONLINE)")
-        st.info("Dữ liệu được đồng bộ trực tiếp với Tab 'Settings' trên Google Sheets.")
+        st.subheader("🏛️ THIẾT LẬP HỆ THỐNG DANH HIỆU")
+        st.info("Admin thiết lập các cột mốc KPI để Học Sĩ vào Sảnh Danh Vọng kích hoạt.")
 
-        # 1. LẤY DỮ LIỆU TỪ SESSION (Đã được load từ Google Sheets lúc khởi động)
-        # Lưu ý: Key trong data phải khớp với key bạn lưu trong load_data
-        current_ranks = st.session_state.data.get('rank_settings', [])
+        # 1. Đồng bộ dữ liệu từ File vào Session State (quan trọng để hiển thị đúng cái cũ)
+        if 'rank_settings' not in st.session_state:
+            # Ưu tiên lấy từ dữ liệu đã lưu trong data.json
+            saved_ranks = st.session_state.data.get('rank_settings', [])
+            
+            if saved_ranks:
+                st.session_state.rank_settings = saved_ranks
+            else:
+                # Nếu chưa có gì thì dùng mẫu mặc định
+                st.session_state.rank_settings = [
+                    {"Danh hiệu": "Học Giả Tập Sự", "KPI Yêu cầu": 100, "Màu sắc": "#bdc3c7"},
+                    {"Danh hiệu": "Đại Học Sĩ", "KPI Yêu cầu": 500, "Màu sắc": "#3498db"},
+                    {"Danh hiệu": "Vương Giả Tri Thức", "KPI Yêu cầu": 1000, "Màu sắc": "#f1c40f"}
+                ]
 
-        # Nếu chưa có dữ liệu, tạo mẫu mặc định
-        if not current_ranks:
-            current_ranks = [
-                {"name": "Học Giả Tập Sự", "min_kpi": 100, "color": "#bdc3c7"},
-                {"name": "Đại Học Sĩ", "min_kpi": 500, "color": "#3498db"},
-                {"name": "Vương Giả Tri Thức", "min_kpi": 1000, "color": "#f1c40f"}
-            ]
-
-        # 2. BẢNG EDITOR (Cho phép sửa trực tiếp)
-        # Lưu ý: Cấu hình cột phải khớp với key trong JSON (name, min_kpi, color)
+        # 2. Bảng Editor
         edited_ranks = st.data_editor(
-            current_ranks, 
+            st.session_state.rank_settings, 
             num_rows="dynamic", 
-            use_container_width=True, # Hoặc width="stretch" nếu Streamlit mới
+            use_container_width=True,
             column_config={
-                "name": st.column_config.TextColumn("Tên Danh Hiệu", required=True),
-                "min_kpi": st.column_config.NumberColumn("KPI Yêu Cầu", min_value=0, step=10),
-                "color": st.column_config.SelectboxColumn(
+                "Màu sắc": st.column_config.SelectboxColumn(
                     "Màu sắc",
                     options=["#bdc3c7", "#3498db", "#f1c40f", "#e74c3c", "#9b59b6", "#2ecc71"],
-                    help="Chọn mã màu hiển thị"
+                    help="Chọn mã màu hiển thị cho danh hiệu"
                 )
-            },
-            key="rank_editor_key" # Key cố định để tránh reload loạn
+            }
         )
         
-        # 3. NÚT LƯU LÊN CLOUD
-        if st.button("💾 LƯU LÊN GOOGLE SHEETS", type="primary"):
-            with st.spinner("Đang gửi dữ liệu lên mây..."):
-                import user_module
-                
-                # Gọi hàm lưu trực tiếp vào Tab Settings
-                success = user_module.update_setting_on_sheet("rank_settings", edited_ranks)
-                
-                if success:
-                    # Cập nhật ngay vào RAM để không cần F5 cũng thấy đổi
-                    st.session_state.data['rank_settings'] = edited_ranks
-                    st.success("✅ Đã lưu thành công! Dữ liệu an toàn trên Google Sheets.")
-                    st.balloons()
-                    time.sleep(1)
-                    st.rerun()
-                else:
-                    st.error("❌ Lỗi: Không thể lưu vào Google Sheets. Vui lòng kiểm tra lại Tab Settings.")
+        # 3. NÚT LƯU (ĐÃ SỬA LOGIC)
+        if st.button("💾 LƯU THIẾT LẬP DANH HIỆU"):
+            # Cập nhật vào Session tạm
+            st.session_state.rank_settings = edited_ranks
+            
+            # --- [QUAN TRỌNG] LƯU VÀO DATA CHÍNH VÀ GHI FILE JSON ---
+            if 'data' in st.session_state:
+                st.session_state.data['rank_settings'] = edited_ranks
+                save_data_func() # Gọi hàm lưu xuống ổ cứng
+            # ---------------------------------------------------------
+            
+            st.success("✅ Đã cập nhật và lưu hệ thống danh hiệu vĩnh viễn!")
+            st.balloons()
 
     elif page == "🏟️ Quản lý lôi đài":
         quan_ly_loi_dai_admin(save_data_func) # Gọi hàm để hiển thị giao diện quản lý

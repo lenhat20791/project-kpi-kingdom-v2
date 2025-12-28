@@ -1397,35 +1397,32 @@ def hien_thi_banner_vinh_quang():
 
     st.markdown(final_html, unsafe_allow_html=True)
 
-# 1. Lấy role hiện tại (chuyển về chữ thường để so sánh chuẩn xác)
-current_role = str(st.session_state.get("user_role", "")).lower().strip()
+# 0. Chuẩn hóa Role một lần duy nhất để dùng cho cả đoạn dưới
+raw_role = st.session_state.get("user_role", "")
+current_role = str(raw_role).strip().lower()
 
-# --- DEBUG: HIỆN ROLE RA ĐỂ KIỂM TRA (Xóa sau khi chạy ngon) ---
-st.info(f"DEBUG ROUTER: Role hiện tại là [{current_role}]")
-
-# ===== ADMIN =====
-if st.session_state.user_role and st.session_state.user_role.lower() == "admin":
+# ===== TRƯỜNG HỢP 1: ADMIN =====
+if current_role == "admin":
     import admin_module
     
-    # 1. Trang Quản lý Boss (Đại chiến giáo viên)
-    if st.session_state.page == "⚔️ Đại chiến Giáo viên": 
+    # Lấy trang hiện tại an toàn
+    current_page = st.session_state.get("page", "")
+
+    if current_page == "⚔️ Đại chiến Giáo viên": 
         admin_module.admin_quan_ly_boss()
     
-    # 2. Trang Quản lý Phó bản 
-    elif st.session_state.page == "🛡️ Quản lý Phó bản":
-        # Gọi hàm quản lý phó bản và truyền save_shop_data để dùng tính năng đúc đồ
+    elif current_page == "🛡️ Quản lý Phó bản":
         admin_module.hien_thi_giao_dien_admin(save_data, save_shop_data)
     
-    # 3. TRANG THÔNG BÁO SERVER (CHÈN MỚI TẠI ĐÂY)
-    elif st.session_state.page == "📢 Thông báo Server":
+    elif current_page == "📢 Thông báo Server":
         admin_module.giao_dien_thong_bao_admin()
     
-    # 4. Trang Quản lý Tiệm tạp hóa
-    elif st.session_state.page == "🏪 Quản lý Tiệm tạp hóa":
+    elif current_page == "🏪 Quản lý Tiệm tạp hóa":
         admin_module.hien_thi_giao_dien_admin(save_data, save_shop_data)
     
     else:
-        hien_thi_giao_dien_admin(save_data, save_shop_data) #
+        # Trang mặc định cho Admin nếu chưa chọn gì
+        admin_module.hien_thi_giao_dien_admin(save_data, save_shop_data)
 
 # ===== PHẦN HIỂN THỊ CỦA USER (ĐÃ FIX LỖI GIAO DIỆN TRỐNG) =====
 elif st.session_state.user_role in ["u1", "u2", "u3"]:
