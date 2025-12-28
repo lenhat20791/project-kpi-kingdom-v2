@@ -1137,7 +1137,7 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
                 
                 # Thanh tiến trình hồi phục
                 # Mặc định phạt 30 phút (1800 giây) hoặc tùy config
-                total_wait = 1800 
+                total_wait = 3600 
                 progress_val = 1.0 - (time_left.total_seconds() / total_wait)
                 # Kẹp giá trị an toàn cho thanh chờ
                 safe_prog = min(1.0, max(0.0, progress_val))

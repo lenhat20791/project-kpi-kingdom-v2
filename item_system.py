@@ -42,6 +42,18 @@ def get_item_behavior_registry():
                 "power_value": "Số lượt/Phần trăm"
             }
         }
+        "BOSS_RESET": {
+            "name": "📜 Lệnh Bài Hồi Sinh Boss",
+            "params": {
+                "reset_type": ["instant_reset"], # Loại bỏ thời gian chờ ngay lập tức
+                "value": "number"                # Có thể dùng để reset số lượt (nếu cần)
+            },
+            "labels": {
+                "reset_type": "Loại kích hoạt",
+                "value": "Số lượt phục hồi"
+            }
+        }
+
     }
 
 def get_item_info(item_name):
@@ -167,6 +179,18 @@ def apply_item_effect(user_id, item_object, current_data):
         # (Tùy chọn) In ra console để debug nếu cần
         print(f"DEBUG: Đã cộng {val} vào {real_key}. Tổng mới: {current_data[user_id][real_key]}")
     return current_data
+
+    # Thêm vào trong hàm apply_item_effect 
+    elif behavior == "BOSS_RESET":
+        # Logic: Đưa mốc thời gian kết thúc chờ đợi về thời điểm hiện tại hoặc quá khứ
+        # giúp hệ thống hiểu là thời gian chờ đã hết.
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Cập nhật trực tiếp vào dữ liệu người chơi
+        current_data[user_id]['boss_cooldown_end'] = now_str
+        
+        # Debug để giáo viên kiểm tra
+        print(f"DEBUG: Vật phẩm đã xóa thời gian chờ Boss cho {user_id}. Sẵn sàng tái đấu!")
 
 def get_active_combat_stats(user_id, current_data):
     """
