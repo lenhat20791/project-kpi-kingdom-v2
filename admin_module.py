@@ -1077,23 +1077,27 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         keys_to_check = ['exp', 'level', 'hp', 'hp_max', 'kpi', 'inventory', 'dungeon_progress']
                         for k in keys_to_check:
                             if k not in temp_data[u_id]:
-                                # Khởi tạo giá trị mặc định nếu dữ liệu cũ bị thiếu
-                                temp_data[u_id][k] = {} if 'inventory' in k or 'progress' in k else 0
-                                if k == 'hp' or k == 'hp_max': temp_data[u_id][k] = 100
+                                if k == 'special_permissions': temp_data[u_id][k] = {"world_chat_count": 0}
+                                elif k in ['inventory', 'dungeon_progress']: temp_data[u_id][k] = {}
+                                elif k in ['hp', 'hp_max']: temp_data[u_id][k] = 100
+                                else: temp_data[u_id][k] = 0
 
-                # Cập nhật lại vào session_state
+                # Cập nhật session và Lưu
                 st.session_state.data = temp_data
                 
-                # Kiểm tra lần cuối trước khi đẩy lên Cloud
+                # Gọi hàm lưu an toàn
                 if len(st.session_state.data) > 0:
-                    st.info("🔄 Đang đồng bộ an toàn lên Google Sheets...")
-                    if save_data(st.session_state.data):
-                        st.success("🎉 Đã cập nhật và đồng bộ thành công!")
+                    st.info("🔄 Đang xử lý lưu trữ...")
+                    # Gọi hàm save_data từ user_module
+                    if user_module.save_data(st.session_state.data):
+                        st.success("🎉 Đã cập nhật thành công!")
+                        import time
+                        time.sleep(1)
                         st.rerun()
                     else:
-                        st.error("❌ Lỗi trong quá trình lưu dữ liệu.")
+                        st.error("❌ Lỗi khi gọi hàm lưu.")
                 else:
-                    st.error("⚠️ Không có dữ liệu để lưu. Đã ngăn chặn việc xóa Sheets!")
+                    st.error("⚠️ Dữ liệu rỗng, hủy thao tác.")
 
     elif page == "🏪 Quản lý Tiệm tạp hóa":
         st.subheader("🛠️ CÔNG XƯỞNG CHẾ TẠO TRANG BỊ & VẬT PHẨM")
