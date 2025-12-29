@@ -3062,142 +3062,135 @@ from datetime import datetime
 
 def save_all_to_sheets(all_data):
     """
-    Hàm tổng lực (BẢN FIX FINAL): 
-    - Tự động phân loại dữ liệu và đẩy lên các Tab.
-    - Tích hợp: Players (Có Role + Chat Count), Settings, Shop, Logs.
-    - CÓ CHỐT CHẶN AN TOÀN: Không bao giờ xóa Sheet nếu dữ liệu đầu vào rỗng.
+    PHIÊN BẢN DEBUG UI: Hiển thị mọi thông báo lỗi/cảnh báo trực tiếp lên màn hình Web.
     """
-    try:
-        spreadsheet = CLIENT.open(SHEET_NAME)
+    # Tạo một hộp mở rộng để chứa thông tin debug (đỡ rối mắt giao diện chính)
+    with st.expander("🕵️ NHẬT KÝ ĐỒNG BỘ (DEBUG LOG)", expanded=True):
+        st.write("--- 🚀 BẮT ĐẦU QUÁ TRÌNH LƯU ---")
         
-        # =========================================================
-        # --- 1. ĐỒNG BỘ TAB "Players" (QUAN TRỌNG NHẤT) ---
-        # =========================================================
         try:
-            sh_players = spreadsheet.worksheet("Players")
+            spreadsheet = CLIENT.open(SHEET_NAME)
             
-            # Header chuẩn (Bao gồm cột Role và World Chat Count)
-            headers = [
-                "user_id", "name", "team", "role", "password", 
-                "kpi", "exp", "level", "hp", "hp_max", 
-                "world_chat_count", "stats_json", "inventory_json", "progress_json"
-            ]
-            player_rows = [headers]
-            
-            # Duyệt qua toàn bộ dữ liệu để tạo dòng
-            for uid, info in all_data.items():
-                # Lọc bỏ các key cấu hình, chỉ lấy user (là dict)
-                if not isinstance(info, dict) or uid in ["rank_settings", "system_config", "admin"]:
-                    continue
-                
-                # 1. Gom các chỉ số game vào stats_json
-                stats_keys = ["Vi_Pham", "Bonus", "KTTX", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", "Tri_Thuc", "Chien_Tich", "Vinh_Du", "Vinh_Quang", "total_score", "titles", "best_time"]
-                stats_data = {k: info.get(k, 0) for k in stats_keys}
-                
-                # 2. Lấy số lượt chat từ cấu trúc lồng nhau (Fix lỗi mất cột chat)
-                chat_count = info.get('special_permissions', {}).get('world_chat_count', 0)
-                
-                # 3. Tạo dòng dữ liệu
-                row = [
-                    str(uid),
-                    info.get('name', ''),
-                    info.get('team', 'Chưa phân tổ'),
-                    info.get('role', 'u3'),             # Cột Role
-                    str(info.get('password', '123456')),
-                    info.get('kpi', 0),
-                    info.get('exp', 0),
-                    info.get('level', 1),
-                    info.get('hp', 100),
-                    info.get('hp_max', 100),
-                    chat_count,                         # Cột World Chat Count
-                    json.dumps(stats_data, ensure_ascii=False),
-                    json.dumps(info.get('inventory', {}), ensure_ascii=False),
-                    json.dumps(info.get('dungeon_progress', {}), ensure_ascii=False)
-                ]
-                player_rows.append(row)
-
-            # --- 🔥 CHỐT CHẶN AN TOÀN (SAFETY VALVE) 🔥 ---
-            # Nếu chỉ có 1 dòng (là Header) nghĩa là không tìm thấy học sinh nào
-            # => TUYỆT ĐỐI KHÔNG ĐƯỢC XÓA SHEET
-            if len(player_rows) > 1:
-                sh_players.clear()
-                sh_players.update('A1', player_rows)
-                print(f"✅ Đã cập nhật {len(player_rows)-1} học sinh vào tab Players.")
-            else:
-                print("⚠️ CẢNH BÁO: Dữ liệu học sinh trống! Đã HỦY thao tác ghi đè để bảo vệ Google Sheets.")
-                # Có thể raise exception nếu muốn báo lỗi đỏ ra màn hình
-                # raise Exception("Dữ liệu học sinh bị rỗng, hủy ghi đè.")
-                
-        except Exception as e:
-            print(f"❌ Lỗi xử lý tab Players: {e}")
-            st.error(f"Không thể lưu danh sách học sinh: {e}")
-
-        # =========================================================
-        # --- 2. ĐỒNG BỘ TAB "Settings" & BOSS ---
-        # =========================================================
-        try:
-            sh_settings = spreadsheet.worksheet("Settings")
-            settings_rows = [["Config_Key", "Value"]]
-            
-            # 2.1 Settings Rank
-            if "rank_settings" in all_data:
-                settings_rows.append(["rank_settings", json.dumps(all_data["rank_settings"], ensure_ascii=False)])
-            
-            # 2.2 Boss Config (Đọc từ file local nếu có)
-            if os.path.exists('data/boss_config.json'):
-                with open('data/boss_config.json', 'r', encoding='utf-8') as f:
-                    boss_data = json.load(f)
-                    settings_rows.append(["active_boss", json.dumps(boss_data, ensure_ascii=False)])
-            
-            # Ghi Settings (Chỉ ghi nếu có dữ liệu)
-            if len(settings_rows) > 1:
-                sh_settings.clear()
-                sh_settings.update('A1', settings_rows)
-                
-        except Exception as e:
-            print(f"⚠️ Lỗi tab Settings: {e}")
-
-        # =========================================================
-        # --- 3. ĐỒNG BỘ TAB "Shop" ---
-        # =========================================================
-        if 'shop_items' in st.session_state:
+            # =========================================================
+            # --- 1. ĐỒNG BỘ TAB "Players" ---
+            # =========================================================
             try:
-                sh_shop = spreadsheet.worksheet("Shop")
-                shop_headers = ["Item_ID", "Item_Name", "Price", "Stock", "Description", "Effect_JSON"]
-                shop_rows = [shop_headers]
+                sh_players = spreadsheet.worksheet("Players")
                 
-                for item_id, info in st.session_state.shop_items.items():
+                # Header chuẩn
+                headers = [
+                    "user_id", "name", "team", "role", "password", 
+                    "kpi", "exp", "level", "hp", "hp_max", 
+                    "world_chat_count", "stats_json", "inventory_json", "progress_json"
+                ]
+                player_rows = [headers]
+                
+                # Biến đếm để debug
+                count_valid = 0
+                
+                st.write(f"ℹ️ Tổng số key trong data: {len(all_data)}")
+                
+                for uid, info in all_data.items():
+                    # Bỏ qua các key hệ thống
+                    if not isinstance(info, dict) or uid in ["rank_settings", "system_config", "admin"]:
+                        continue
+                    
+                    # 1. Gom chỉ số game
+                    stats_keys = ["Vi_Pham", "Bonus", "KTTX", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", "Tri_Thuc", "Chien_Tich", "Vinh_Du", "Vinh_Quang", "total_score", "titles", "best_time"]
+                    stats_data = {k: info.get(k, 0) for k in stats_keys}
+                    
+                    # 2. Lấy lượt chat
+                    chat_count = info.get('special_permissions', {}).get('world_chat_count', 0)
+                    
                     row = [
-                        item_id,
+                        str(uid),
                         info.get('name', ''),
-                        info.get('price', 0),
-                        info.get('stock', 0),
-                        info.get('description', ''),
-                        json.dumps(info.get('effects', {}), ensure_ascii=False)
+                        info.get('team', 'Chưa phân tổ'),
+                        info.get('role', 'u3'),
+                        str(info.get('password', '123456')),
+                        info.get('kpi', 0),
+                        info.get('exp', 0),
+                        info.get('level', 1),
+                        info.get('hp', 100),
+                        info.get('hp_max', 100),
+                        chat_count,
+                        json.dumps(stats_data, ensure_ascii=False),
+                        json.dumps(info.get('inventory', {}), ensure_ascii=False),
+                        json.dumps(info.get('dungeon_progress', {}), ensure_ascii=False)
                     ]
-                    shop_rows.append(row)
+                    player_rows.append(row)
+                    count_valid += 1
+
+                # --- 🔥 HIỂN THỊ KẾT QUẢ KIỂM TRA 🔥 ---
+                st.write(f"✅ Tìm thấy {count_valid} học sinh hợp lệ để lưu.")
                 
-                sh_shop.clear()
-                sh_shop.update('A1', shop_rows)
+                # --- CHỐT CHẶN AN TOÀN ---
+                if len(player_rows) > 1:
+                    sh_players.clear()
+                    sh_players.update('A1', player_rows)
+                    st.success(f"tab Players: Đã ghi thành công {count_valid} dòng!")
+                else:
+                    # NẾU LỖI NÀY HIỆN RA -> NGUYÊN NHÂN LÀ ĐÂY
+                    st.error("⚠️ CẢNH BÁO NGHIÊM TRỌNG: Danh sách ghi (player_rows) chỉ có mỗi tiêu đề! Hệ thống đã DỪNG LẠI để không xóa trắng bảng.")
+                    st.json(all_data) # In thử data ra xem tại sao lại rỗng
+                    return False # Dừng hàm luôn
+                    
             except Exception as e:
-                print(f"⚠️ Lỗi tab Shop: {e}")
+                st.error(f"❌ Lỗi Crash tại tab Players: {e}")
+                return False
 
-        # =========================================================
-        # --- 4. GHI LOG ---
-        # =========================================================
-        try:
-            sh_logs = spreadsheet.worksheet("Logs")
-            timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            sh_logs.append_row([timestamp, "SYSTEM", "Đã đồng bộ dữ liệu (Players, Settings, Shop) lên Cloud"])
-        except: 
-            pass
+            # =========================================================
+            # --- 2. ĐỒNG BỘ SETTINGS & BOSS ---
+            # =========================================================
+            try:
+                sh_settings = spreadsheet.worksheet("Settings")
+                settings_rows = [["Config_Key", "Value"]]
+                
+                if "rank_settings" in all_data:
+                    settings_rows.append(["rank_settings", json.dumps(all_data["rank_settings"], ensure_ascii=False)])
+                
+                if os.path.exists('data/boss_config.json'):
+                    with open('data/boss_config.json', 'r', encoding='utf-8') as f:
+                        settings_rows.append(["active_boss", json.dumps(json.load(f), ensure_ascii=False)])
+                
+                if len(settings_rows) > 1:
+                    sh_settings.clear()
+                    sh_settings.update('A1', settings_rows)
+                    st.info("tab Settings: Đã đồng bộ xong.")
+                    
+            except Exception as e:
+                st.warning(f"⚠️ Lỗi nhẹ tab Settings: {e}")
 
-        st.toast("✅ Đã lưu dữ liệu an toàn!", icon="☁️")
-        return True
-        
-    except Exception as e:
-        st.error(f"❌ Lỗi tổng quan khi đồng bộ Cloud: {e}")
-        return False        
+            # =========================================================
+            # --- 3. ĐỒNG BỘ SHOP ---
+            # =========================================================
+            if 'shop_items' in st.session_state:
+                try:
+                    sh_shop = spreadsheet.worksheet("Shop")
+                    shop_rows = [["Item_ID", "Item_Name", "Price", "Stock", "Description", "Effect_JSON"]]
+                    for item_id, info in st.session_state.shop_items.items():
+                        shop_rows.append([
+                            item_id, info.get('name', ''), info.get('price', 0), info.get('stock', 0),
+                            info.get('description', ''), json.dumps(info.get('effects', {}), ensure_ascii=False)
+                        ])
+                    sh_shop.clear()
+                    sh_shop.update('A1', shop_rows)
+                    st.info("tab Shop: Đã đồng bộ xong.")
+                except Exception as e:
+                    st.warning(f"⚠️ Lỗi nhẹ tab Shop: {e}")
+
+            # GHI LOG CUỐI CÙNG
+            try:
+                spreadsheet.worksheet("Logs").append_row([datetime.now().strftime("%d/%m/%Y %H:%M:%S"), "SYSTEM", "Đồng bộ thành công"])
+            except: pass
+
+            st.balloons() # Thả bóng bay báo hiệu thành công
+            return True
+            
+        except Exception as e:
+            st.error(f"❌ LỖI KẾT NỐI GOOGLE SHEETS: {e}")
+            return False
+
 def load_data_from_sheets():
     """
     Truy xuất toàn bộ dữ liệu vương quốc từ Cloud:
