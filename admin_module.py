@@ -1240,12 +1240,24 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
 </div>
 """, unsafe_allow_html=True)
 
-            # --- NÚT DỠ HÀNG (GIỮ NGUYÊN LOGIC) ---
-            target_del = st.selectbox("Chọn vật phẩm muốn dỡ khỏi kệ:", list(st.session_state.shop_items.keys()))
-            if st.button(f"🗑️ DỠ '{target_del}' XUỐNG"):
-                del st.session_state.shop_items[target_del]
-                save_shop_func(st.session_state.shop_items)
-                st.rerun()
+            # --- NÚT DỠ HÀNG (ĐÃ SỬA LOGIC LƯU) ---
+            if 'shop_items' in st.session_state and st.session_state.shop_items:
+                target_del = st.selectbox("Chọn vật phẩm muốn dỡ khỏi kệ:", list(st.session_state.shop_items.keys()))
+                
+                if st.button(f"🗑️ DỠ '{target_del}' XUỐNG"):
+                    # 1. Xóa khỏi bộ nhớ tạm (Session State)
+                    del st.session_state.shop_items[target_del]
+                    
+                    # 2. GỌI LỆNH LƯU CHUẨN (Quan trọng)
+                    # Truyền st.session_state.data để hàm save hoạt động đúng logic Admin/Players
+                    # Hàm save sẽ tự động lấy shop_items mới nhất (đã xóa món kia) từ session_state để ghi đè lên Sheets
+                    import user_module
+                    user_module.save_all_to_sheets(st.session_state.data)
+                    
+                    st.success(f"Đã dỡ bỏ '{target_del}' thành công!")
+                    st.rerun()
+            else:
+                st.info("Kệ hàng hiện đang trống.")
 
         st.divider()
 
