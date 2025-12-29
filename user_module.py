@@ -3087,64 +3087,88 @@ def save_all_to_sheets(all_data):
             
             # --- 1. ĐỒNG BỘ TAB "Players" ---
             try:
+                import math # Import thư viện toán học để bắt lỗi số
+                
                 sh_players = spreadsheet.worksheet("Players")
                 headers = ["user_id", "name", "team", "role", "password", "kpi", "exp", "level", "hp", "hp_max", "world_chat_count", "stats_json", "inventory_json", "progress_json"]
                 
                 player_rows = [headers]
                 count_student = 0 
                 
-                # --- HÀM KHỬ ĐỘC: Biến NaN/Inf thành 0 ---
-                def clean_val(val):
-                    # Nếu là float và (là NaN hoặc Vô cực) -> trả về 0
-                    if isinstance(val, float) and (val != val or val == float('inf') or val == float('-inf')):
-                        return 0
-                    return val
-                # -----------------------------------------
-
                 for uid, info in all_data.items():
+                    # Lọc bỏ các key cấu hình
                     if not isinstance(info, dict) or uid in ["rank_settings", "system_config"]:
                         continue
                     
                     if info.get('role') != 'admin':
                         count_student += 1
                     
-                    # 1. Gom chỉ số game & KHỬ ĐỘC TỪNG CHỈ SỐ
+                    # 1. Gom chỉ số game (Xử lý sơ bộ)
                     stats_keys = ["Vi_Pham", "Bonus", "KTTX", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", "Tri_Thuc", "Chien_Tich", "Vinh_Du", "Vinh_Quang", "total_score", "titles", "best_time"]
-                    stats_data = {k: clean_val(info.get(k, 0)) for k in stats_keys}
+                    # Lưu ý: json.dumps cho stats_data không gây lỗi này, lỗi nằm ở các cột số lẻ bên ngoài
+                    stats_data = {k: info.get(k, 0) for k in stats_keys}
                     
                     special_perms = info.get('special_permissions', {}) if isinstance(info.get('special_permissions'), dict) else {}
                     
-                    # 2. Tạo dòng dữ liệu & KHỬ ĐỘC CÁC CỘT CHÍNH
+                    # 2. Tạo dòng dữ liệu thô (Raw)
                     row = [
                         str(uid),
                         info.get('name', ''),
                         info.get('team', 'Chưa phân tổ'),
                         info.get('role', 'u3'),
                         str(info.get('password', '123456')),
-                        clean_val(info.get('kpi', 0)),      # <--- Khử độc
-                        clean_val(info.get('exp', 0)),      # <--- Khử độc
-                        clean_val(info.get('level', 1)),    # <--- Khử độc
-                        clean_val(info.get('hp', 100)),     # <--- Khử độc
-                        clean_val(info.get('hp_max', 100)), # <--- Khử độc
-                        clean_val(special_perms.get('world_chat_count', 0)),
-                        json.dumps(stats_data, ensure_ascii=False), # stats_data đã sạch
+                        info.get('kpi', 0),       # Có thể chứa NaN
+                        info.get('exp', 0),       # Có thể chứa NaN
+                        info.get('level', 1),     # Có thể chứa NaN
+                        info.get('hp', 100),      # Có thể chứa NaN
+                        info.get('hp_max', 100),  # Có thể chứa NaN
+                        special_perms.get('world_chat_count', 0),
+                        json.dumps(stats_data, ensure_ascii=False),
                         json.dumps(info.get('inventory', {}), ensure_ascii=False),
                         json.dumps(info.get('dungeon_progress', {}), ensure_ascii=False)
                     ]
                     player_rows.append(row)
 
-                # --- CHỐT CHẶN AN TOÀN ---
-                if len(player_rows) > 1 and count_student > 0:
-                    sh_players.clear()
-                    sh_players.update('A1', player_rows)
-                    st.success(f"✅ Tab Players: Đã cập nhật {count_student} học sinh (Đã xử lý lỗi NaN).")
+                # --- 🔥 BƯỚC QUAN TRỌNG NHẤT: TỔNG VỆ SINH (FINAL SWEEP) 🔥 ---
+                # Duyệt qua TỪNG Ô trong bảng dữ liệu chuẩn bị gửi đi.
+                # Nếu thấy bất kỳ ô nào là float lỗi (nan, inf) -> Ép ngay về số 0.
                 
-                elif len(player_rows) > 1 and count_student == 0:
-                    st.error("⛔ CẢNH BÁO: Chỉ có Admin, không có học sinh. Đã chặn lệnh xóa!")
+                cleaned_rows = []
+                for r in player_rows:
+                    new_row = []
+                    for cell in r:
+                        # Kiểm tra: Nếu là số thực (float)
+                        if isinstance(cell, float):
+                            # Nếu là NaN (Not a Number) hoặc Vô cực (Inf)
+                            if math.isnan(cell) or math.isinf(cell):
+                                new_row.append(0) # Thay thế bằng 0
+                            else:
+                                new_row.append(cell)
+                        else:
+                            # Các loại dữ liệu khác (str, int) giữ nguyên
+                            new_row.append(cell)
+                    cleaned_rows.append(new_row)
+
+                # --- CHỐT CHẶN AN TOÀN ---
+                # Gửi cleaned_rows (đã vệ sinh) thay vì player_rows (đang lỗi)
+                if len(cleaned_rows) > 1 and count_student > 0:
+                    sh_players.clear()
+                    sh_players.update('A1', cleaned_rows) 
+                    st.success(f"✅ Tab Players: Đã cập nhật {count_student} học sinh (Đã khử sạch lỗi NaN).")
+                
+                elif len(cleaned_rows) > 1 and count_student == 0:
+                    st.error("⛔ CẢNH BÁO: Dữ liệu chỉ chứa Admin, mất hết học sinh. Đã chặn lệnh xóa!")
                     return False
                 else:
                     st.error("⛔ Dữ liệu rỗng! Hủy lưu.")
                     return False
+                    
+            except Exception as e:
+                st.error(f"❌ Vẫn còn lỗi tại tab Players: {e}")
+                st.exception(e)
+                import time
+                time.sleep(15)
+                return False
                     
             except Exception as e:
                 # In lỗi chi tiết nếu vẫn còn
