@@ -753,7 +753,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 for col in edit_cols:
                     if col != 'name':
                         st.session_state.data[index][col] = row[col]
-            save_data_func()
+            save_data_func(st.session_state.data)
             st.success("Admin đã cập nhật dữ liệu thành công!")
             st.rerun()
 
@@ -1279,32 +1279,35 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                 inventory[gift_item] = inventory.get(gift_item, 0) + gift_qty
                                 count_success += 1
                         
-                        save_data_func() # Lưu sau khi phát xong cho cả lớp [cite: 28]
+                        save_data_func(st.session_state.data) # Lưu sau khi phát xong cho cả lớp [cite: 28]
                         st.success(f"🎊 Đã phát quà đại trà! {gift_qty} {gift_item} đã được gửi tới {count_success} học sĩ!")
 
-                    # TRƯỜNG HỢP 2: TẶNG CHO CÁ NHÂN (Giữ nguyên logic cũ)
+                    # TRƯỜNG HỢP 2: TẶNG CHO CÁ NHÂN (ĐÃ FIX LỖI SYNTAX)
                     else:
+                        # Lọc tìm ID của học sinh dựa trên tên hiển thị
                         u_id = next((uid for uid, info in st.session_state.data.items() 
-                                     [cite_start]if isinstance(info, dict) and info.get('name') == target_user), None)
+                                     if isinstance(info, dict) and info.get('name') == target_user), None)
                         
                         if u_id:
+                            # Khởi tạo túi đồ nếu chưa có
                             if 'inventory' not in st.session_state.data[u_id] or not isinstance(st.session_state.data[u_id]['inventory'], dict):
                                 st.session_state.data[u_id]['inventory'] = {}
                             
                             inventory = st.session_state.data[u_id]['inventory']
                             inventory[gift_item] = inventory.get(gift_item, 0) + gift_qty
                             
-                            save_data_func()
+                            # CẬP NHẬT GỌI HÀM LƯU ĐÚNG CÁCH (Có truyền data)
+                            save_data_func(st.session_state.data)
                             st.success(f"🎁 Đã tặng {gift_qty} {gift_item} cho {target_user}!")
-                else:
-                    st.error("❌ Vật phẩm không tồn tại trong kho hệ thống!")
+                        else:
+                            st.error("❌ Không tìm thấy thông tin học sĩ này trong dữ liệu!")
 
         with tab2:
             del_user = st.selectbox("Chọn Học Sĩ muốn xóa kho:", all_names, key="del_user")
             if st.button("🔥 XÓA SẠCH TÚI ĐỒ"):
                 u_id = [uid for uid, info in st.session_state.data.items() if info['name'] == del_user][0]
                 st.session_state.data[u_id]['inventory'] = []
-                save_data_func() 
+                save_data_func(st.session_state.data) 
                 st.warning(f"Đã tịch thu toàn bộ vật phẩm của {del_user}!")
 
 
@@ -1466,7 +1469,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
             # --- [QUAN TRỌNG] LƯU VÀO DATA CHÍNH VÀ GHI FILE JSON ---
             if 'data' in st.session_state:
                 st.session_state.data['rank_settings'] = edited_ranks
-                save_data_func() # Gọi hàm lưu xuống ổ cứng
+                save_data_func(st.session_state.data)
             # ---------------------------------------------------------
             
             st.success("✅ Đã cập nhật và lưu hệ thống danh hiệu vĩnh viễn!")
