@@ -940,7 +940,9 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             else:
                                 st.warning("⚠️ Cảnh báo: Dữ liệu mới đang trống, hệ thống đã ngăn chặn việc ghi đè để bảo vệ Sheets!")
 
-                            # ------------------------------------------------------
+                except Exception as e:
+                    st.error(f"❌ Lỗi khi xử lý file Excel: {e}")
+
 
         st.divider()
         # --- (Các phần Thiết lập tổ và Bảng chỉnh sửa chi tiết bên dưới giữ nguyên) ---
@@ -1127,8 +1129,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 limit_amount = st.number_input("Số lượng giới hạn:", min_value=1, value=1) if limit_type == "Giới hạn tháng" else 0
                 
                 # --- CHỨC NĂNG MỚI: NIÊM YẾT ---
-                is_listed = st.checkbox("🏪 Niêm yết lên Tiệm tạp hóa", value=True, 
-                                        help="Nếu tắt, vật phẩm này chỉ dùng để làm quà Drop từ Boss/Phó bản, không hiện trong shop.")
+                is_listed = st.checkbox("🏪 Niêm yết lên Tiệm tạp hóa", value=True, help="Nếu tắt, vật phẩm này chỉ dùng để làm quà Drop từ Boss/Phó bản, không hiện trong shop.")
             
             with col2:
                 item_behavior = st.selectbox("Loại Logic (Behavior):", options=list(registry.keys()), 
@@ -1244,12 +1245,12 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
         with tab1:
             col_u, col_i, col_q = st.columns(3)
             
-            # [cite_start]Lấy danh sách tên hiển thị từ data
+            Lấy danh sách tên hiển thị từ data
             all_names = [info['name'] for uid, info in st.session_state.data.items() 
                          if isinstance(info, dict) and 'name' in info]
             
             with col_u: 
-                # [cite_start]Thêm lựa chọn "TẤT CẢ HỌC SĨ" vào danh sách
+                #Thêm lựa chọn "TẤT CẢ HỌC SĨ" vào danh sách
                 target_user = st.selectbox("Chọn Học Sĩ nhận:", ["🌟 TẤT CẢ HỌC SĨ"] + all_names)
             
             with col_i: 
@@ -1279,7 +1280,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                 inventory[gift_item] = inventory.get(gift_item, 0) + gift_qty
                                 count_success += 1
                         
-                        save_data_func(st.session_state.data) # Lưu sau khi phát xong cho cả lớp [cite: 28]
+                        save_data_func(st.session_state.data)
                         st.success(f"🎊 Đã phát quà đại trà! {gift_qty} {gift_item} đã được gửi tới {count_success} học sĩ!")
 
                     # TRƯỜNG HỢP 2: TẶNG CHO CÁ NHÂN (ĐÃ FIX LỖI SYNTAX)

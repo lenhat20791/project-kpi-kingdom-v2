@@ -1,3 +1,4 @@
+# Thay thế cụm import cũ bằng đoạn này cho gọn:
 import re
 import pandas as pd
 import streamlit as st
@@ -6,18 +7,25 @@ import time
 import random
 import unicodedata
 import os
-from admin_module import hien_thi_giao_dien_admin
-from user_module import hien_thi_giao_dien_hoc_si
-from admin_module import admin_quan_ly_boss
-from user_module import hien_thi_san_dau_boss
 import base64
-import streamlit.components.v1 as components
-import user_module
-from admin_module import load_dungeon_config
-from admin_module import hien_thi_thong_bao_he_thong
-from datetime import datetime, timedelta
 import zipfile
-from user_module import save_data, load_data
+from datetime import datetime, timedelta
+import streamlit.components.v1 as components
+
+# Gom nhóm Import Module
+import user_module
+from user_module import (
+    hien_thi_giao_dien_hoc_si, 
+    hien_thi_san_dau_boss, 
+    save_data, 
+    load_data
+)
+from admin_module import (
+    hien_thi_giao_dien_admin, 
+    admin_quan_ly_boss, 
+    load_dungeon_config, 
+    hien_thi_thong_bao_he_thong
+)
         
 # --- 🚑 BỘ CỨU HỘ DỮ LIỆU TỪ Ổ CỨNG (SỬA FILE data.json) ---
 def emergency_fix_data_file():

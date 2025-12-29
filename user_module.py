@@ -3360,5 +3360,3 @@ def load_data_from_sheets():
     except Exception as e:
         print(f"❌ Lỗi nghiêm trọng khi tải dữ liệu từ Cloud: {e}")
         return None
-        
-    
