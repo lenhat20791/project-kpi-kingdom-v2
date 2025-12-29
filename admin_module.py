@@ -1718,7 +1718,6 @@ def quan_ly_loi_dai_admin(save_data_func):
     st.write("### 🏟️ ĐIỀU HÀNH LÔI ĐÀI")
     
     # 1. Nhập các hàm xử lý file
-    from user_module import load_loi_dai, save_loi_dai
     ld_data = load_loi_dai()
     
     # 2. LỌC TRẬN ĐẤU: Đổi 'ongoing' thành 'active' cho đồng bộ
