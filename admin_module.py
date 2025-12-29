@@ -757,13 +757,24 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
         )
 
         if st.button("💾 CẬP NHẬT DỮ LIỆU"):
+            # 1. Cập nhật dữ liệu từ bảng chỉnh sửa vào bộ nhớ tạm (Đoạn này giữ nguyên)
             for index, row in edited_df.iterrows():
                 for col in edit_cols:
                     if col != 'name':
                         st.session_state.data[index][col] = row[col]
-            save_data_func(st.session_state.data)
-            st.success("Admin đã cập nhật dữ liệu thành công!")
-            st.rerun()
+            
+            # 2. --- [THAY ĐỔI QUAN TRỌNG] ---
+            # Bỏ dòng save_data_func cũ đi. Gọi trực tiếp hàm an toàn mới:
+            import user_module  # Import để tránh lỗi UnboundLocalError
+            
+            # Gọi hàm save_all_to_sheets (Hàm này đã có chốt chặn đếm học sinh)
+            if user_module.save_all_to_sheets(st.session_state.data):
+                st.success("Admin đã cập nhật dữ liệu thành công!")
+                time.sleep(1) # Dừng 1 xíu để kịp nhìn thông báo
+                st.rerun()
+            else:
+                # Nếu hàm trả về False (do dữ liệu rỗng hoặc lỗi), nó sẽ hiện lỗi đỏ
+                st.error("❌ Cập nhật thất bại! Hệ thống đã chặn lệnh lưu để bảo vệ dữ liệu.")
 
         st.divider()
 
@@ -1099,8 +1110,9 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 # Gọi hàm lưu an toàn
                 if len(st.session_state.data) > 0:
                     st.info("🔄 Đang xử lý lưu trữ...")
+                    import user_module
                     # Gọi hàm save_data từ user_module
-                    if user_module.save_data(st.session_state.data):
+                    if user_module.save_all_to_sheets(st.session_state.data):
                         st.success("🎉 Đã cập nhật thành công!")
                         import time
                         time.sleep(1)

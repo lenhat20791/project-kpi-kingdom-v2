@@ -648,8 +648,12 @@ def save_data(data=None):
     if data is None:
         data = st.session_state.data
     
-    # Chuyển việc cho user_module làm
-    return user_module.save_data(data)
+    # --- [QUAN TRỌNG] SỬA DÒNG DƯỚI ĐÂY ---
+    import user_module # Import để tránh lỗi
+    
+    # Gọi hàm save_all_to_sheets (Hàm mới có bảo vệ 3 lớp)
+    # KHÔNG ĐƯỢC gọi user_module.save_data nữa!
+    return user_module.save_all_to_sheets(data)
         
 # --- KHỞI TẠO DỮ LIỆU ĐẦU VÀO ---
 if 'data' not in st.session_state:
