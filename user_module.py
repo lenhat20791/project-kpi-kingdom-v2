@@ -3176,10 +3176,27 @@ def save_all_to_sheets(all_data):
                     sh_shop = spreadsheet.worksheet("Shop")
                     shop_rows = [["Item_ID", "Item_Name", "Price", "Stock", "Description", "Effect_JSON"]]
                     for item_id, info in st.session_state.shop_items.items():
-                        shop_rows.append([
-                            item_id, info.get('name', ''), info.get('price', 0), info.get('stock', 0),
-                            info.get('description', ''), json.dumps(info.get('effects', {}), ensure_ascii=False)
-                        ])
+                        if isinstance(info, dict):
+                            # GOM TẤT CẢ LOGIC VÀO MỘT CỘT JSON ĐỂ KHÔNG MẤT DỮ LIỆU
+                            # Bao gồm: ảnh, logic ẩn/hiện, tiền tệ, giới hạn mua, và properties
+                            logic_data = {
+                                "image": info.get('image', ''),
+                                "is_listed": info.get('is_listed', True),
+                                "currency_buy": info.get('currency_buy', 'kpi'),
+                                "type": info.get('type', 'COMMON'),
+                                "limit_type": info.get('limit_type', 'Thông thường'),
+                                "limit_amount": info.get('limit_amount', 0),
+                                "properties": info.get('properties', {})
+                            }
+                            
+                            shop_rows.append([
+                                str(item_id), 
+                                str(info.get('name', item_id)), 
+                                info.get('price', 0), 
+                                info.get('stock', 999), 
+                                str(info.get('desc', '')), # Dùng 'desc' thay vì 'description'
+                                json.dumps(logic_data, ensure_ascii=False)
+                            ])
                     sh_shop.clear()
                     sh_shop.update('A1', shop_rows)
                     st.info("tab Shop: Đã đồng bộ xong.")
@@ -3285,7 +3302,6 @@ def load_data_from_sheets():
             print(f"⚠️ Lỗi đọc tab Players: {e}")
 
         # --- PHẦN 2: TẢI CẤU HÌNH (Tab Settings) ---
-        # --- PHẦN 2: TẢI CẤU HÌNH (Tab Settings) ---
         try:
             # Kiểm tra xem tab Settings có tồn tại không
             try:
@@ -3341,20 +3357,37 @@ def load_data_from_sheets():
                 item_id = str(r.get('Item_ID', '')).strip()
                 if not item_id: continue
                 
+                # 1. Giải mã cột Effect_JSON (Chứa image, is_listed, type, properties...)
                 try:
-                    effect_json = json.loads(str(r.get('Effect_JSON', '{}')))
+                    raw_effect = str(r.get('Effect_JSON', '{}'))
+                    # Fix lỗi dấu ngoặc thông minh từ Google Sheets
+                    clean_effect = raw_effect.replace("“", '"').replace("”", '"').replace("’", "'")
+                    extra = json.loads(clean_effect)
                 except:
-                    effect_json = {}
+                    extra = {}
 
+                # 2. Xây dựng lại Object Item chuẩn như lúc tạo
                 shop_dict[item_id] = {
+                    "id": item_id,
                     "name": r.get('Item_Name', ''),
                     "price": r.get('Price', 0),
                     "stock": r.get('Stock', 0),
-                    "description": r.get('Description', ''),
-                    "properties": effect_json
+                    "desc": r.get('Description', ''), # Đổi thành 'desc' cho khớp với Admin
+                    
+                    # Nạp lại các thông tin từ JSON
+                    "image": extra.get('image', 'https://cdn-icons-png.flaticon.com/512/1236/1236525.png'),
+                    "is_listed": extra.get('is_listed', True),
+                    "currency_buy": extra.get('currency_buy', 'kpi'),
+                    "type": extra.get('type', 'COMMON'),
+                    "limit_type": extra.get('limit_type', 'Thông thường'),
+                    "limit_amount": extra.get('limit_amount', 0),
+                    "properties": extra.get('properties', {})
                 }
-            # Cập nhật trực tiếp vào session_state
+            
+            # Cập nhật trực tiếp vào session_state để dùng ngay
             st.session_state.shop_items = shop_dict
+            print(f"🏪 Đã tải {len(shop_dict)} vật phẩm vào Tiệm tạp hóa.")
+            
         except Exception as e:
             print(f"ℹ️ Tab Shop chưa có hoặc trống: {e}")
 
