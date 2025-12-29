@@ -1173,6 +1173,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         "is_listed": is_listed, # <--- LƯU TRẠNG THÁI ẨN/HIỆN
                         "desc": desc
                     }
+                    import user_module
                     user_module.save_all_to_sheets(st.session_state.data) 
         
                     st.success(f"✅ Đã lưu '{name}' thành công!")
