@@ -20,12 +20,22 @@ from user_module import (
     save_data, 
     load_data
 )
-from admin_module import (
-    hien_thi_giao_dien_admin, 
-    admin_quan_ly_boss, 
-    load_dungeon_config, 
-    hien_thi_thong_bao_he_thong
-)
+import streamlit as st
+import traceback
+
+# Thay vì import thông thường, ta dùng try-except để bắt lỗi import
+try:
+    from admin_module import (
+        hien_thi_giao_dien_admin,
+        admin_quan_ly_boss,
+        load_dungeon_config
+    )
+except Exception:
+    st.error("❌ PHÁT HIỆN LỖI CÚ PHÁP TRONG ADMIN_MODULE:")
+    # In toàn bộ chi tiết lỗi ra màn hình
+    error_details = traceback.format_exc()
+    st.code(error_details, language="python")
+    st.stop() # Dừng ứng dụng tại đây để bạn đọc lỗi
         
 # --- 🚑 BỘ CỨU HỘ DỮ LIỆU TỪ Ổ CỨNG (SỬA FILE data.json) ---
 def emergency_fix_data_file():
