@@ -3207,25 +3207,35 @@ def save_all_to_sheets(all_data):
                 return False
 
             # =========================================================
-            # --- 2. ĐỒNG BỘ SETTINGS & BOSS ---
+            # --- 2. ĐỒNG BỘ SETTINGS & BOSS (ĐÃ SỬA: LẤY TỪ RAM) ---
             # =========================================================
             try:
                 sh_settings = spreadsheet.worksheet("Settings")
                 settings_rows = [["Config_Key", "Value"]]
                 
+                # A. Lưu Rank Settings (Giữ nguyên)
                 if "rank_settings" in all_data:
                     settings_rows.append(["rank_settings", json.dumps(all_data["rank_settings"], ensure_ascii=False)])
                 
-                if os.path.exists('data/boss_config.json'):
-                    with open('data/boss_config.json', 'r', encoding='utf-8') as f:
-                        settings_rows.append(["active_boss", json.dumps(json.load(f), ensure_ascii=False)])
+                # B. Lưu Boss (SỬA ĐOẠN NÀY)
+                # Thay vì đọc file, ta lấy từ biến system_config trong all_data
+                sys_conf = all_data.get('system_config', {})
+                boss_data = sys_conf.get('active_boss')
                 
+                if boss_data:
+                    # Gói lại đúng cấu trúc JSON để lúc tải về máy hiểu được
+                    # Cấu trúc chuẩn: {"active_boss": { ...dữ liệu boss... }}
+                    final_boss_json = {"active_boss": boss_data}
+                    settings_rows.append(["active_boss", json.dumps(final_boss_json, ensure_ascii=False)])
+                
+                # C. Đẩy lên Sheets
                 if len(settings_rows) > 1:
                     sh_settings.clear()
                     sh_settings.update('A1', settings_rows)
-                    st.info("tab Settings: Đã đồng bộ xong.")
+                    st.write("tab Settings: Đã đồng bộ xong.")
                     
             except Exception as e:
+                # Chỉ cảnh báo nhẹ, không làm crash app
                 st.warning(f"⚠️ Lỗi nhẹ tab Settings: {e}")
 
             # =========================================================

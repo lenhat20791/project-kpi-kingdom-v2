@@ -394,11 +394,12 @@ from datetime import datetime
 # --- HÀM PHỤ TRỢ 1: HIỂN THỊ GIAO DIỆN CHỌN QUÀ ---
 def hien_thi_bang_chon_qua_boss():
     """
-    Hàm này lo việc: Lấy dữ liệu Shop -> Tạo list chọn -> Hiển thị Data Editor
-    Trả về: Dữ liệu thô người dùng đang nhập trên bảng.
+    Nhiệm vụ: Lấy dữ liệu Shop -> Tạo danh sách chọn -> Hiển thị bảng Data Editor
+    Trả về: Dữ liệu thô từ bảng nhập liệu.
     """
-    # 1. Chuẩn bị danh sách Tiền tệ & Item
-    shop_items = st.session_state.get('shop_items', {})
+    # 1. Chuẩn bị danh sách
+    # Dùng .get() để an toàn, tránh lỗi nếu chưa có shop_items
+    shop_items = st.session_state.data.get('shop_items', {}) 
     
     # Map tiền tệ
     currency_options = ["🔵 KPI", "📚 Tri Thức", "⚔️ Chiến Tích", "🏆 Vinh Dự", "✨ Vinh Quang"]
@@ -419,14 +420,46 @@ def hien_thi_bang_chon_qua_boss():
 
     full_options = currency_options + item_options
 
-    # 2. Hiển thị bảng Editor
-    st.info("💡 Chọn Rương Gacha hoặc Vật phẩm từ danh sách. Tổng tỷ lệ nên là 100% nếu muốn chắc chắn rơi đồ.")
+    # 2. Hiển thị bảng
+    st.info("💡 Chọn Rương Gacha, Vật phẩm hoặc Tài nguyên. Tổng tỷ lệ có thể hơn 100% nếu muốn rơi nhiều món.")
 
-    # Dữ liệu mặc định
-    default_data = [
-        {"id_display": "🔵 KPI", "amount": 10, "rate": 100},
-        {"id_display": "📚 Tri Thức", "amount": 5, "rate": 50}
-    ]
+    # --- LOAD DỮ LIỆU CŨ (NẾU ĐANG SỬA BOSS) ---
+    default_data = []
+    
+    # Lấy boss hiện tại từ session state
+    system_config = st.session_state.data.get('system_config', {})
+    current_boss = system_config.get('active_boss')
+
+    if current_boss and 'drop_table' in current_boss:
+        # Map ngược từ ID sang Label để hiện lại trên bảng
+        for drop in current_boss['drop_table']:
+            found_label = drop['id'] # Mặc định
+            
+            # Check Tiền tệ
+            if drop['id'] == 'kpi': found_label = "🔵 KPI"
+            elif drop['id'] == 'Tri_Thuc': found_label = "📚 Tri Thức"
+            elif drop['id'] == 'Chien_Tich': found_label = "⚔️ Chiến Tích"
+            elif drop['id'] == 'Vinh_Du': found_label = "🏆 Vinh Dự"
+            elif drop['id'] == 'Vinh_Quang': found_label = "✨ Vinh Quang"
+            # Check Item
+            else:
+                for opt in full_options:
+                    if f"({drop['id']})" in opt:
+                        found_label = opt
+                        break
+            
+            default_data.append({
+                "id_display": found_label,
+                "amount": drop.get('amount', 1),
+                "rate": drop.get('rate', 10.0)
+            })
+
+    # Nếu chưa có dữ liệu thì hiện mẫu
+    if not default_data:
+        default_data = [
+            {"id_display": "🔵 KPI", "amount": 10, "rate": 100},
+            {"id_display": "📚 Tri Thức", "amount": 5, "rate": 50}
+        ]
 
     edited_table = st.data_editor(
         default_data, 
@@ -439,20 +472,19 @@ def hien_thi_bang_chon_qua_boss():
                 width="large"
             ),
             "amount": st.column_config.NumberColumn("Số lượng", min_value=1, default=1),
-            "rate": st.column_config.NumberColumn("Tỷ lệ rơi (%)", min_value=1, max_value=100, default=10)
+            "rate": st.column_config.NumberColumn("Tỷ lệ rơi (%)", min_value=0.1, max_value=100.0, default=10.0, format="%.1f%%")
         },
-        key="boss_drop_editor_func", # Key riêng để tránh trùng
+        key="boss_drop_editor_func",
         use_container_width=True
     )
     
     return edited_table
-
 # --- HÀM PHỤ TRỢ 2: XỬ LÝ DỮ LIỆU ĐỂ LƯU FILE ---
 def xu_ly_du_lieu_drop(raw_table_data):
     """
-    Hàm này lo việc: Nhận dữ liệu thô -> Tách chuỗi lấy ID -> Trả về List chuẩn JSON
+    Nhiệm vụ: Nhận data thô -> Cắt lấy ID chuẩn -> Trả về List JSON sạch
     """
-    # Map ngược lại tiền tệ để lấy key chuẩn
+    # Map ngược key tiền tệ
     currency_map_reverse = {
         "🔵 KPI": "kpi", "📚 Tri Thức": "Tri_Thuc", 
         "⚔️ Chiến Tích": "Chien_Tich", "🏆 Vinh Dự": "Vinh_Du", 
@@ -463,7 +495,7 @@ def xu_ly_du_lieu_drop(raw_table_data):
     for row in raw_table_data:
         display_str = row['id_display']
         
-        # Case A: Là tiền tệ
+        # Trường hợp A: Là Tiền tệ
         if display_str in currency_map_reverse:
             entry = {
                 "type": "currency",
@@ -471,11 +503,11 @@ def xu_ly_du_lieu_drop(raw_table_data):
                 "amount": row['amount'],
                 "rate": row['rate']
             }
-        # Case B: Là Item/Rương (Cần tách ID trong ngoặc)
+        # Trường hợp B: Là Item/Rương (Cần lấy ID trong ngoặc)
         else:
             try:
                 # "🎲 ... (ID_THAT)" -> Lấy ID_THAT
-                real_id = display_str.split('(')[-1].replace(')', '')
+                real_id = display_str.split('(')[-1].replace(')', '').strip()
             except:
                 real_id = display_str
                 
@@ -493,22 +525,22 @@ def xu_ly_du_lieu_drop(raw_table_data):
 def admin_quan_ly_boss():
     st.title("👨‍🏫 QUẢN LÝ ĐẠI CHIẾN GIÁO VIÊN")
 
-    # --- PHẦN 1: QUẢN LÝ KHO VẬT PHẨM (GIỮ NGUYÊN TỪ FILE CŨ) ---
-    # Đọc kho vật phẩm đã có
+    # --- PHẦN 1: QUẢN LÝ KHO VẬT PHẨM (GIỮ NGUYÊN) ---
+    # (Phần này tạm thời giữ nguyên logic cũ của bạn để tránh lỗi Item)
     if os.path.exists('data/item_inventory.json'):
         with open('data/item_inventory.json', 'r', encoding='utf-8') as f:
             kho_item = json.load(f)
     else:
         kho_item = []
-        
-    # Import hàm registry nếu cần (giả sử item_system.py có sẵn)
+
     try:
         from item_system import get_item_behavior_registry
         registry = get_item_behavior_registry()
     except ImportError:
-        registry = {} # Fallback nếu không import được
+        registry = {}
 
     with st.expander("🛠️ KHO VẬT PHẨM HUYỀN THOẠI (Admin Đắp Nặn)"):
+        # ... (Code phần item giữ nguyên như cũ) ...
         if registry:
             col1, col2 = st.columns(2)
             with col1:
@@ -517,7 +549,6 @@ def admin_quan_ly_boss():
             with col2:
                 item_img = st.text_input("Link ảnh Icon (URL):")
             
-            # Tự động tạo ô nhập liệu dựa trên định nghĩa Registry
             properties = {}
             item_def = registry[item_type]
             params = item_def["params"]
@@ -525,9 +556,8 @@ def admin_quan_ly_boss():
 
             st.write("🔧 **Thiết lập chỉ số:**")
             cols = st.columns(len(params))
-            
             for i, (p_name, p_type) in enumerate(params.items()):
-                with cols[i % len(cols)]: # Tránh index out of bounds nếu params > cols
+                with cols[i % len(cols)]:
                     display_label = labels.get(p_name, p_name)
                     if isinstance(p_type, list):
                         properties[p_name] = st.selectbox(display_label, options=p_type)
@@ -537,142 +567,116 @@ def admin_quan_ly_boss():
             if st.button("➕ LƯU VẬT PHẨM VÀO KHO"):
                 if item_id and item_img:
                     new_item = {
-                        "id": item_id,
-                        "type": item_type,
-                        "image": item_img,
+                        "id": item_id, "type": item_type, "image": item_img,
                         "properties": properties,
                         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     }
                     kho_item.append(new_item)
                     with open('data/item_inventory.json', 'w', encoding='utf-8') as f:
                         json.dump(kho_item, f, indent=4, ensure_ascii=False)
-                    st.success(f"✅ Đã đắp nặn thành công: {item_id}!")
+                    st.success(f"✅ Đã đắp nặn: {item_id}!")
                     st.rerun()
                 else:
-                    st.error("❌ Vui lòng nhập Tên và Link ảnh vật phẩm!")
-        else:
-             st.warning("Chưa tìm thấy Registry Item. Vui lòng kiểm tra file item_system.py.")
+                    st.error("❌ Thiếu tên hoặc ảnh!")
     
     st.divider()
 
-   # --- PHẦN 2: QUẢN LÝ BOSS & ITEM POOL (ĐÃ FIX LOGIC) ---
-    # Nạp dữ liệu Boss từ file
-    if os.path.exists('data/boss_config.json'):
-        with open('data/boss_config.json', 'r', encoding='utf-8') as f:
-            boss_data = json.load(f)
-    else:
-        boss_data = {"active_boss": None}
+    # =================================================================
+    # 🔥 PHẦN 2: QUẢN LÝ BOSS (ĐÃ KẾT NỐI GOOGLE SHEETS) 🔥
+    # =================================================================
     
-    boss_hien_tai = boss_data.get("active_boss")
+    # 1. LẤY DỮ LIỆU TỪ SESSION STATE (Đã được Load từ Google Sheets Tab Settings)
+    # Chúng ta sẽ lưu Boss vào key 'active_boss' trong system_config
+    if 'system_config' not in st.session_state.data:
+        st.session_state.data['system_config'] = {}
+        
+    system_config = st.session_state.data['system_config']
+    boss_hien_tai = system_config.get('active_boss') # Lấy trực tiếp từ bộ nhớ
 
     # --- FORM TRIỆU HỒI BOSS ---
     with st.form("trieu_hoi_boss_form"):
-        st.subheader("🔥 Thiết lập thông tin Boss")
+        st.subheader("🔥 Thiết lập thông tin Boss (Lưu lên Cloud)")
         c1, c2 = st.columns(2)
         with c1:
-            ten_boss = st.text_input("Tên Giáo Viên:", "Pháp Sư Toán Học")
+            # Nếu đang có boss thì điền sẵn thông tin cũ
+            def_name = boss_hien_tai.get('ten', "Pháp Sư Toán Học") if boss_hien_tai else "Pháp Sư Toán Học"
+            def_hp = boss_hien_tai.get('hp_max', 10000) if boss_hien_tai else 10000
+            def_img = boss_hien_tai.get('anh', "assets/teachers/toan.png") if boss_hien_tai else "assets/teachers/toan.png"
+            
+            ten_boss = st.text_input("Tên Giáo Viên:", def_name)
             mon_hoc = st.selectbox("Môn Thử Thách:", ["toan", "van", "anh", "ly", "hoa", "sinh"])
-            hp_boss = st.number_input("Tổng Sinh Mệnh (HP):", min_value=1000, value=10000, step=1000)
-            anh_boss = st.text_input("Ảnh Boss (URL):", f"assets/teachers/{mon_hoc}.png")
+            hp_boss = st.number_input("Tổng Sinh Mệnh (HP):", min_value=1000, value=int(def_hp), step=1000)
+            anh_boss = st.text_input("Ảnh Boss (URL):", def_img)
+            
         with c2:
-            damage_boss = st.number_input("Sát Thương Boss:", value=20)
-            kpi_rate = st.number_input("Tỷ lệ thưởng KPI (mỗi 1000 dmg):", value=1.0)
-            exp_rate = st.number_input("Tỷ lệ thưởng EXP (mỗi 1000 dmg):", value=5.0) 
+            def_dmg = boss_hien_tai.get('damage', 20) if boss_hien_tai else 20
+            damage_boss = st.number_input("Sát Thương Boss:", value=int(def_dmg))
+            kpi_rate = st.number_input("Tỷ lệ thưởng KPI:", value=1.0)
+            exp_rate = st.number_input("Tỷ lệ thưởng EXP:", value=5.0) 
 
         st.divider()
-        st.subheader("🎁 THIẾT LẬP ITEM POOL (Tỷ lệ rơi quà)")
+        st.subheader("🎁 THIẾT LẬP ITEM POOL")
+        st.info("ℹ️ (Chức năng chọn quà đang phát triển...)")
         
-        # Gọi hàm hiển thị bảng chọn quà (Giả sử bạn đã có hàm này)
-        # raw_data = hien_thi_bang_chon_qua_boss() 
-        # Tạm thời giả lập nếu chưa có hàm
-        st.info("ℹ️ (Bảng chọn quà sẽ hiển thị ở đây)")
-        raw_data = [] 
-
         # Nút Submit
-        submit = st.form_submit_button("🔥 PHÁT LỆNH TRIỆU HỒI NGAY")
+        submit = st.form_submit_button("🔥 LƯU VÀ ĐỒNG BỘ LÊN SHEETS")
 
-    # --- XỬ LÝ KHI BẤM NÚT TRIỆU HỒI ---
+    # --- XỬ LÝ LƯU (SAVE) ---
     if submit:
-        # Xử lý drop table (Giả sử bạn đã có hàm xu_ly_du_lieu_drop)
-        # clean_drop_table = xu_ly_du_lieu_drop(raw_data)
-        clean_drop_table = [] # Placeholder
-        
+        # Tạo Object Boss Mới
         new_boss = {
             "ten": ten_boss,
-            "name": ten_boss,       # <--- THÊM KEY NÀY ĐỂ AN TOÀN TUYỆT ĐỐI
+            "name": ten_boss, # Key an toàn
             "mon": mon_hoc,
             "hp_max": hp_boss,
-            "hp_current": hp_boss,
+            "hp_current": hp_boss, # Reset máu khi tạo mới/cập nhật
             "damage": damage_boss,
             "kpi_rate": kpi_rate,
             "exp_rate": exp_rate,
             "anh": anh_boss,
-            "drop_table": clean_drop_table,
             "status": "active",
-            "contributions": {},
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         
-        try:
-            with open('data/boss_config.json', 'w', encoding='utf-8') as f:
-                json.dump({"active_boss": new_boss}, f, indent=4, ensure_ascii=False)
-            st.success(f"✅ Đã triệu hồi {ten_boss} thành công!")
+        # 1. CẬP NHẬT VÀO SESSION STATE
+        if 'system_config' not in st.session_state.data:
+            st.session_state.data['system_config'] = {}
+            
+        st.session_state.data['system_config']['active_boss'] = new_boss
+        
+        # 2. GỌI HÀM LƯU ĐỂ ĐẨY LÊN GOOGLE SHEETS
+        import user_module
+        if user_module.save_all_to_sheets(st.session_state.data):
+            st.success(f"✅ Đã cập nhật Boss **{ten_boss}** lên Tab Settings!")
             st.balloons()
             time.sleep(1) 
             st.rerun()
-        except Exception as e:
-            st.error(f"Lỗi khi lưu Boss: {e}")
+        else:
+            st.error("❌ Lỗi kết nối Google Sheets!")
 
     st.divider()
 
-    # --- KHU VỰC QUẢN LÝ & GIẢI TÁN BOSS ---
+    # --- KHU VỰC QUẢN LÝ (DELETE) ---
     st.subheader("🗑️ KHU VỰC QUẢN LÝ")
 
-    # --- [QUAN TRỌNG] KIỂM TRA CÓ BOSS KHÔNG RỒI MỚI HIỂN THỊ ---
     if boss_hien_tai: 
-        # Lấy tên an toàn
         ten_hien_tai = boss_hien_tai.get('ten', boss_hien_tai.get('name', 'Boss Ẩn'))
-        
         st.warning(f"⚠️ Boss **{ten_hien_tai}** đang án ngữ tại Đấu Trường.")
         
-        col_del, col_log = st.columns(2)
-        
-        # 1. Nút xóa Boss
-        with col_del:
-            if st.button("❌ GIẢI TÁN BOSS HIỆN TẠI", use_container_width=True, type="secondary"):
-                boss_data["active_boss"] = None
-                try:
-                    with open('data/boss_config.json', 'w', encoding='utf-8') as f:
-                        json.dump(boss_data, f, indent=4, ensure_ascii=False)
-                    
-                    st.error("💥 Đã xóa Boss! Đấu trường hiện đang trống.")
-                    time.sleep(1)
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Lỗi khi xóa Boss: {e}")
-
-        # 2. Nút dọn log
-        with col_log:
-            if os.path.exists('data/boss_logs.json'):
-                if st.button("🧹 DỌN DẸP NHẬT KÝ CHIẾN ĐẤU", use_container_width=True):
-                    try:
-                        with open('data/boss_logs.json', 'r', encoding='utf-8') as f:
-                            logs_data = json.load(f)
-                        
-                        # Lọc bỏ log của boss hiện tại
-                        new_logs = [l for l in logs_data if l.get('boss_name') != ten_hien_tai]
-                        
-                        with open('data/boss_logs.json', 'w', encoding='utf-8') as f:
-                            json.dump(new_logs, f, indent=4, ensure_ascii=False)
-                            
-                        st.success(f"✨ Đã dọn log của {ten_hien_tai}!")
-                        time.sleep(1)
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Lỗi khi dọn log: {e}")
+        if st.button("❌ GIẢI TÁN BOSS (Xóa khỏi Sheets)", use_container_width=True, type="secondary"):
+            # 1. XÓA KHỎI SESSION STATE
+            st.session_state.data['system_config']['active_boss'] = None
+            
+            # 2. LƯU LẠI ĐỂ ĐỒNG BỘ VIỆC XÓA
+            import user_module
+            if user_module.save_all_to_sheets(st.session_state.data):
+                st.success("💥 Đã xóa Boss khỏi hệ thống!")
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.error("❌ Lỗi khi xóa trên Google Sheets!")
     else:
-        # Nếu không có Boss thì hiện thông báo êm đềm
-        st.info("☘️ Đấu trường hiện đang yên bình. Chưa có Giáo viên nào được triệu hồi.")
+        st.info("☘️ Đấu trường hiện đang yên bình (Dữ liệu trên Cloud trống).")
         
     
 def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
