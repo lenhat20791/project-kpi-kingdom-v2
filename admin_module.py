@@ -770,6 +770,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
             # Gọi hàm save_all_to_sheets (Hàm này đã có chốt chặn đếm học sinh)
             if user_module.save_all_to_sheets(st.session_state.data):
                 st.success("Admin đã cập nhật dữ liệu thành công!")
+                import time
                 time.sleep(1) # Dừng 1 xíu để kịp nhìn thông báo
                 st.rerun()
             else:
