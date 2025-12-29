@@ -1365,16 +1365,34 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 
                 with st.form("add_loot_form", clear_on_submit=True):
                     col_l1, col_l2, col_l3, col_l4 = st.columns([2, 1.5, 1, 1])
-                    existing_items = list(st.session_state.shop_items.keys()) if 'shop_items' in st.session_state else []
+                    # ĐOẠN MỚI:
+                    item_options = ["-- Chọn --"]
+                    item_id_map = {"-- Chọn --": "-- Chọn --"}
+
+                    if 'shop_items' in st.session_state:
+                        for k, v in st.session_state.shop_items.items():
+                            # Không cho rương chứa chính rương để tránh lỗi lặp vô tận
+                            if v.get('type') == 'GACHA_BOX':
+                                continue
+                                
+                            # Kiểm tra trạng thái niêm yết
+                            is_hidden = not v.get('is_listed', True)
+                            status_icon = "🔒 [ẨN]" if is_hidden else "🏪 [SHOP]"
+                            
+                            # Tạo label hiển thị: "🏪 [SHOP] Kiếm Gỗ (kiem_go)"
+                            display_label = f"{status_icon} {v.get('name', k)} ({k})"
+                            
+                            item_options.append(display_label)
+                            item_id_map[display_label] = k # Lưu mapping để lấy ID thực tế
+
                     
                     with col_l1:
                         reward_type = st.selectbox("Loại quà:", ["Item (Vật phẩm)", "Currency (Tiền tệ)"])
                     
                     with col_l2:
                         if reward_type == "Item (Vật phẩm)":
-                            target_id = st.selectbox("Chọn vật phẩm:", ["-- Chọn --"] + existing_items)
-                        else:
-                            target_id = st.selectbox("Chọn tiền tệ:", list(currency_map.keys()))
+                            selected_display = st.selectbox("Chọn vật phẩm (Cả đồ ẩn):", item_options)
+                            target_id = item_id_map[selected_display]
 
                     with col_l3:
                         drop_rate = st.number_input("Tỷ lệ %:", min_value=0.1, max_value=100.0, value=10.0, step=0.1)
@@ -1407,6 +1425,31 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         st.rerun()
 
             st.divider()
+            
+        with st.expander("📦 KHO VẬT PHẨM LƯU TRỮ (ĐANG ẨN KHỎI SHOP)", expanded=False):
+            st.write("Dưới đây là các vật phẩm chỉ dùng để làm quà Drop, không hiển thị cho học sinh mua.")
+            
+            # Lọc danh sách ẩn
+            hidden_items = {k: v for k, v in st.session_state.shop_items.items() 
+                            if not v.get('is_listed', True) and v.get('type') != 'GACHA_BOX'}
+            
+            if not hidden_items:
+                st.info("Hiện không có vật phẩm nào đang ẩn.")
+            else:
+                for tid, tinfo in hidden_items.items():
+                    with st.container(border=True):
+                        col_a, col_b, col_c = st.columns([1, 4, 1.5])
+                        with col_a:
+                            st.image(tinfo.get('image'), width=60)
+                        with col_b:
+                            st.markdown(f"**{tinfo.get('name')}** (`{tid}`)")
+                            st.caption(f"Loại: {tinfo.get('type')} | Mô tả: {tinfo.get('desc')}")
+                        with col_c:
+                            # Nút hỗ trợ nhanh để hiện lại đồ nếu muốn
+                            if st.button("🔓 Hiện lại", key=f"unhide_list_{tid}"):
+                                st.session_state.shop_items[tid]['is_listed'] = True
+                                save_shop_func(st.session_state.shop_items)
+                                st.rerun()    
             
             if st.button("🎁 ĐÓNG GÓI VÀ BÀY BÁN RƯƠNG", type="primary", use_container_width=True):
                 if box_name and st.session_state.temp_loot_table:
