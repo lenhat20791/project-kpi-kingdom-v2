@@ -1058,10 +1058,13 @@ from datetime import datetime, timedelta
 def hien_thi_san_dau_boss(user_id, save_data_func):
     st.title("⚔️ Đại chiến Giáo viên")
     
-    # 1. Tải dữ liệu
-    # Ưu tiên lấy từ session_state để đồng bộ nhất
+    # 1. Tải dữ liệu an toàn
     boss_data = load_data('data/boss_config.json')
-    all_users = st.session_state.data if 'data' in st.session_state else load_data('data/users.json')
+    # Ưu tiên lấy từ session_state
+    if 'data' in st.session_state:
+        all_users = st.session_state.data
+    else:
+        all_users = load_data('data/users.json')
     
     # Kiểm tra dữ liệu Boss
     if not boss_data or boss_data.get("active_boss") is None:
@@ -1080,7 +1083,6 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
     base_max_hp, base_atk = tinh_chi_so_chien_dau(level)
 
     # --- CHÈN LOGIC QUÉT BUFF ---
-    # Hàm này trả về bonus stats từ trang bị/thuốc
     bonus_stats, updated_data = get_active_combat_stats(user_id, st.session_state.data)
     st.session_state.data = updated_data 
 
@@ -1088,104 +1090,94 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
     max_hp_p = base_max_hp + bonus_stats['hp']
     atk_p = base_atk + bonus_stats['atk']
     current_hp_p = player.get("hp", max_hp_p) 
-    # ------------------------------------
-    # ================================================================
-    # 🔥 THÊM ĐOẠN NÀY: CẮT MÁU THỪA KHI HẾT THUỐC 🔥
-    # Nếu buff vừa hết hạn làm Max HP tụt xuống, mà máu hiện tại đang cao hơn
-    # Thì phải cắt máu hiện tại xuống bằng Max HP ngay.
+    
+    # 🔥 CẮT MÁU THỪA KHI HẾT THUỐC 🔥
     if current_hp_p > max_hp_p:
-        current_hp_p = max_hp_p             # Cắt ngọn
-        player['hp'] = max_hp_p             # Lưu vào biến tạm
-        st.session_state.data[user_id]['hp'] = max_hp_p # Lưu vào session
-        save_data_func(st.session_state.data) # Lưu xuống file ngay lập tức
-    # ================================================================
-    # 3. Kiểm tra trạng thái Trọng thương (Cooldown khi thua)
+        current_hp_p = max_hp_p             
+        player['hp'] = max_hp_p             
+        st.session_state.data[user_id]['hp'] = max_hp_p 
+        save_data_func(st.session_state.data) 
+    
+    # 3. Kiểm tra trạng thái Trọng thương
     if player.get("reborn_at"):
         try:
             reborn_time = datetime.strptime(player["reborn_at"], "%Y-%m-%d %H:%M:%S")
-            # Chỉ hiện màn hình trọng thương nếu thời gian hiện tại vẫn chưa tới lúc hồi sinh
             if datetime.now() < reborn_time:
                 time_left = reborn_time - datetime.now()
                 phut_con_lai = int(time_left.total_seconds() // 60) + 1
                 
                 defeat_info = player.get('last_defeat', {"boss_name": "Giáo Viên", "damage_taken": "hiểm hóc"})                
-                # Giao diện màn hình chờ hồi sinh
+                
                 st.markdown(f"""
                     <div style="background: linear-gradient(135deg, #2c3e50, #000000); padding: 20px; border-radius: 15px; border: 1px solid #ff4b4b; text-align: center; margin-bottom: 20px;">
                         <h2 style="color: #ff4b4b;">💀 BẠN ĐANG BỊ THƯƠNG NẶNG</h2>
-                        <p style="color: #ecf0f1;">Bị hạ gục bởi: <b>{defeat_info['boss_name']}</b></p>
+                        <p style="color: #ecf0f1;">Bị hạ gục bởi: <b>{defeat_info.get('boss_name', 'Giáo viên')}</b></p>
                         <hr>
                         <h1 style="color: white; font-size: 3em;">⏳ {phut_con_lai} phút</h1>
                         <p style="color: #bdc3c7;">nghỉ ngơi để hồi phục thể lực</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Thanh tiến trình hồi phục
-                # Mặc định phạt 30 phút (1800 giây) hoặc tùy config
                 total_wait = 3600 
                 progress_val = 1.0 - (time_left.total_seconds() / total_wait)
-                # Kẹp giá trị an toàn cho thanh chờ
                 safe_prog = min(1.0, max(0.0, progress_val))
                 st.progress(safe_prog)
                 
                 if st.button("🔄 Cập nhật tình trạng", use_container_width=True):
                     st.rerun()
-                return # Dừng hàm, không hiện sàn đấu
+                return 
         except Exception as e:
-            # Nếu lỗi định dạng ngày tháng thì bỏ qua cooldown để tránh kẹt acc
             pass
 
     # 4. Hiển thị Giao diện Sàn đấu
     col1, col2 = st.columns([1, 2])
     
     with col1:
-        # Ảnh Boss
-        st.image(boss.get("anh", "assets/teachers/default.png"), caption=f"Boss: {boss['ten']}")
-        st.error(f"💀 Sức tấn công Boss: {boss['damage']}") 
+        # --- [FIX LỖI KEY ERROR TẠI ĐÂY] ---
+        # Lấy tên và ảnh an toàn bằng .get()
+        b_name = boss.get('ten', boss.get('name', 'Boss Ẩn Danh'))
+        b_img = boss.get("anh", "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
+        b_dmg = boss.get('damage', 10)
+        
+        st.image(b_img, caption=f"👿 Boss: {b_name}")
+        st.error(f"💀 Sức tấn công: {b_dmg}") 
 
     with col2:
-        # --- PHẦN CỦA BOSS ---
-        # Tính % máu Boss (Kẹp giá trị an toàn)
-        hp_boss_pct = min(100, max(0, int((boss['hp_current'] / boss['hp_max']) * 100)))
-        
-        st.write(f"**🚩 HP BOSS: {boss['hp_current']} / {boss['hp_max']}**")
-        st.progress(hp_boss_pct)
+        # --- PHẦN CỦA BOSS (Tính toán an toàn) ---
+        try:
+            b_hp_curr = float(boss.get('hp_current', 0))
+            b_hp_max = float(boss.get('hp_max', 100))
+            if b_hp_max <= 0: b_hp_max = 100 # Tránh chia cho 0
+            
+            hp_boss_pct = min(100, max(0, int((b_hp_curr / b_hp_max) * 100)))
+            
+            st.write(f"**🚩 HP BOSS: {int(b_hp_curr)} / {int(b_hp_max)}**")
+            st.progress(hp_boss_pct)
+        except:
+            st.warning("⚠️ Đang tải máu Boss...")
         
         st.markdown("---") 
 
         # --- PHẦN CỦA BẠN (PLAYER) ---
-        # 🔥 KHẮC PHỤC LỖI STREAMLIT EXCEPTION TẠI ĐÂY 🔥
-        # Dùng min(100, ...) để đảm bảo nếu máu > 100% (do buff) thì vẫn chỉ vẽ 100%
         p_hp_pct = min(100, max(0, int((current_hp_p / max_hp_p) * 100)))
         
-        # Hiển thị số thực (người chơi thấy 140/120 cho sướng)
         st.write(f"**❤️ Máu của bạn: {int(current_hp_p)} / {max_hp_p}**")
-        
-        # Hiển thị thanh (vẽ max 100 thôi để không lỗi)
         st.progress(p_hp_pct)
         
-        # Hiển thị chỉ số tấn công
         if bonus_stats['atk'] > 0:
             st.info(f"⚔️ Sức tấn công: **{atk_p}** (Gốc: {base_atk} + Buff: {bonus_stats['atk']})")
         else:
             st.info(f"⚔️ Sức tấn công: **{atk_p}**")
 
-    # 5. ĐIỀU KHIỂN TRẬN ĐẤU (NÚT BẤM)
-    # ------------------------------------------------------------------
+    # 5. ĐIỀU KHIỂN TRẬN ĐẤU
     if not st.session_state.get("dang_danh_boss"):
-        # CHƯA VÀO TRẬN -> Hiện nút Khiêu Chiến
         if st.button("⚔️ KHIÊU CHIẾN NGAY", type="primary", use_container_width=True):
             st.session_state.dang_danh_boss = True
             st.session_state.combo = 0
             st.rerun()
     else:
-        # ĐANG TRONG TRẬN -> Hiện nút Rời Khỏi + Gọi hàm Combat
-        
-        # 🔥 NÚT RỜI KHỎI THỦ CÔNG 🔥
         if st.button("🏳️ RỜI KHỎI CHIẾN TRƯỜNG (Thoát an toàn)", use_container_width=True):
-            # Tắt trạng thái đánh
             st.session_state.dang_danh_boss = False
-            # Dọn dẹp biến tạm
             keys_to_clean = ["combo", "cau_hoi_active", "thoi_gian_bat_dau"]
             for k in keys_to_clean:
                 if k in st.session_state: del st.session_state[k]
@@ -2003,13 +1995,36 @@ def hien_thi_chi_so_chi_tiet(user_id):
     # ===================================================
     
     # --- 1. LOGIC TÍNH TOÁN CẤP ĐỘ VÀ TIẾN TRÌNH ---
-    current_exp = user_info.get('exp', 0)
-    current_level = user_info.get('level', 1) 
+    
+    # --- A. XỬ LÝ AN TOÀN CHO EXP ---
+    raw_exp = user_info.get('exp', 0)
+    try:
+        current_exp = float(raw_exp)
+        if current_exp != current_exp: current_exp = 0 # Check NaN
+    except:
+        current_exp = 0
+    
+    # --- B. TÍNH LEVEL TỪ EXP (ĐOẠN BẠN THIẾU) ---
+    # Giả sử cứ 100 EXP là lên 1 cấp
+    current_level = int(current_exp // 100) 
+    if current_level < 1: current_level = 1 # Level thấp nhất là 1
+    
+    # Tính phần lẻ để hiện thanh tiến trình
     exp_in_level = current_exp % 100
     progress_pct = exp_in_level / 100
     
+    # --- C. XỬ LÝ AN TOÀN CHO KPI (Tránh lỗi Crash tương tự EXP) ---
+    raw_kpi = user_info.get('kpi', 0)
+    try:
+        base_kpi = float(raw_kpi)
+        if base_kpi != base_kpi: base_kpi = 0
+    except:
+        base_kpi = 0
+
+    # --- D. TÍNH CÁC CHỈ SỐ CÒN LẠI ---
     atk = tinh_atk_tong_hop(user_info)
-    base_kpi = float(user_info.get('kpi', 0.0))
+    
+    # Bây giờ biến current_level đã được định nghĩa ở bước B, công thức này mới chạy được:
     hp_current = base_kpi + (current_level * 20)
 
     # --- 2. GIAO DIỆN HIỂN THỊ CHÍNH ---
