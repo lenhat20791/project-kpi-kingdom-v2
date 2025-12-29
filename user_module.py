@@ -3061,6 +3061,7 @@ def get_arena_logs():
 from datetime import datetime
 
 def save_all_to_sheets(all_data):
+    import time
     # --- [BƯỚC 0] CHỐT CHẶN BẢO VỆ ADMIN ---
     # Nếu vì lý do gì đó all_data mất admin, ta lấy từ session_state hoặc tạo mới để không bị mất nick
     if 'admin' not in all_data:
@@ -3143,7 +3144,16 @@ def save_all_to_sheets(all_data):
                     return False
                     
             except Exception as e:
-                st.error(f"❌ Lỗi Crash tại tab Players: {e}")
+                # 1. In thông báo đỏ to rõ
+                st.error(f"❌ PHÁT HIỆN LỖI: {str(e)}")
+                
+                # 2. In chi tiết vết lỗi (Stack Trace) để biết sai dòng nào
+                st.exception(e) 
+                
+                # 3. Dừng màn hình lại 15 giây để bạn kịp đọc/chụp ảnh
+                st.warning("⚠️ Hệ thống đang tạm dừng 15 giây để bạn đọc lỗi...")
+                time.sleep(15) 
+                
                 return False
 
             # =========================================================
