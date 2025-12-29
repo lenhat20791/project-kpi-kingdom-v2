@@ -2532,7 +2532,7 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                     
             # Tạo lưới 4 cột để hiển thị vật phẩm
             cols = st.columns(4)
-            shop_items = list(st.session_state.shop_items.items())
+            shop_items = shop_items_visible
             
             for i, (name, info) in enumerate(shop_items):
                 with cols[i % 4]:

@@ -1452,18 +1452,42 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
             else:
                 for tid, tinfo in hidden_items.items():
                     with st.container(border=True):
-                        col_a, col_b, col_c = st.columns([1, 4, 1.5])
+                        # Chia cột: Ảnh | Thông tin | Chức năng
+                        col_a, col_b, col_c = st.columns([1, 4, 2]) 
+                        
                         with col_a:
                             st.image(tinfo.get('image'), width=60)
+                        
                         with col_b:
                             st.markdown(f"**{tinfo.get('name')}** (`{tid}`)")
-                            st.caption(f"Loại: {tinfo.get('type')} | Mô tả: {tinfo.get('desc')}")
+                            st.caption(f"Loại: {tinfo.get('type')} | 💰 Giá gốc: {tinfo.get('price')}")
+                            st.caption(f"📝 {tinfo.get('desc')}")
+                        
                         with col_c:
-                            # Nút hỗ trợ nhanh để hiện lại đồ nếu muốn
-                            if st.button("🔓 Hiện lại", key=f"unhide_list_{tid}"):
-                                st.session_state.shop_items[tid]['is_listed'] = True
-                                save_shop_func(st.session_state.shop_items)
-                                st.rerun()    
+                            # Chia nhỏ cột chức năng thành 2 nút: Hiện lại & Xóa
+                            btn_col1, btn_col2 = st.columns(2)
+                            
+                            with btn_col1:
+                                if st.button("🔓 Hiện", key=f"unhide_list_{tid}", help="Đưa vật phẩm này quay lại Shop", use_container_width=True):
+                                    st.session_state.shop_items[tid]['is_listed'] = True
+                                    # Gọi lệnh lưu
+                                    import user_module
+                                    user_module.save_all_to_sheets(st.session_state.data)
+                                    st.success(f"Đã niêm yết '{tinfo.get('name')}'!")
+                                    st.rerun()
+                            
+                            with btn_col2:
+                                # --- NÚT XÓA MỚI ---
+                                if st.button("🗑️ Xóa", key=f"del_hidden_{tid}", help="Xóa vĩnh viễn khỏi hệ thống", type="primary", use_container_width=True):
+                                    # 1. Xóa khỏi bộ nhớ
+                                    del st.session_state.shop_items[tid]
+                                    
+                                    # 2. Lưu lên Cloud ngay lập tức
+                                    import user_module
+                                    user_module.save_all_to_sheets(st.session_state.data)
+                                    
+                                    st.success(f"Đã xóa vĩnh viễn '{tid}'!")
+                                    st.rerun()    
             
             if st.button("🎁 ĐÓNG GÓI VÀ BÀY BÁN RƯƠNG", type="primary", use_container_width=True):
                 if box_name and st.session_state.temp_loot_table:
