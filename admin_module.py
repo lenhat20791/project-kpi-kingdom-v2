@@ -1488,7 +1488,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
         quan_ly_loi_dai_admin(save_data_func) # Gọi hàm để hiển thị giao diện quản lý
 
 
-    #elif page == "⚠️ Xóa dữ liệu":
+    elif page == "⚠️ Xóa dữ liệu":
         st.subheader("♻️ KHU VỰC TỐI NGUY HIỂM: RESET NĂM HỌC")
         
         with st.expander("👉 NHẤN VÀO ĐÂY ĐỂ THỰC HIỆN"):
@@ -1714,7 +1714,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     st.error(f"Lỗi khi khôi phục: {e}")
     
  
-#def quan_ly_loi_dai_admin(save_data_func):
+def quan_ly_loi_dai_admin(save_data_func):
     st.write("### 🏟️ ĐIỀU HÀNH LÔI ĐÀI")
     
     # 1. Nhập các hàm xử lý file
