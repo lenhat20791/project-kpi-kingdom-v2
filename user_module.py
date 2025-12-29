@@ -3088,60 +3088,71 @@ def save_all_to_sheets(all_data):
             # --- 1. ĐỒNG BỘ TAB "Players" ---
             try:
                 sh_players = spreadsheet.worksheet("Players")
-                headers = [
-                    "user_id", "name", "team", "role", "password", 
-                    "kpi", "exp", "level", "hp", "hp_max", 
-                    "world_chat_count", "stats_json", "inventory_json", "progress_json"
-                ]
-                player_rows = [headers]
-                count_valid = 0
+                headers = ["user_id", "name", "team", "role", "password", "kpi", "exp", "level", "hp", "hp_max", "world_chat_count", "stats_json", "inventory_json", "progress_json"]
                 
+                player_rows = [headers]
+                count_student = 0 
+                
+                # --- HÀM KHỬ ĐỘC: Biến NaN/Inf thành 0 ---
+                def clean_val(val):
+                    # Nếu là float và (là NaN hoặc Vô cực) -> trả về 0
+                    if isinstance(val, float) and (val != val or val == float('inf') or val == float('-inf')):
+                        return 0
+                    return val
+                # -----------------------------------------
+
                 for uid, info in all_data.items():
-                    # CHỈ bỏ qua rank_settings và system_config. KHÔNG bỏ qua admin.
                     if not isinstance(info, dict) or uid in ["rank_settings", "system_config"]:
                         continue
                     
-                    # 1. Gom chỉ số game
+                    if info.get('role') != 'admin':
+                        count_student += 1
+                    
+                    # 1. Gom chỉ số game & KHỬ ĐỘC TỪNG CHỈ SỐ
                     stats_keys = ["Vi_Pham", "Bonus", "KTTX", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", "Tri_Thuc", "Chien_Tich", "Vinh_Du", "Vinh_Quang", "total_score", "titles", "best_time"]
-                    stats_data = {k: info.get(k, 0) for k in stats_keys}
+                    stats_data = {k: clean_val(info.get(k, 0)) for k in stats_keys}
                     
-                    # 2. Lấy lượt chat
-                    special_perms = info.get('special_permissions', {})
-                    if not isinstance(special_perms, dict):
-                        special_perms = {}
-                    chat_count = special_perms.get('world_chat_count', 0)
+                    special_perms = info.get('special_permissions', {}) if isinstance(info.get('special_permissions'), dict) else {}
                     
+                    # 2. Tạo dòng dữ liệu & KHỬ ĐỘC CÁC CỘT CHÍNH
                     row = [
                         str(uid),
                         info.get('name', ''),
                         info.get('team', 'Chưa phân tổ'),
                         info.get('role', 'u3'),
                         str(info.get('password', '123456')),
-                        info.get('kpi', 0),
-                        info.get('exp', 0),
-                        info.get('level', 1),
-                        info.get('hp', 100),
-                        info.get('hp_max', 100),
-                        chat_count,
-                        json.dumps(stats_data, ensure_ascii=False),
+                        clean_val(info.get('kpi', 0)),      # <--- Khử độc
+                        clean_val(info.get('exp', 0)),      # <--- Khử độc
+                        clean_val(info.get('level', 1)),    # <--- Khử độc
+                        clean_val(info.get('hp', 100)),     # <--- Khử độc
+                        clean_val(info.get('hp_max', 100)), # <--- Khử độc
+                        clean_val(special_perms.get('world_chat_count', 0)),
+                        json.dumps(stats_data, ensure_ascii=False), # stats_data đã sạch
                         json.dumps(info.get('inventory', {}), ensure_ascii=False),
                         json.dumps(info.get('dungeon_progress', {}), ensure_ascii=False)
                     ]
                     player_rows.append(row)
-                    count_valid += 1
 
-                # --- 🔥 HIỂN THỊ KẾT QUẢ KIỂM TRA 🔥 ---
-                st.write(f"✅ Tìm thấy {count_valid} học sinh hợp lệ để lưu.")
-                
                 # --- CHỐT CHẶN AN TOÀN ---
-                if len(player_rows) > 1:
+                if len(player_rows) > 1 and count_student > 0:
                     sh_players.clear()
                     sh_players.update('A1', player_rows)
-                    st.success(f"tab Players: Đã ghi thành công {count_valid} dòng!")
-                else:
-                    st.error("⚠️ CẢNH BÁO NGHIÊM TRỌNG: Danh sách ghi (player_rows) chỉ có mỗi tiêu đề! Hệ thống đã DỪNG LẠI để không xóa trắng bảng.")
-                    st.json(all_data)
+                    st.success(f"✅ Tab Players: Đã cập nhật {count_student} học sinh (Đã xử lý lỗi NaN).")
+                
+                elif len(player_rows) > 1 and count_student == 0:
+                    st.error("⛔ CẢNH BÁO: Chỉ có Admin, không có học sinh. Đã chặn lệnh xóa!")
                     return False
+                else:
+                    st.error("⛔ Dữ liệu rỗng! Hủy lưu.")
+                    return False
+                    
+            except Exception as e:
+                # In lỗi chi tiết nếu vẫn còn
+                st.error(f"❌ Lỗi Crash tại tab Players: {e}")
+                st.exception(e)
+                import time
+                time.sleep(10)
+                return False
                     
             except Exception as e:
                 # 1. In thông báo đỏ to rõ
