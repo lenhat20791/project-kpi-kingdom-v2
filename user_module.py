@@ -3061,6 +3061,18 @@ def get_arena_logs():
 from datetime import datetime
 
 def save_all_to_sheets(all_data):
+    # --- [BƯỚC 0] CHỐT CHẶN BẢO VỆ ADMIN ---
+    # Nếu vì lý do gì đó all_data mất admin, ta lấy từ session_state hoặc tạo mới để không bị mất nick
+    if 'admin' not in all_data:
+        if 'data' in st.session_state and 'admin' in st.session_state.data:
+            all_data['admin'] = st.session_state.data['admin']
+        else:
+            # Phao cứu sinh cuối cùng: Tự hồi sinh Admin mặc định
+            all_data['admin'] = {
+                "name": "Administrator", "password": "admin", "role": "admin",
+                "grade": "Hệ thống", "team": "Quản trị", "kpi": 0, "level": 99
+            }
+            
     if not all_data or len(all_data) < 2: 
         st.error("⛔ Dữ liệu gửi đi quá ít hoặc rỗng. Hủy lệnh lưu để bảo vệ Sheets!")
         return False
@@ -3069,32 +3081,22 @@ def save_all_to_sheets(all_data):
     """
     # Tạo một hộp mở rộng để chứa thông tin debug (đỡ rối mắt giao diện chính)
     with st.expander("🕵️ NHẬT KÝ ĐỒNG BỘ (DEBUG LOG)", expanded=True):
-        st.write("--- 🚀 BẮT ĐẦU QUÁ TRÌNH LƯU ---")
-        
         try:
             spreadsheet = CLIENT.open(SHEET_NAME)
             
-            # =========================================================
             # --- 1. ĐỒNG BỘ TAB "Players" ---
-            # =========================================================
             try:
                 sh_players = spreadsheet.worksheet("Players")
-                
-                # Header chuẩn
                 headers = [
                     "user_id", "name", "team", "role", "password", 
                     "kpi", "exp", "level", "hp", "hp_max", 
                     "world_chat_count", "stats_json", "inventory_json", "progress_json"
                 ]
                 player_rows = [headers]
-                
-                # Biến đếm để debug
                 count_valid = 0
                 
-                st.write(f"ℹ️ Tổng số key trong data: {len(all_data)}")
-                
                 for uid, info in all_data.items():
-                    # Bỏ qua các key hệ thống
+                    # CHỈ bỏ qua rank_settings và system_config. KHÔNG bỏ qua admin.
                     if not isinstance(info, dict) or uid in ["rank_settings", "system_config"]:
                         continue
                     
