@@ -3061,6 +3061,9 @@ def get_arena_logs():
 from datetime import datetime
 
 def save_all_to_sheets(all_data):
+    if not all_data or len(all_data) < 2: 
+        st.error("⛔ Dữ liệu gửi đi quá ít hoặc rỗng. Hủy lệnh lưu để bảo vệ Sheets!")
+        return False
     """
     PHIÊN BẢN DEBUG UI: Hiển thị mọi thông báo lỗi/cảnh báo trực tiếp lên màn hình Web.
     """
@@ -3092,7 +3095,7 @@ def save_all_to_sheets(all_data):
                 
                 for uid, info in all_data.items():
                     # Bỏ qua các key hệ thống
-                    if not isinstance(info, dict) or uid in ["rank_settings", "system_config", "admin"]:
+                    if not isinstance(info, dict) or uid in ["rank_settings", "system_config"]:
                         continue
                     
                     # 1. Gom chỉ số game
@@ -3100,7 +3103,10 @@ def save_all_to_sheets(all_data):
                     stats_data = {k: info.get(k, 0) for k in stats_keys}
                     
                     # 2. Lấy lượt chat
-                    chat_count = info.get('special_permissions', {}).get('world_chat_count', 0)
+                    special_perms = info.get('special_permissions', {})
+                    if not isinstance(special_perms, dict):
+                        special_perms = {}
+                    chat_count = special_perms.get('world_chat_count', 0)
                     
                     row = [
                         str(uid),
@@ -3130,10 +3136,9 @@ def save_all_to_sheets(all_data):
                     sh_players.update('A1', player_rows)
                     st.success(f"tab Players: Đã ghi thành công {count_valid} dòng!")
                 else:
-                    # NẾU LỖI NÀY HIỆN RA -> NGUYÊN NHÂN LÀ ĐÂY
                     st.error("⚠️ CẢNH BÁO NGHIÊM TRỌNG: Danh sách ghi (player_rows) chỉ có mỗi tiêu đề! Hệ thống đã DỪNG LẠI để không xóa trắng bảng.")
-                    st.json(all_data) # In thử data ra xem tại sao lại rỗng
-                    return False # Dừng hàm luôn
+                    st.json(all_data)
+                    return False
                     
             except Exception as e:
                 st.error(f"❌ Lỗi Crash tại tab Players: {e}")

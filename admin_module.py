@@ -883,7 +883,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             # -----------------------------------------------------------
 
                             # [BƯỚC 2] TẠO DỮ LIỆU MỚI (CHỈ CHỨA HỌC SINH TỪ EXCEL)
-                            new_data = {}
+                            new_data = st.session_state.data.copy() if 'data' in st.session_state else {}
                             
                             for i, row in df.iterrows():
                                 # Tự động tạo ID theo STT (bắt đầu từ 1) - Hoặc logic cũ của bạn
@@ -897,6 +897,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                     u_id = f"{name_unsign}"
 
                                 # Gán giá trị: Ưu tiên lấy từ file (nếu có), không thì dùng mặc định
+                                existing_user = new_data.get(u_id, {})
                                 new_data[u_id] = {
                                     "name": full_name,
                                     "team": str(row.get('team', row.get('Tổ', 'Chưa phân tổ'))),
