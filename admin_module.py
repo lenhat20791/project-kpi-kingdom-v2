@@ -16,6 +16,12 @@ from datetime import datetime, timedelta
 import zipfile
 import unidecode
 from user_module import save_data
+from user_module import (
+    hien_thi_doi_mat_khau, 
+    save_data, 
+    load_loi_dai,  # Thêm dòng này
+    save_loi_dai   # Thêm dòng này
+)
 
 def thực_hiện_auto_backup():
     """Tự động sao lưu dữ liệu data.json và loi_dai.json sau mỗi 7 ngày"""
@@ -556,7 +562,7 @@ def admin_quan_ly_boss():
             boss_data = json.load(f)
     else:
         boss_data = {"active_boss": None}
-
+    boss_hien_tai = boss_data.get("active_boss")
     # FORM TRIỆU HỒI BOSS
     with st.form("trieu_hoi_boss_form"):
         st.subheader("🔥 Thiết lập thông tin Boss")
@@ -598,7 +604,7 @@ def admin_quan_ly_boss():
             "hp_current": hp_boss,
             "damage": damage_boss,
             "kpi_rate": kpi_rate,
-            "exp_rate": exp_rate, # <--- LƯU THÊM CHỈ SỐ EXP
+            "exp_rate": exp_rate,
             "anh": anh_boss,
             "drop_table": clean_drop_table,
             "status": "active",
@@ -622,20 +628,22 @@ def admin_quan_ly_boss():
         # QUẢN LÝ & GIẢI TÁN BOSS
         st.subheader("🗑️ KHU VỰC QUẢN LÝ")
         st.warning(f"⚠️ Boss **{boss_hien_tai['ten']}** đang án ngữ tại Đấu Trường.")
+        if boss_hien_tai: 
+            st.subheader("🗑️ KHU VỰC QUẢN LÝ")
+            st.warning(f"⚠️ Boss **{boss_hien_tai['ten']}** đang án ngữ tại Đấu Trường.")
+            if st.button("❌ GIẢI TÁN BOSS HIỆN TẠI", use_container_width=True, type="secondary"):
+                boss_data["active_boss"] = None
+                try:
+                    with open('data/boss_config.json', 'w', encoding='utf-8') as f:
+                        json.dump(boss_data, f, indent=4, ensure_ascii=False)
+                    
+                    st.error("💥 Đã xóa Boss! Đấu trường hiện đang trống.")
+                    time.sleep(1)
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Lỗi khi xóa Boss: {e}")
         
-        if st.button("❌ GIẢI TÁN BOSS HIỆN TẠI", use_container_width=True, type="secondary"):
-            boss_data["active_boss"] = None
-            try:
-                with open('data/boss_config.json', 'w', encoding='utf-8') as f:
-                    json.dump(boss_data, f, indent=4, ensure_ascii=False)
-                
-                st.error("💥 Đã xóa Boss! Đấu trường hiện đang trống.")
-                time.sleep(1)
-                st.rerun()
-            except Exception as e:
-                st.error(f"Lỗi khi xóa Boss: {e}")
-        
-        st.write("") 
+
         
         # DỌN DẸP LOG
         if os.path.exists('data/boss_logs.json'):
@@ -1408,7 +1416,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         "currency_buy": box_curr,
                         "image": box_img if box_img else "https://cdn-icons-png.flaticon.com/512/4256/4256846.png",
                         "type": "GACHA_BOX",  
-                        "is_listed": is_listed, # <--- LƯU TRẠNG THÁI NIÊM YẾT
+                        "is_listed": is_listed, 
                         "properties": {
                             "rarity": box_rarity,
                             "loot_table": st.session_state.temp_loot_table 
@@ -1510,7 +1518,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                 temp_data = json.load(f)
                                 saved_rank_settings = temp_data.get('rank_settings', [])
                         except:
-                            pass
+                            saved_rank_settings = []
                     
                     # Debug: In ra để kiểm tra (Xóa sau khi chạy xong)
                     # st.write(f"DEBUG: Số lượng danh hiệu giữ lại: {len(saved_rank_settings)}")
@@ -1562,7 +1570,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     st.session_state.data = new_data
                     
                     # Lưu xuống file vật lý
-                    save_data_func(new_data)
+                    save_data_func(st.session_state.data)
                     
                     # ==========================================================
                     # 🔥 CODE FIX: DÙNG APPEND_ROW ĐỂ TẠO TIÊU ĐỀ CHẮC CHẮN HƠN
