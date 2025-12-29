@@ -19,8 +19,8 @@ from user_module import save_data
 from user_module import (
     hien_thi_doi_mat_khau, 
     save_data, 
-    load_loi_dai,  # Thêm dòng này
-    save_loi_dai   # Thêm dòng này
+    load_loi_dai,
+    save_loi_dai
 )
 
 def thực_hiện_auto_backup():
@@ -1253,7 +1253,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
         with tab1:
             col_u, col_i, col_q = st.columns(3)
             
-            Lấy danh sách tên hiển thị từ data
+            #Lấy danh sách tên hiển thị từ data
             all_names = [info['name'] for uid, info in st.session_state.data.items() 
                          if isinstance(info, dict) and 'name' in info]
             
