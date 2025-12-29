@@ -28,7 +28,8 @@ try:
     from admin_module import (
         hien_thi_giao_dien_admin,
         admin_quan_ly_boss,
-        load_dungeon_config
+        load_dungeon_config,
+        hien_thi_thong_bao_he_thong
     )
 except Exception:
     st.error("❌ PHÁT HIỆN LỖI CÚ PHÁP TRONG ADMIN_MODULE:")
