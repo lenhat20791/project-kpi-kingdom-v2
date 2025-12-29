@@ -1173,8 +1173,9 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         "is_listed": is_listed, # <--- LƯU TRẠNG THÁI ẨN/HIỆN
                         "desc": desc
                     }
-                    save_shop_func(st.session_state.shop_items) 
-                    st.success(f"✅ Đã chế tạo '{name}' thành công!")
+                    user_module.save_all_to_sheets(st.session_state.data) 
+        
+                    st.success(f"✅ Đã lưu '{name}' thành công!")
                     st.rerun()
 
         st.divider()
