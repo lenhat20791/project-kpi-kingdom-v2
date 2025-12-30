@@ -890,7 +890,46 @@ def load_data(file_path=DATA_FILE_PATH):
         st.error(f"❌ Lỗi load_data: {e}")
         return {}
         
+@st.dialog("🏆 CHIẾN THẮNG VINH QUANG!", width="large")
+def hien_thi_popup_chien_thang():
+    """Hiển thị Popup nhận thưởng bắt buộc"""
+    
+    # Lấy dữ liệu từ session
+    data = st.session_state.get("boss_victory_data", {})
+    rewards = data.get("rewards", [])
+    dmg = data.get("damage", 0)
+    
+    st.balloons()
+    
+    st.markdown(f"""
+        <div style="text-align: center; padding: 20px;">
+            <img src="https://cdn-icons-png.flaticon.com/512/744/744922.png" width="120" style="margin-bottom: 20px;">
+            <h2 style="color: #2ecc71; margin: 0;">BOSS ĐÃ BỊ HẠ GỤC!</h2>
+            <p style="color: #bdc3c7; font-size: 18px;">Bạn đã tung đòn kết liễu xuất sắc!</p>
+            <hr>
+            <h3 style="color: #f1c40f;">🎁 PHẦN THƯỞNG CỦA BẠN</h3>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Hiển thị danh sách quà đẹp mắt
+    if rewards:
+        for item in rewards:
+            st.markdown(f"""
+                <div style="background: #2c3e50; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 5px solid #f1c40f; color: white; font-weight: bold;">
+                    {item}
+                </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.info("Không có phần thưởng nào được ghi nhận.")
+        
+    st.markdown(f"<p style='text-align: center; color: #95a5a6; margin-top: 15px;'>Tổng sát thương đóng góp: <b>{dmg}</b></p>", unsafe_allow_html=True)
 
+    # Nút xác nhận duy nhất để đóng popup
+    if st.button("✅ NHẬN VẬT PHẨM VÀO TÚI", type="primary", use_container_width=True):
+        # Xóa dữ liệu popup để không hiện lại
+        if "boss_victory_data" in st.session_state:
+            del st.session_state.boss_victory_data
+        st.rerun()
 def tinh_va_tra_thuong_global(killer_id, all_data):
     """
     Tính thưởng Boss.
