@@ -523,39 +523,37 @@ def xu_ly_du_lieu_drop(raw_table_data):
 
 # --- HÀM CHÍNH: QUẢN LÝ BOSS ---
 def admin_quan_ly_boss():
-    st.title("👨‍🏫 QUẢN LÝ ĐẠI CHIẾN GIÁO VIÊN")
+    st.title("👨‍🏫 QUẢN LÝ ĐẠI CHIẾN GIÁO VIÊN & KHO VẬT PHẨM")
 
-    # --- PHẦN 1: QUẢN LÝ KHO VẬT PHẨM (GIỮ NGUYÊN) ---
-    # (Phần này tạm thời giữ nguyên logic cũ của bạn để tránh lỗi Item)
-    if os.path.exists('data/item_inventory.json'):
-        with open('data/item_inventory.json', 'r', encoding='utf-8') as f:
-            kho_item = json.load(f)
-    else:
-        kho_item = []
-
+    # =================================================================
+    # 🔥 PHẦN 1: TẠO VẬT PHẨM MỚI (Admin Đắp Nặn)
+    # =================================================================
+    # Lấy registry để biết cấu trúc vật phẩm (Buff, Consumable...) [cite: 31, 51]
     try:
         from item_system import get_item_behavior_registry
         registry = get_item_behavior_registry()
     except ImportError:
         registry = {}
 
-    with st.expander("🛠️ KHO VẬT PHẨM HUYỀN THOẠI (Admin Đắp Nặn)"):
-        # ... (Code phần item giữ nguyên như cũ) ...
+    with st.expander("🛠️ CHẾ TÁC VẬT PHẨM (Tạo mới)", expanded=False):
         if registry:
             col1, col2 = st.columns(2)
             with col1:
-                item_id = st.text_input("Tên vật phẩm mới:")
+                item_id = st.text_input("Mã vật phẩm (ID - Viết liền không dấu):", placeholder="vi_du: bua_may_man")
                 item_type = st.selectbox("Chọn Loại Logic:", options=list(registry.keys()))
             with col2:
+                item_name = st.text_input("Tên hiển thị:", placeholder="Bùa May Mắn")
                 item_img = st.text_input("Link ảnh Icon (URL):")
             
+            # Tự động tạo ô nhập liệu dựa trên định nghĩa Registry [cite: 33, 34]
             properties = {}
             item_def = registry[item_type]
             params = item_def["params"]
             labels = item_def.get("labels", {})
 
-            st.write("🔧 **Thiết lập chỉ số:**")
+            st.write(f"🔧 **Thiết lập chỉ số cho: {item_def.get('name', item_type)}**")
             cols = st.columns(len(params))
+            
             for i, (p_name, p_type) in enumerate(params.items()):
                 with cols[i % len(cols)]:
                     display_label = labels.get(p_name, p_name)
@@ -564,41 +562,55 @@ def admin_quan_ly_boss():
                     else:
                         properties[p_name] = st.number_input(display_label, value=0)
 
-            if st.button("➕ LƯU VẬT PHẨM VÀO KHO"):
-                if item_id and item_img:
+            if st.button("➕ LƯU VẬT PHẨM VÀO KHO (SHEETS)"):
+                if item_id and item_img and item_name:
+                    # 1. Tạo cấu trúc vật phẩm chuẩn [cite: 36]
                     new_item = {
-                        "id": item_id, "type": item_type, "image": item_img,
+                        "id": item_id,
+                        "name": item_name, # Thêm name để hiển thị đẹp hơn
+                        "type": item_type,
+                        "image": item_img,
                         "properties": properties,
                         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     }
-                    kho_item.append(new_item)
-                    with open('data/item_inventory.json', 'w', encoding='utf-8') as f:
-                        json.dump(kho_item, f, indent=4, ensure_ascii=False)
-                    st.success(f"✅ Đã đắp nặn: {item_id}!")
-                    st.rerun()
+                    
+                    # 2. Lưu trực tiếp vào Session State (thay vì file json cục bộ) 
+                    if 'shop_items' not in st.session_state.data:
+                        st.session_state.data['shop_items'] = {}
+                    
+                    # Lưu dưới dạng Dictionary {id: data} để dễ truy xuất
+                    st.session_state.data['shop_items'][item_id] = new_item
+                    
+                    # 3. Đồng bộ ngay lên Google Sheets
+                    if user_module.save_all_to_sheets(st.session_state.data):
+                        st.success(f"✅ Đã chế tác thành công: {item_name} ({item_id})!")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("❌ Lỗi kết nối Google Sheets!")
                 else:
-                    st.error("❌ Thiếu tên hoặc ảnh!")
+                    st.error("❌ Vui lòng nhập đầy đủ Mã ID, Tên và Link ảnh!")
+        else:
+             st.warning("⚠️ Không tìm thấy file item_system.py để tải Registry.")
     
     st.divider()
 
     # =================================================================
-    # 🔥 PHẦN 2: QUẢN LÝ BOSS (ĐÃ KẾT NỐI GOOGLE SHEETS) 🔥
+    # 🔥 PHẦN 2: QUẢN LÝ BOSS
     # =================================================================
     
-    # 1. LẤY DỮ LIỆU TỪ SESSION STATE (Đã được Load từ Google Sheets Tab Settings)
-    # Chúng ta sẽ lưu Boss vào key 'active_boss' trong system_config
+    # Lấy dữ liệu Boss từ Session State
     if 'system_config' not in st.session_state.data:
         st.session_state.data['system_config'] = {}
-        
+    
     system_config = st.session_state.data['system_config']
-    boss_hien_tai = system_config.get('active_boss') # Lấy trực tiếp từ bộ nhớ
+    boss_hien_tai = system_config.get('active_boss')
 
     # --- FORM TRIỆU HỒI BOSS ---
     with st.form("trieu_hoi_boss_form"):
-        st.subheader("🔥 Thiết lập thông tin Boss (Lưu lên Cloud)")
+        st.subheader("🔥 Thiết lập Boss Đại Chiến")
         c1, c2 = st.columns(2)
         with c1:
-            # Nếu đang có boss thì điền sẵn thông tin cũ
             def_name = boss_hien_tai.get('ten', "Pháp Sư Toán Học") if boss_hien_tai else "Pháp Sư Toán Học"
             def_hp = boss_hien_tai.get('hp_max', 10000) if boss_hien_tai else 10000
             def_img = boss_hien_tai.get('anh', "assets/teachers/toan.png") if boss_hien_tai else "assets/teachers/toan.png"
@@ -614,47 +626,82 @@ def admin_quan_ly_boss():
             kpi_rate = st.number_input("Tỷ lệ thưởng KPI:", value=1.0)
             exp_rate = st.number_input("Tỷ lệ thưởng EXP:", value=5.0) 
 
-        st.divider()
-        st.subheader("🎁 THIẾT LẬP ITEM POOL")
-        st.info("ℹ️ (Chức năng chọn quà đang phát triển...)")
-        
-        # Nút Submit
-        submit = st.form_submit_button("🔥 LƯU VÀ ĐỒNG BỘ LÊN SHEETS")
+        # Nút Submit Boss
+        submit_boss = st.form_submit_button("🔥 CẬP NHẬT BOSS & ĐỒNG BỘ")
 
-    # --- XỬ LÝ LƯU (SAVE) ---
-    if submit:
-        # Tạo Object Boss Mới
+    if submit_boss:
+        # Tạo Object Boss Mới [cite: 43]
         new_boss = {
             "ten": ten_boss,
-            "name": ten_boss, # Key an toàn
+            "name": ten_boss,
             "mon": mon_hoc,
             "hp_max": hp_boss,
-            "hp_current": hp_boss, # Reset máu khi tạo mới/cập nhật
+            "hp_current": hp_boss,
             "damage": damage_boss,
             "kpi_rate": kpi_rate,
             "exp_rate": exp_rate,
             "anh": anh_boss,
             "status": "active",
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            # Lưu ý: Drop table có thể được xử lý riêng hoặc thêm vào đây nếu muốn
         }
         
-        # 1. CẬP NHẬT VÀO SESSION STATE
-        if 'system_config' not in st.session_state.data:
-            st.session_state.data['system_config'] = {}
-            
         st.session_state.data['system_config']['active_boss'] = new_boss
         
-        # 2. GỌI HÀM LƯU ĐỂ ĐẨY LÊN GOOGLE SHEETS
-        import user_module
         if user_module.save_all_to_sheets(st.session_state.data):
-            st.success(f"✅ Đã cập nhật Boss **{ten_boss}** lên Tab Settings!")
-            st.balloons()
+            st.success(f"✅ Đã cập nhật Boss **{ten_boss}** lên hệ thống!")
             time.sleep(1) 
             st.rerun()
         else:
             st.error("❌ Lỗi kết nối Google Sheets!")
 
     st.divider()
+
+    # =================================================================
+    # 📦 PHẦN 3: KHO VẬT PHẨM CỦA ADMIN (QUẢN LÝ & XÓA)
+    # (Đã thay thế phần "THIẾT LẬP ITEM POOL" cũ)
+    # =================================================================
+    st.subheader("📦 KHO VẬT PHẨM HỆ THỐNG (Đã đồng bộ Sheets)")
+    
+    # 1. Lấy danh sách vật phẩm từ Session State
+    shop_items = st.session_state.data.get('shop_items', {})
+
+    if not shop_items:
+        st.info("ℹ️ Kho vật phẩm đang trống. Hãy tạo vật phẩm ở mục '🛠️ CHẾ TÁC VẬT PHẨM' phía trên.")
+    else:
+        # Hiển thị danh sách vật phẩm dưới dạng lưới
+        for item_id, item_data in list(shop_items.items()):
+            with st.container():
+                c_img, c_info, c_action = st.columns([1, 3, 1])
+                
+                # Cột ảnh
+                with c_img:
+                    st.image(item_data.get('image', ''), width=60)
+                
+                # Cột thông tin
+                with c_info:
+                    st.markdown(f"**{item_data.get('name', item_id)}** (`{item_id}`)")
+                    st.caption(f"Loại: {item_data.get('type')} | Tạo: {item_data.get('created_at')}")
+                    
+                    # Hiển thị chỉ số chi tiết (Properties)
+                    props_text = " | ".join([f"{k}: {v}" for k, v in item_data.get('properties', {}).items()])
+                    st.code(props_text, language=None)
+
+                # Cột hành động (Xóa)
+                with c_action:
+                    st.write("") # Spacer
+                    if st.button("🗑️ Xóa", key=f"del_{item_id}", type="secondary"):
+                        # Xóa khỏi Session State
+                        del st.session_state.data['shop_items'][item_id]
+                        
+                        # Lưu thay đổi lên Google Sheets ngay lập tức
+                        if user_module.save_all_to_sheets(st.session_state.data):
+                            st.success("Đã xóa!")
+                            time.sleep(0.5)
+                            st.rerun()
+                        else:
+                            st.error("Lỗi xóa!")
+                st.divider()
 
     # --- KHU VỰC QUẢN LÝ (DELETE) ---
     st.subheader("🗑️ KHU VỰC QUẢN LÝ")
