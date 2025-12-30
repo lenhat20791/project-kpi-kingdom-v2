@@ -106,7 +106,7 @@ emergency_fix_data_file()
 def show_arena_info_popup():
     import user_module
     
-    # Lấy dữ liệu thực tế từ hàm vừa viết
+    # Lấy dữ liệu
     top_4, recent_matches = user_module.get_arena_logs()
     
     # --- PHẦN 1: TỨ ĐẠI CAO THỦ ---
@@ -115,22 +115,21 @@ def show_arena_info_popup():
     if not top_4:
         st.info("🌪️ Đấu trường chưa tìm ra nhà vô địch nào!")
     else:
-        # Tự động chia cột dựa trên số lượng cao thủ (tối đa 4)
         num_cols = len(top_4)
         cols = st.columns(num_cols)
-        
         colors = ["#f1c40f", "#bdc3c7", "#e67e22", "#3498db"]
         icons = ["🥇", "🥈", "🥉", "🏅"]
         
         for i, fighter in enumerate(top_4):
             with cols[i]:
+                # Đẩy sát lề trái để tránh lỗi hiển thị
                 st.markdown(f"""
-                    <div style="text-align:center; border:3px solid {colors[i]}; border-radius:15px; padding:15px; background: #2c3e50; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
-                        <div style="font-size:40px; margin-bottom:5px;">{icons[i]}</div>
-                        <div style="font-size:18px; font-weight:bold; color: #ecf0f1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{fighter['name']}</div>
-                        <div style="font-size:14px; color:{colors[i]}; margin-top:5px;">🔥 {fighter['wins']} TRẬN THẮNG</div>
-                    </div>
-                """, unsafe_allow_html=True)
+<div style="text-align:center; border:3px solid {colors[i]}; border-radius:15px; padding:15px; background: #2c3e50; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+    <div style="font-size:40px; margin-bottom:5px;">{icons[i]}</div>
+    <div style="font-size:18px; font-weight:bold; color: #ecf0f1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{fighter['name']}</div>
+    <div style="font-size:14px; color:{colors[i]}; margin-top:5px;">🔥 {fighter['wins']} TRẬN THẮNG</div>
+</div>
+""", unsafe_allow_html=True)
 
     st.divider()
     
@@ -140,31 +139,26 @@ def show_arena_info_popup():
     if not recent_matches:
         st.markdown("<div style='text-align:center; color:gray; padding:20px;'><i>Chưa có trận đấu nào được ghi nhận...</i></div>", unsafe_allow_html=True)
     else:
-        # Hiển thị danh sách (recent_matches đã được sort mới -> cũ)
         for match in recent_matches:
-            st.markdown(f"""
-                <div style="background: linear-gradient(90deg, #1a252f, #000000); 
-                            border-radius: 10px; padding: 12px 20px; margin-bottom: 12px; 
-                            border-left: 6px solid #e74c3c; display: flex; 
-                            justify-content: space-between; align-items: center; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                    <div style="flex: 3;">
-                        <span style="font-size: 16px; color: #bdc3c7;">Trận đấu:</span><br>
-                        <b style="font-size: 18px; color: #ffffff;">{match['p1']}</b> 
-                        <span style="color:#e74c3c; font-weight:900; margin: 0 5px;">VS</span> 
-                        <b style="font-size: 18px; color: #ffffff;">{match['p2']}</b>
-                    </div>
-                    
-                    <div style="flex: 1; text-align: center;">
-                        <div style="font-size: 24px; color: #f1c40f; font-weight: 900; letter-spacing: 2px;">{match['score']}</div>
-                    </div>
-                    
-                    <div style="flex: 2; text-align: right;">
-                        <div style="font-size: 14px; color: #2ecc71;">💰 Cược: <b>{match['bet']} KPI</b></div>
-                        <div style="font-size: 14px; color: #f39c12;">🏆 Thắng: <b>{match['winner_name']}</b></div>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
-
+            # [QUAN TRỌNG] Code HTML bên dưới phải nằm sát lề trái, KHÔNG ĐƯỢC THỤT VÀO
+            html_content = f"""
+<div style="background: linear-gradient(90deg, #1a252f, #000000); border-radius: 10px; padding: 12px 20px; margin-bottom: 12px; border-left: 6px solid #e74c3c; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+    <div style="flex: 3;">
+        <span style="font-size: 16px; color: #bdc3c7;">Trận đấu:</span><br>
+        <b style="font-size: 18px; color: #ffffff;">{match['p1']}</b> 
+        <span style="color:#e74c3c; font-weight:900; margin: 0 5px;">VS</span> 
+        <b style="font-size: 18px; color: #ffffff;">{match['p2']}</b>
+    </div>
+    <div style="flex: 1; text-align: center;">
+        <div style="font-size: 24px; color: #f1c40f; font-weight: 900; letter-spacing: 2px;">{match['score']}</div>
+    </div>
+    <div style="flex: 2; text-align: right;">
+        <div style="font-size: 14px; color: #2ecc71;">💰 Cược: <b>{match['bet']} KPI</b></div>
+        <div style="font-size: 14px; color: #f39c12;">🏆 Thắng: <b>{match['winner_name']}</b></div>
+    </div>
+</div>
+"""
+            st.markdown(html_content, unsafe_allow_html=True)
 
 # ==============================================================================
 # 📜 POPUP: THÔNG TIN THÁM HIỂM (Lấy dữ liệu từ Player Data)
