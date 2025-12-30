@@ -1056,76 +1056,98 @@ from datetime import datetime, timedelta
 # Các hàm load_data, tinh_chi_so_chien_dau, trien_khai_tran_dau... giả định đã import từ module khác
 
 def hien_thi_san_dau_boss(user_id, save_data_func):
-    st.title("⚔️ ĐẠI CHIẾN GIÁO VIÊN")
-    
-    # --- [SỬA LỖI] LẤY BOSS TỪ RAM (SESSION STATE) ---
-    # Thay vì load file json cục bộ, ta lấy từ dữ liệu tổng đã tải từ Sheets
+    # --- 1. LẤY DỮ LIỆU TỪ RAM (Session State) ---
     if 'data' not in st.session_state:
-        st.warning("⏳ Đang tải dữ liệu máy chủ...")
+        st.warning("⏳ Đang tải dữ liệu...")
         return
 
     all_data = st.session_state.data
+    player = all_data.get(user_id)
+    
+    # Lấy thông tin Boss
     system_config = all_data.get('system_config', {})
     boss = system_config.get('active_boss')
 
-    # Kiểm tra Boss có tồn tại và đang hoạt động không
+    # Nếu không có Boss -> Báo nghỉ
     if not boss or boss.get('status') != 'active':
+        st.title("⚔️ ĐẠI CHIẾN GIÁO VIÊN")
         st.info("☘️ Hiện tại không có Giáo viên nào thách thức. Hãy tập luyện thêm!")
         return
 
-    player = all_data.get(user_id)
     if not player:
-        st.error("❌ Không tìm thấy dữ liệu học sĩ.")
+        st.error("❌ Không tìm thấy dữ liệu người chơi.")
         return
 
-    # 2. Tính toán chỉ số cơ bản
+    # --- 2. TÍNH CHỈ SỐ (Để biết Max HP bao nhiêu mà hồi) ---
     level = player.get("level", 1)
-    # Giả sử hàm tinh_chi_so_chien_dau bạn đã có
     base_max_hp, base_atk = tinh_chi_so_chien_dau(level)
-
-    # --- CHÈN LOGIC QUÉT BUFF ---
-    # Hàm này bạn đã có, giữ nguyên
+    
+    # Lấy Buff
     bonus_stats, updated_data = get_active_combat_stats(user_id, all_data)
     st.session_state.data = updated_data 
-
-    # Chỉ số thực tế (Base + Buff)
+    
     max_hp_p = base_max_hp + bonus_stats['hp']
     atk_p = base_atk + bonus_stats['atk']
-    current_hp_p = player.get("hp", max_hp_p) 
-    
-    # 🔥 CẮT MÁU THỪA KHI HẾT THUỐC 🔥
-    if current_hp_p > max_hp_p:
-        current_hp_p = max_hp_p             
-        player['hp'] = max_hp_p             
-        # Lưu thay đổi ngay lập tức
-        save_data_func(st.session_state.data) 
-    
-    # 3. Kiểm tra trạng thái Trọng thương (Giữ nguyên logic cũ của bạn)
+    current_hp_p = player.get("hp", max_hp_p)
+
+    # ==============================================================================
+    # 🤖 AUTO CHECK: XỬ LÝ HỒI SINH TỰ ĐỘNG
+    # ==============================================================================
     if player.get("reborn_at"):
         try:
             reborn_time = datetime.strptime(player["reborn_at"], "%Y-%m-%d %H:%M:%S")
-            if datetime.now() < reborn_time:
+            
+            # TRƯỜNG HỢP 1: ĐÃ HẾT GIỜ PHẠT (Người chơi quay lại sau khi nghỉ đủ)
+            if datetime.now() >= reborn_time:
+                # 1. Hồi đầy máu
+                player['hp'] = max_hp_p  
+                current_hp_p = max_hp_p # Cập nhật biến tạm để hiển thị đúng ngay bên dưới
+                
+                # 2. Xóa án phạt
+                del player['reborn_at']
+                if 'last_defeat' in player: del player['last_defeat']
+                
+                # 3. Lưu ngay lập tức để đồng bộ Sheets
+                save_data_func(st.session_state.data)
+                
+                # 4. Tự động reload trang để vào giao diện đánh Boss ngay
+                st.rerun()
+            
+            # TRƯỜNG HỢP 2: VẪN CÒN ÁN PHẠT (Chưa hết giờ)
+            else:
+                # Tính thời gian còn lại
                 time_left = reborn_time - datetime.now()
                 phut_con_lai = int(time_left.total_seconds() // 60) + 1
-                defeat_info = player.get('last_defeat', {"boss_name": "Giáo Viên", "damage_taken": "hiểm hóc"})                
+                defeat_info = player.get('last_defeat', {})
+                
+                st.title("💀 BẠN ĐANG TRỌNG THƯƠNG")
                 
                 st.markdown(f"""
-                    <div style="background: linear-gradient(135deg, #2c3e50, #000000); padding: 20px; border-radius: 15px; border: 1px solid #ff4b4b; text-align: center; margin-bottom: 20px;">
-                        <h2 style="color: #ff4b4b;">💀 BẠN ĐANG BỊ THƯƠNG NẶNG</h2>
-                        <p style="color: #ecf0f1;">Bị hạ gục bởi: <b>{defeat_info.get('boss_name', 'Giáo viên')}</b></p>
-                        <hr>
-                        <h1 style="color: white; font-size: 3em;">⏳ {phut_con_lai} phút</h1>
-                        <p style="color: #bdc3c7;">nghỉ ngơi để hồi phục thể lực</p>
+                    <div style="background-color: #2c3e50; padding: 30px; border-radius: 15px; border: 2px solid #e74c3c; text-align: center;">
+                        <h3 style="color: #e74c3c; margin: 0;">🛑 KHU VỰC NGUY HIỂM</h3>
+                        <p style="color: #bdc3c7;">Bạn vừa bị hạ gục bởi: <b>{defeat_info.get('boss_name', 'Giáo viên')}</b></p>
+                        <hr style="border-color: #7f8c8d;">
+                        <p style="font-size: 18px; color: white;">Thời gian hồi phục còn lại:</p>
+                        <h1 style="color: #f1c40f; font-size: 60px; margin: 10px 0;">{phut_con_lai} phút</h1>
+                        <p style="color: #95a5a6; font-style: italic;">(Hãy quay lại sau khi hết thời gian)</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                if st.button("🔄 Cập nhật tình trạng", use_container_width=True):
-                    st.rerun()
+                # DỪNG HÀM TẠI ĐÂY -> Không hiện giao diện đánh Boss bên dưới
                 return 
-        except Exception:
+
+        except Exception as e:
+            # Nếu lỗi ngày tháng, xóa luôn cho người chơi chơi tiếp (Fallback an toàn)
+            if 'reborn_at' in player: del player['reborn_at']
             pass
 
-    # 4. Hiển thị Giao diện Sàn đấu
+    # ==============================================================================
+    # 👇 NẾU CHẠY XUỐNG ĐÂY NGHĨA LÀ ĐÃ KHỎE MẠNH (HOẶC VỪA ĐƯỢC HỒI SINH) 👇
+    # ==============================================================================
+
+    st.title("⚔️ ĐẠI CHIẾN GIÁO VIÊN")
+
+    # 4. Hiển thị Giao diện Sàn đấu (Code cũ giữ nguyên từ đây trở xuống)
     col1, col2 = st.columns([1, 2])
     
     with col1:
@@ -1151,7 +1173,9 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
         
         st.markdown("---") 
 
+        # --- PHẦN CỦA BẠN (PLAYER) ---
         p_hp_pct = min(100, max(0, int((current_hp_p / max_hp_p) * 100)))
+        
         st.write(f"**❤️ Máu của bạn: {int(current_hp_p)} / {max_hp_p}**")
         st.progress(p_hp_pct)
         
@@ -1174,9 +1198,8 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
                 if k in st.session_state: del st.session_state[k]
             st.rerun()
             
-        # Gọi hàm xử lý trận đấu (Truyền đúng tham số)
-        trien_khai_tran_dau(boss, player, atk_p, save_data_func, user_id, all_data)
-        
+        # Gọi hàm xử lý trận đấu
+        trien_khai_tran_dau(boss, player, atk_p, save_data_func, user_id, all_data)        
 def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_data):
     st.divider()
     
