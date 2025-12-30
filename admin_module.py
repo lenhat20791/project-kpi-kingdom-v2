@@ -581,7 +581,7 @@ def admin_quan_ly_boss():
         # [cite_start]2. Chọn Phần Thưởng (ĐÂY LÀ PHẦN BẠN BỊ THIẾU Ở CODE CŨ) [cite: 33, 41]
         st.divider()
         st.subheader("🎁 Cấu Hình Rơi Quà (Drop List)")
-        raw_drop_data = hien_thi_bang_chon_qua_boss() # <--- Gọi hàm phụ trợ
+        raw_drop_data = hien_thi_bang_chon_qua_boss()
 
         submit_boss = st.form_submit_button("💾 LƯU CẤU HÌNH BOSS & DROP LIST")
 
@@ -1339,7 +1339,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
         # 🎲 PHẦN MỚI: CÔNG XƯỞNG CHẾ TẠO RƯƠNG GACHA (LOOT BOX)
         # ==============================================================================
         with st.expander("🎲 CHẾ TẠO RƯƠNG THẦN BÍ (GACHA SYSTEM)", expanded=False):
-            st.info("💡 Cơ chế mới: Tỷ lệ rơi độc lập. Mỗi vật phẩm trong rương sẽ được tung xúc xắc riêng. Người dùng có thể nhận được nhiều món cùng lúc hoặc không nhận được gì tùy vào may mắn.")
+            st.info("💡 Cơ chế mới: Tỷ lệ rơi độc lập. Mỗi vật phẩm trong rương sẽ được tung xúc xắc riêng.")
 
             # 1. Khởi tạo session state tạm
             if 'temp_loot_table' not in st.session_state:
@@ -1349,7 +1349,10 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
 
             with c1:
                 st.markdown("#### 🅰️ THIẾT KẾ VỎ RƯƠNG")
-                box_name = st.text_input("Tên Rương:", placeholder="Ví dụ: Rương Boss Thế Giới", key="gacha_name")
+                box_name = st.text_input("Tên Rương (ID):", placeholder="Ví dụ: ruong_boss_the_gioi", key="gacha_name")
+                # Thêm tên hiển thị tiếng Việt cho đẹp
+                box_display_name = st.text_input("Tên Hiển Thị:", placeholder="Rương Boss Thế Giới", key="gacha_disp_name")
+                
                 box_img = st.text_input("Ảnh Rương (URL):", placeholder="Link ảnh rương...", key="gacha_img")
                 
                 rarity_opt = {
@@ -1372,53 +1375,43 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
 
                 # --- CHỨC NĂNG MỚI: TÙY CHỌN ẨN/HIỆN TRÊN KỆ ---
                 is_listed = st.checkbox("🏪 Niêm yết lên Tiệm tạp hóa", value=True, 
-                                        help="Nếu tắt, rương này chỉ dùng để làm quà Drop từ Boss, học sinh không thể mua trực tiếp.")
+                                        help="Nếu TẮT, rương này sẽ bị ẨN khỏi Shop và chuyển vào Kho Lưu Trữ (Dùng làm quà Drop).")
 
             with c2:
                 st.markdown("#### 🅱️ NẠP RUỘT RƯƠNG (LOOT TABLE)")
                 
                 with st.form("add_loot_form", clear_on_submit=True):
                     col_l1, col_l2, col_l3, col_l4 = st.columns([2, 1.5, 1, 1])
-                    # ĐOẠN MỚI:
+                    
+                    # --- CHUẨN BỊ DANH SÁCH VẬT PHẨM ĐỂ CHỌN ---
                     item_options = ["-- Chọn --"]
                     item_id_map = {"-- Chọn --": "-- Chọn --"}
 
-                    if 'shop_items' in st.session_state:
-                        for k, v in st.session_state.shop_items.items():
-                            # Không cho rương chứa chính rương để tránh lỗi lặp vô tận
-                            if v.get('type') == 'GACHA_BOX':
-                                continue
+                    if 'shop_items' in st.session_state.data:
+                        for k, v in st.session_state.data['shop_items'].items():
+                            # Không cho rương chứa chính rương
+                            if v.get('type') == 'GACHA_BOX': continue
                                 
-                            # Kiểm tra trạng thái niêm yết
                             is_hidden = not v.get('is_listed', True)
                             status_icon = "🔒 [ẨN]" if is_hidden else "🏪 [SHOP]"
-                            
-                            # Tạo label hiển thị: "🏪 [SHOP] Kiếm Gỗ (kiem_go)"
                             display_label = f"{status_icon} {v.get('name', k)} ({k})"
                             
                             item_options.append(display_label)
-                            item_id_map[display_label] = k # Lưu mapping để lấy ID thực tế
+                            item_id_map[display_label] = k
 
-                    
                     with col_l1:
                         reward_type = st.selectbox("Loại quà:", ["Item (Vật phẩm)", "Currency (Tiền tệ)"])
                     
-                    # --- [SỬA LỖI] Khởi tạo biến trước để tránh lỗi UnboundLocalError ---
+                    # Khởi tạo biến
                     target_id = "-- Chọn --" 
 
                     with col_l2:
                         if reward_type == "Item (Vật phẩm)":
-                            selected_display = st.selectbox("Chọn vật phẩm (Cả đồ ẩn):", item_options)
+                            selected_display = st.selectbox("Chọn vật phẩm:", item_options)
                             target_id = item_id_map.get(selected_display, "-- Chọn --")
                         else:
-                            # Xử lý cho Currency
-                            currency_opts = {
-                                "KPI": "kpi", 
-                                "Tri Thức": "Tri_Thuc", 
-                                "Chiến Tích": "Chien_Tich", 
-                                "Vinh Dự": "Vinh_Du"
-                            }
-                            curr_display = st.selectbox("Chọn loại tiền:", list(currency_opts.keys()))
+                            currency_opts = {"KPI": "kpi", "Tri Thức": "Tri_Thuc", "Chiến Tích": "Chien_Tich", "Vinh Dự": "Vinh_Du"}
+                            curr_display = st.selectbox("Loại tiền:", list(currency_opts.keys()))
                             target_id = currency_opts[curr_display]
 
                     with col_l3:
@@ -1429,7 +1422,6 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     add_btn = st.form_submit_button("➕ Thêm")
 
                     if add_btn:
-                        # Kiểm tra target_id hợp lệ (khác "-- Chọn --" và không rỗng)
                         if target_id and target_id != "-- Chọn --":
                             st.session_state.temp_loot_table.append({
                                 "type": "item" if reward_type == "Item (Vật phẩm)" else "currency",
@@ -1438,31 +1430,73 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                 "amount": drop_qty
                             })
                             st.success(f"Đã thêm {target_id} ({drop_rate}%)")
-                            # st.rerun() # Có thể rerun để cập nhật danh sách ngay lập tức nếu cần
                         else:
-                            st.error("Vui lòng chọn vật phẩm hoặc loại tiền hợp lệ!")
+                            st.error("Vui lòng chọn vật phẩm hợp lệ!")
 
+                # HIỂN THỊ DANH SÁCH TẠM
                 if st.session_state.temp_loot_table:
-                    st.markdown("##### 📋 Danh sách tỷ lệ rơi độc lập:")
-                    
+                    st.markdown("##### 📋 Danh sách trong rương:")
                     for idx, item in enumerate(st.session_state.temp_loot_table):
                         icon = "📦" if item['type'] == 'item' else "💰"
-                        st.markdown(f"{idx+1}. {icon} **{item['id']}** (x{item['amount']}) - Tỷ lệ xuất hiện: `{item['rate']}%`")
+                        st.markdown(f"{idx+1}. {icon} **{item['id']}** (x{item['amount']}) - Tỷ lệ: `{item['rate']}%`")
                     
-                    st.info("💡 Lưu ý: Hệ thống sẽ xét duyệt từng món đồ trên. Món 100% chắc chắn rơi, các món khác rơi tùy nhân phẩm.")
-                    
-                    if st.button("🗑️ Xóa danh sách làm lại"):
+                    if st.button("🗑️ Xóa làm lại"):
                         st.session_state.temp_loot_table = []
                         st.rerun()
 
             st.divider()
             
-        with st.expander("📦 KHO VẬT PHẨM LƯU TRỮ (ĐANG ẨN KHỎI SHOP)", expanded=False):
-            st.write("Dưới đây là các vật phẩm chỉ dùng để làm quà Drop, không hiển thị cho học sinh mua.")
+            # --- NÚT ĐÓNG GÓI (TẠO RƯƠNG) ---
+            if st.button("🎁 ĐÓNG GÓI RƯƠNG NGAY", type="primary", use_container_width=True):
+                if box_name and st.session_state.temp_loot_table:
+                    # Tạo cấu trúc dữ liệu rương mới
+                    new_chest_data = {
+                        "id": box_name,
+                        "name": box_display_name if box_display_name else box_name, # Ưu tiên tên hiển thị
+                        "price": box_price,
+                        "currency_buy": box_curr,
+                        "image": box_img if box_img else "https://cdn-icons-png.flaticon.com/512/4256/4256846.png",
+                        "type": "GACHA_BOX",  
+                        "is_listed": is_listed, # <--- Trạng thái ẩn/hiện do Admin chọn
+                        "properties": {
+                            "rarity": box_rarity,
+                            "loot_table": st.session_state.temp_loot_table 
+                        },
+                        "limit_type": "none", 
+                        "limit_value": 0,
+                        "desc": f"Chứa {len(st.session_state.temp_loot_table)} loại quà. Mở để thử vận may!",
+                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                    
+                    # Lưu vào Shop Items
+                    if 'shop_items' not in st.session_state.data:
+                        st.session_state.data['shop_items'] = {}
+                        
+                    st.session_state.data['shop_items'][box_name] = new_chest_data
+                    
+                    # Gọi hàm lưu an toàn lên Google Sheets
+                    import user_module
+                    if user_module.save_all_to_sheets(st.session_state.data):
+                        st.session_state.temp_loot_table = [] 
+                        st.balloons()
+                        status_msg = "đã được BÀY BÁN trên Shop" if is_listed else "đã được CẤT VÀO KHO ẨN"
+                        st.success(f"✅ Rương **{box_display_name}** {status_msg} thành công!")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("❌ Lỗi lưu trữ Cloud!")
+                else:
+                    st.error("❌ Thiếu tên rương hoặc danh sách vật phẩm rỗng!")
             
-            # Lọc danh sách ẩn
-            hidden_items = {k: v for k, v in st.session_state.shop_items.items() 
-                            if not v.get('is_listed', True) and v.get('type') != 'GACHA_BOX'}
+        # ==============================================================================
+        # 📦 PHẦN MỚI: QUẢN LÝ KHO ẨN (ĐÃ CHỈNH SỬA)
+        # ==============================================================================
+        with st.expander("📦 KHO VẬT PHẨM LƯU TRỮ (ĐANG ẨN KHỎI SHOP)", expanded=False):
+            st.write("Dưới đây là các vật phẩm/rương chỉ dùng để làm quà Drop, không hiển thị cho học sinh mua.")
+            
+            # Lọc danh sách item đang ẩn
+            shop_items = st.session_state.data.get('shop_items', {})
+            hidden_items = {k: v for k, v in shop_items.items() if not v.get('is_listed', True)}
             
             if not hidden_items:
                 st.info("Hiện không có vật phẩm nào đang ẩn.")
@@ -1478,7 +1512,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         with col_b:
                             st.markdown(f"**{tinfo.get('name')}** (`{tid}`)")
                             st.caption(f"Loại: {tinfo.get('type')} | 💰 Giá gốc: {tinfo.get('price')}")
-                            st.caption(f"📝 {tinfo.get('desc')}")
+                            st.caption(f"📝 {tinfo.get('desc', 'Không có mô tả')}")
                         
                         with col_c:
                             # Chia nhỏ cột chức năng thành 2 nút: Hiện lại & Xóa
@@ -1486,54 +1520,21 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             
                             with btn_col1:
                                 if st.button("🔓 Hiện", key=f"unhide_list_{tid}", help="Đưa vật phẩm này quay lại Shop", use_container_width=True):
-                                    st.session_state.shop_items[tid]['is_listed'] = True
-                                    # Gọi lệnh lưu
+                                    st.session_state.data['shop_items'][tid]['is_listed'] = True
+                                    
                                     import user_module
                                     user_module.save_all_to_sheets(st.session_state.data)
                                     st.success(f"Đã niêm yết '{tinfo.get('name')}'!")
                                     st.rerun()
                             
                             with btn_col2:
-                                # --- NÚT XÓA MỚI ---
-                                if st.button("🗑️ Xóa", key=f"del_hidden_{tid}", help="Xóa vĩnh viễn khỏi hệ thống", type="primary", use_container_width=True):
-                                    # 1. Xóa khỏi bộ nhớ
-                                    del st.session_state.shop_items[tid]
+                                if st.button("🗑️ Xóa", key=f"del_hidden_{tid}", help="Xóa vĩnh viễn", type="primary", use_container_width=True):
+                                    del st.session_state.data['shop_items'][tid]
                                     
-                                    # 2. Lưu lên Cloud ngay lập tức
                                     import user_module
                                     user_module.save_all_to_sheets(st.session_state.data)
-                                    
                                     st.success(f"Đã xóa vĩnh viễn '{tid}'!")
-                                    st.rerun()    
-            
-            if st.button("🎁 ĐÓNG GÓI VÀ BÀY BÁN RƯƠNG", type="primary", use_container_width=True):
-                if box_name and st.session_state.temp_loot_table:
-                    new_chest_data = {
-                        "id": box_name,
-                        "name": box_name,
-                        "price": box_price,
-                        "currency_buy": box_curr,
-                        "image": box_img if box_img else "https://cdn-icons-png.flaticon.com/512/4256/4256846.png",
-                        "type": "GACHA_BOX",  
-                        "is_listed": is_listed, 
-                        "properties": {
-                            "rarity": box_rarity,
-                            "loot_table": st.session_state.temp_loot_table 
-                        },
-                        "limit_type": "none", 
-                        "limit_value": 0,
-                        "desc": f"Rương báu chứa {len(st.session_state.temp_loot_table)} loại phần thưởng. Mở ngay để thử vận may!"
-                    }
-                    
-                    st.session_state.shop_items[box_name] = new_chest_data
-                    save_shop_func(st.session_state.shop_items)
-                    
-                    st.session_state.temp_loot_table = [] 
-                    st.balloons()
-                    st.success(f"Đã chế tạo rương {box_name} thành công!")
-                    st.rerun()
-                else:
-                    st.error("Thiếu tên rương hoặc danh sách vật phẩm rỗng!")
+                                    st.rerun()
             
     # ===== 🏅 QUẢN LÝ DANH HIỆU =====
     elif page == "🏅 Quản lý danh hiệu":

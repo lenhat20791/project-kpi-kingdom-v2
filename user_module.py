@@ -3289,15 +3289,20 @@ def load_data_from_sheets():
     """
     Truy xuất toàn bộ dữ liệu vương quốc từ Cloud:
     1. Tab Players: Dữ liệu học sĩ.
-    2. Tab Settings: Danh hiệu & Cấu hình hệ thống.
+    2. Tab Settings: Cấu hình hệ thống (Boss, Rank).
     3. Tab Shop: Vật phẩm tiệm tạp hóa.
     """
     try:
         print("☁️ Đang kết nối tới Google Sheets...")
         spreadsheet = CLIENT.open(SHEET_NAME)
-        new_data = {}
+        
+        # Biến chứa toàn bộ dữ liệu trả về (Đây chính là RAM)
+        loaded_data = {
+            "system_config": {}, # Chứa Settings (Boss, Rank...)
+            "shop_items": {}     # Chứa dữ liệu Shop
+        }
 
-        # --- BẢNG MÃ KHỬ DẤU TIẾNG VIỆT (Dùng để chuẩn hóa ID ngay lập tức) ---
+        # --- BẢNG MÃ KHỬ DẤU TIẾNG VIỆT ---
         vietnamese_map = {
             'à': 'a', 'á': 'a', 'ạ': 'a', 'ả': 'a', 'ã': 'a', 'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ậ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ặ': 'a', 'ẳ': 'a', 'ẵ': 'a',
             'è': 'e', 'é': 'e', 'ẹ': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ê': 'e', 'ề': 'e', 'ế': 'e', 'ệ': 'e', 'ể': 'e', 'ễ': 'e',
@@ -3305,12 +3310,13 @@ def load_data_from_sheets():
             'ù': 'u', 'ú': 'u', 'ụ': 'u', 'ủ': 'u', 'ũ': 'u', 'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ự': 'u', 'ử': 'u', 'ữ': 'u',
             'ì': 'i', 'í': 'i', 'ị': 'i', 'ỉ': 'i', 'ĩ': 'i',
             'ỳ': 'y', 'ý': 'y', 'ỵ': 'y', 'ỷ': 'y', 'ỹ': 'y',
-            'đ': 'd', ' ': '' # Xóa luôn khoảng trắng
+            'đ': 'd', ' ': '' 
         }
 
-        # --- PHẦN 1: TẢI DỮ LIỆU HỌC SĨ (Tab Players) ---
+        # =========================================================
+        # 1. TẢI DỮ LIỆU HỌC SĨ (Tab Players)
+        # =========================================================
         try:
-            # Ưu tiên lấy tab Players, nếu không có thì thử sheet1
             try:
                 sh_players = spreadsheet.worksheet("Players")
             except:
@@ -3319,38 +3325,35 @@ def load_data_from_sheets():
             player_records = sh_players.get_all_records()
             
             for r in player_records:
-                # 1. Lấy ID thô từ Sheets (Ưu tiên user_id, nếu thiếu thì lấy name)
+                # Lấy ID thô
                 raw_uid = str(r.get('user_id') or r.get('u_id') or r.get('name', '')).strip().lower()
-                
-                # 2. Bỏ qua nếu dòng trống
                 if not raw_uid: continue
 
-                # 3. Xử lý chuẩn hóa Key (Quan trọng: Khử dấu ngay tại đây)
-                # Nếu là admin thì giữ nguyên key 'admin'
+                # Chuẩn hóa ID
                 if str(r.get('role', '')).lower() == 'admin':
                     uid = 'admin'
                 else:
-                    # Chạy vòng lặp thay thế ký tự có dấu
                     temp_uid = raw_uid
                     for char, replacement in vietnamese_map.items():
                         temp_uid = temp_uid.replace(char, replacement)
                     uid = temp_uid
                 
-                # 4. Giải mã các chuỗi JSON (stats, inventory, progress)
-                try:
-                    stats = json.loads(str(r.get('stats_json', '{}')))
-                    inventory = json.loads(str(r.get('inventory_json', '[]')))
-                    progress = json.loads(str(r.get('progress_json', '{}')))
-                except:
-                    stats, inventory, progress = {}, [], {}
+                # Parse JSON an toàn
+                try: stats = json.loads(str(r.get('stats_json', '{}')))
+                except: stats = {}
+                
+                try: inventory = json.loads(str(r.get('inventory_json', '[]')))
+                except: inventory = {}
+                
+                try: progress = json.loads(str(r.get('progress_json', '{}')))
+                except: progress = {}
 
-                # 5. Xây dựng cấu trúc User hoàn chỉnh
+                # Build User Object
                 user_info = {
                     "name": r.get('name', ''),
                     "team": r.get('team', 'Chưa phân tổ'),
-                    # Ép kiểu mật khẩu về string, xóa khoảng trắng thừa
-                    "password": str(r.get('password', '123456')).strip(),
-                    "role": str(r.get('role', 'player')).strip().lower(), # Chuẩn hóa role
+                    "password": str(r.get('password', '123456')).strip().replace(".0", ""),
+                    "role": str(r.get('role', 'player')).strip().lower(),
                     "kpi": r.get('kpi', 0),
                     "exp": r.get('exp', 0),
                     "level": r.get('level', 1),
@@ -3359,28 +3362,20 @@ def load_data_from_sheets():
                     "inventory": inventory,
                     "dungeon_progress": progress
                 }
-                
-                # Xử lý mật khẩu dạng số thực (ví dụ 123456.0)
-                if user_info["password"].endswith(".0"):
-                    user_info["password"] = user_info["password"][:-2]
-
-                # Đổ nốt các chỉ số phụ từ stats_json vào user_info
                 user_info.update(stats)
-                new_data[uid] = user_info
+                
+                # Lưu vào biến tạm (RAM)
+                loaded_data[uid] = user_info
 
         except Exception as e:
             print(f"⚠️ Lỗi đọc tab Players: {e}")
 
-        # --- PHẦN 2: TẢI CẤU HÌNH (Tab Settings) ---
+        # =========================================================
+        # 2. TẢI CẤU HÌNH (Tab Settings) - BOSS & RANK
+        # =========================================================
         try:
-            # Kiểm tra xem tab Settings có tồn tại không
             try:
                 sh_settings = spreadsheet.worksheet("Settings")
-            except:
-                print("⚠️ Không tìm thấy tab 'Settings'. Đang bỏ qua...")
-                sh_settings = None
-
-            if sh_settings:
                 settings_records = sh_settings.get_all_records()
                 print(f"⚙️ Đang quét {len(settings_records)} dòng cấu hình...")
 
@@ -3390,83 +3385,86 @@ def load_data_from_sheets():
                     
                     if key and raw_value:
                         try:
-                            # --- [QUAN TRỌNG] FIX LỖI SMART QUOTES TỪ GOOGLE SHEETS ---
-                            # Chuyển dấu ngoặc kép cong (Word/Excel) thành ngoặc thẳng chuẩn JSON
+                            # Clean Smart Quotes
                             clean_value = raw_value.replace("“", '"').replace("”", '"').replace("’", "'")
-                            
-                            # Parse JSON
                             decoded_val = json.loads(clean_value)
-                            new_data[key] = decoded_val
                             
-                            # Log để biết đã tải được
-                            # print(f"   ✅ Đã tải: {key}")
-
-                            # Xử lý riêng cho active_boss (lưu file local)
+                            # --- [ĐÂY LÀ ĐOẠN QUAN TRỌNG ĐÃ SỬA] ---
+                            # Thay vì ghi ra file, ta lưu thẳng vào loaded_data
+                            
                             if key == "active_boss":
-                                if not os.path.exists('data'): os.makedirs('data')
-                                with open('data/boss_config.json', 'w', encoding='utf-8') as f:
-                                    json.dump(decoded_val, f, indent=4, ensure_ascii=False)
-                                    
-                        except Exception as json_error:
-                            # Thay print bằng st.error để hiện lên web
-                            st.error(f"❌ LỖI CẤU HÌNH JSON (Tab Settings):")
-                            st.code(f"Key: {key}\nLỗi: {json_error}\nNội dung sai: {raw_value}", language="json")
-                            
-                            # Vẫn in ra terminal để backup
-                            print(f"❌ LỖI JSON TẠI KEY '{key}': {json_error}")
-        
-        except Exception as e:
-            print(f"ℹ️ Lỗi chung tại tab Settings: {e}")
+                                # Nếu dữ liệu trên Sheet là {"active_boss": {...}} thì lấy ruột bên trong
+                                if isinstance(decoded_val, dict) and "active_boss" in decoded_val:
+                                     loaded_data['system_config']['active_boss'] = decoded_val["active_boss"]
+                                else:
+                                     # Nếu dữ liệu trên Sheet là thẳng object Boss
+                                     loaded_data['system_config']['active_boss'] = decoded_val
+                                     
+                                print("✅ Đã tải Boss từ Sheets vào RAM.")
+                            else:
+                                # Các setting khác (rank_settings...)
+                                loaded_data['system_config'][key] = decoded_val
 
-        # --- PHẦN 3: TẢI TIỆM TẠP HÓA (Tab Shop) ---
+                        except Exception as json_error:
+                            print(f"❌ Lỗi JSON Settings '{key}': {json_error}")
+
+            except:
+                print("⚠️ Tab 'Settings' chưa có dữ liệu hoặc không tồn tại.")
+                
+        except Exception as e:
+            print(f"ℹ️ Lỗi chung Settings: {e}")
+
+        # =========================================================
+        # 3. TẢI TIỆM TẠP HÓA (Tab Shop)
+        # =========================================================
         try:
             sh_shop = spreadsheet.worksheet("Shop")
             shop_records = sh_shop.get_all_records()
             shop_dict = {}
+            
             for r in shop_records:
-                item_id = str(r.get('Item_ID', '')).strip()
+                item_id = str(r.get('ID', '') or r.get('Item_ID', '')).strip()
                 if not item_id: continue
                 
-                # 1. Giải mã cột Effect_JSON (Chứa image, is_listed, type, properties...)
+                # Ưu tiên lấy cột 'Full_Data_JSON' chứa đầy đủ thông tin (cả Rương Gacha)
+                raw_json = str(r.get('Full_Data_JSON') or r.get('Effect_JSON') or '{}')
+                
                 try:
-                    raw_effect = str(r.get('Effect_JSON', '{}'))
-                    # Fix lỗi dấu ngoặc thông minh từ Google Sheets
-                    clean_effect = raw_effect.replace("“", '"').replace("”", '"').replace("’", "'")
-                    extra = json.loads(clean_effect)
-                except:
-                    extra = {}
-
-                # 2. Xây dựng lại Object Item chuẩn như lúc tạo
-                shop_dict[item_id] = {
-                    "id": item_id,
-                    "name": r.get('Item_Name', ''),
-                    "price": r.get('Price', 0),
-                    "stock": r.get('Stock', 0),
-                    "desc": r.get('Description', ''), # Đổi thành 'desc' cho khớp với Admin
+                    clean_json = raw_json.replace("“", '"').replace("”", '"').replace("’", "'")
+                    full_item_data = json.loads(clean_json)
                     
-                    # Nạp lại các thông tin từ JSON
-                    "image": extra.get('image', 'https://cdn-icons-png.flaticon.com/512/1236/1236525.png'),
-                    "is_listed": extra.get('is_listed', True),
-                    "currency_buy": extra.get('currency_buy', 'kpi'),
-                    "type": extra.get('type', 'COMMON'),
-                    "limit_type": extra.get('limit_type', 'Thông thường'),
-                    "limit_amount": extra.get('limit_amount', 0),
-                    "properties": extra.get('properties', {})
-                }
-            
-            # Cập nhật trực tiếp vào session_state để dùng ngay
-            st.session_state.shop_items = shop_dict
-            print(f"🏪 Đã tải {len(shop_dict)} vật phẩm vào Tiệm tạp hóa.")
-            
-        except Exception as e:
-            print(f"ℹ️ Tab Shop chưa có hoặc trống: {e}")
+                    # Nếu JSON rỗng (item cũ), fallback lấy từ các cột rời
+                    if not full_item_data:
+                         full_item_data = {
+                            "id": item_id,
+                            "name": r.get('Name', '') or r.get('Item_Name', ''),
+                            "price": r.get('Price', 0),
+                            "type": r.get('Type', 'COMMON'),
+                            "currency_buy": r.get('Currency', 'kpi'),
+                         }
+                    
+                    full_item_data['id'] = item_id
+                    shop_dict[item_id] = full_item_data
+                    
+                except:
+                    shop_dict[item_id] = {"id": item_id, "name": "Item Lỗi", "price": 9999, "type": "ERROR"}
 
-        if not new_data:
+            loaded_data['shop_items'] = shop_dict
+            print(f"🏪 Đã tải {len(shop_dict)} vật phẩm Shop.")
+
+        except Exception as e:
+            print(f"ℹ️ Lỗi tải Shop (Có thể do chưa tạo tab Shop): {e}")
+
+        # --- KẾT THÚC ---
+        if not loaded_data:
             return None
 
-        print(f"📥 Cloud Sync thành công: {len(new_data)} records.")
-        return new_data
+        # Cập nhật trực tiếp vào session_state để chắc chắn
+        if 'shop_items' not in st.session_state: st.session_state.shop_items = {}
+        st.session_state.shop_items = loaded_data['shop_items']
+        
+        return loaded_data
 
     except Exception as e:
-        print(f"❌ Lỗi nghiêm trọng khi tải dữ liệu từ Cloud: {e}")
+        print(f"❌ Lỗi nghiêm trọng Load Data: {e}")
         return None
