@@ -1263,47 +1263,47 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
             
         # Gọi hàm xử lý trận đấu
         trien_khai_tran_dau(boss, player, atk_p, save_data_func, user_id, all_data)        
+
 def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_data):
-    st.divider()
-    
     import os
     import json
     import time
     import random
     
-    # --- 1. KIỂM TRA FILE CÂU HỎI (NGHIÊM NGẶT) ---
-    mon_boss = boss.get('mon', 'toan')
-    # Xây dựng đường dẫn chuẩn
-    path_quiz = f"quiz_data/grade_6/boss/{mon_boss}.json"
-    
-    # [CHECK 1] Kiểm tra file có tồn tại không?
-    if not os.path.exists(path_quiz):
-        st.error(f"❌ **LỖI HỆ THỐNG:** Không tìm thấy file dữ liệu câu hỏi!")
-        st.code(f"Đường dẫn cần tìm: {path_quiz}")
-        st.warning("👉 Vui lòng tạo file JSON tại đường dẫn trên để tiếp tục.")
-        return # DỪNG CHƯƠNG TRÌNH TẠI ĐÂY
+    st.divider()
 
-    # [CHECK 2] Kiểm tra file có đúng định dạng JSON không?
+    # --- 1. KIỂM TRA FILE CÂU HỎI ---
+    mon_boss = boss.get('mon', 'toan')
+    # Map tên môn học sang tên file không dấu (nếu cần)
+    map_mon = {
+        "Toán": "toan", "Lý": "ly", "Hóa": "hoa", 
+        "Văn": "van", "Anh": "anh", "Sinh": "sinh", 
+        "Sử": "su", "Địa": "dia"
+    }
+    file_name = map_mon.get(mon_boss, mon_boss.lower())
+    path_quiz = f"quiz_data/grade_6/boss/{file_name}.json"
+    
+    # Fallback: Nếu không tìm thấy file boss, dùng file chung
+    if not os.path.exists(path_quiz):
+        path_quiz = f"quiz_data/grade_6/{file_name}.json"
+
+    if not os.path.exists(path_quiz):
+        st.error(f"❌ Không tìm thấy dữ liệu câu hỏi cho môn {mon_boss}")
+        return
+
     try:
         with open(path_quiz, 'r', encoding='utf-8') as f:
             all_quizzes = json.load(f)
-    except json.JSONDecodeError as e:
-        st.error(f"❌ **LỖI CÚ PHÁP JSON:** File `{path_quiz}` bị viết sai định dạng.")
-        st.error(f"Chi tiết lỗi: {e}")
-        st.info("👉 Hãy kiểm tra lại dấu phẩy, dấu ngoặc trong file.")
-        return # DỪNG CHƯƠNG TRÌNH
+    except:
+        st.error("❌ Lỗi đọc file câu hỏi.")
+        return
 
-    # [CHECK 3] Kiểm tra có câu hỏi bên trong không?
     pool = all_quizzes.get("easy", []) + all_quizzes.get("medium", [])
-    
     if not pool:
-        st.error(f"❌ **DỮ LIỆU RỖNG:** File `{path_quiz}` có tồn tại nhưng không chứa câu hỏi 'easy' hoặc 'medium'.")
-        st.json(all_quizzes) # In nội dung file ra để bạn kiểm tra
-        return # DỪNG CHƯƠNG TRÌNH
+        st.warning("⚠️ Không có câu hỏi nào trong kho dữ liệu.")
+        return
 
-    # --- 2. NẾU MỌI THỨ OK -> BẮT ĐẦU GAME ---
-    
-    # Khởi tạo câu hỏi nếu chưa có
+    # --- 2. LOGIC GAME ---
     if "cau_hoi_active" not in st.session_state:
         st.session_state.cau_hoi_active = random.choice(pool)
         st.session_state.thoi_gian_bat_dau = time.time()
@@ -1315,23 +1315,18 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
     elapsed = time.time() - st.session_state.get("thoi_gian_bat_dau", time.time())
     remaining = int(THOI_GIAN - elapsed)
     
-    # Hiển thị đồng hồ
     color = "red" if remaining <= 5 else "#00d2ff"
     st.markdown(f"<h1 style='text-align: center; color: {color}; font-size: 40px;'>⏳ {remaining}s</h1>", unsafe_allow_html=True)
 
     # Xử lý HẾT GIỜ
     if remaining <= 0:
         st.error("⏰ Hết giờ! Boss phản công.")
-        
-        # Trừ máu người chơi
         dmg_boss = boss.get('damage', 10)
         player['hp'] = max(0, player.get('hp', 100) - dmg_boss)
         st.session_state.combo = 0
         
-        # Lưu lại máu bị trừ
         save_data_func(st.session_state.data)
         
-        # Reset câu hỏi
         if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
         time.sleep(1.5)
         st.rerun()
@@ -1365,16 +1360,12 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                 
                 # Lưu
                 save_data_func(st.session_state.data)
-                
                 st.success(f"🎯 Chính xác! Gây {dmg} sát thương!")
                 
-                # Kiểm tra thắng
+                # --- [FIX QUAN TRỌNG] GỌI TRỰC TIẾP HÀM XỬ LÝ THẮNG ---
                 if boss['hp_current'] <= 0:
-                    try:
-                        # Gọi hàm xử lý thắng (đảm bảo hàm này có trong user_module)
-                        xu_ly_boss_chet(user_id, all_data, save_data_func)
-                    except NameError:
-                        st.error("Lỗi: Hàm xử lý thắng chưa được import.")
+                    # Không dùng try-except nữa để đảm bảo code chạy thẳng vào hàm
+                    xu_ly_boss_chet(user_id, all_data, save_data_func)
                 else:
                     # Chuyển câu
                     del st.session_state.cau_hoi_active
@@ -1394,20 +1385,12 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                 save_data_func(st.session_state.data)
                 
                 if player['hp'] <= 0:
-                     # Gọi hàm thua
-                    try:
-                        xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data)
-                    except NameError:
-                        st.error("Bạn đã thua cuộc.")
-                        st.session_state.dang_danh_boss = False
-                        st.rerun()
+                    xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data)
                 else:
-                    # Chuyển câu
                     del st.session_state.cau_hoi_active
                     del st.session_state.thoi_gian_bat_dau
                     time.sleep(1.5)
-                    st.rerun()
-                    
+                    st.rerun()                    
 # --- HÀM PHỤ TRỢ (Để code gọn hơn) ---
 def xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data):
     # 1. Cập nhật thông tin trọng thương
