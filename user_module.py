@@ -3039,102 +3039,145 @@ def reset_dungeon_state():
 
 def get_dungeon_logs(land_id):
     """
-    Lọc dữ liệu vinh danh dựa trên cấu trúc data.json thực tế.
-    Đã bao gồm cơ chế chống lỗi AttributeError: 'list' object has no attribute 'get'
+    Lấy log thám hiểm (Đã tích hợp cơ chế 'Khiên bảo vệ' của bạn và xử lý đa định dạng dữ liệu)
     """
-    
-    # 1. KHIÊN BẢO VỆ CẤP 1: Kiểm tra data tổng
-    # Nếu chưa có data hoặc data bị lỗi thành List -> Trả về rỗng ngay
+    # 1. KHIÊN BẢO VỆ CẤP 1
     data = st.session_state.get('data', {})
     if not isinstance(data, dict):
         return []
 
     filtered_logs = []
-    
-    # Chuyển đổi land_id sang string để tìm kiếm chính xác trong JSON
     str_land_id = str(land_id)
 
     # 2. VÒNG LẶP AN TOÀN
     for u_id, u_info in data.items():
-        
-        # --- 🛡️ KHIÊN BẢO VỆ CẤP 2 (QUAN TRỌNG NHẤT) 🛡️ ---
-        # Lọc bỏ các key cấu hình (như 'rank_settings', 'shop_items') 
-        # và bỏ qua những user bị lỗi định dạng (đang là List)
-        if u_id in ['rank_settings', 'shop_items', 'events', 'admin']:
+        # 🛡️ KHIÊN BẢO VỆ CẤP 2: Lọc bỏ key hệ thống & lỗi format
+        if u_id in ['rank_settings', 'shop_items', 'events', 'admin', 'system_config']:
             continue
-            
         if not isinstance(u_info, dict):
             continue 
-        # ---------------------------------------------------
 
-        # 3. Lấy bảng tiến độ phó bản (An toàn tuyệt đối vì u_info chắc chắn là dict)
-        progress = u_info.get('dungeon_progress', {})
-        
-        # Nếu progress bị lỗi (là list) thì gán lại thành dict rỗng
-        if not isinstance(progress, dict):
-            progress = {}
-        
-        # 4. KIỂM TRA ĐIỀU KIỆN LỌC
-        # Kiểm tra xem user có chơi map này chưa (dùng str_land_id)
-        if str_land_id in progress:
-            phase_val = progress[str_land_id]
+        # 3. Lấy tiến độ (Xử lý linh hoạt int hoặc dict)
+        progress_data = u_info.get('dungeon_progress', {})
+        if not isinstance(progress_data, dict):
+            progress_data = {}
             
-            # Chỉ lấy nếu Phase > 1 (Đã vượt qua ít nhất 1 ải)
-            # Dùng ép kiểu int để tránh lỗi so sánh chuỗi
-            try:
-                if int(phase_val) > 1:
-                    
-                    # 5. XỬ LÝ INVENTORY (Lấy vật phẩm mới nhất)
-                    inventory = u_info.get('inventory', {})
-                    recent_item = "Huy hiệu Tập sự" # Mặc định
+        if str_land_id in progress_data:
+            entry = progress_data[str_land_id]
+            
+            # --- XỬ LÝ ĐA ĐỊNH DẠNG (Quan trọng) ---
+            # Dữ liệu có thể là số nguyên (Phase) hoặc Dict (Phase + Time)
+            if isinstance(entry, dict):
+                phase_val = entry.get('phase', 0)
+                last_time_str = entry.get('last_run', '') # Dùng để sort nếu cần
+                reward_info = entry.get('last_reward', 'Tài nguyên bí ẩn')
+                # Chuyển đổi time string sang timestamp để sort chính xác
+                try:
+                    import datetime
+                    sort_time = datetime.datetime.strptime(last_time_str, "%Y-%m-%d %H:%M:%S").timestamp()
+                except:
+                    sort_time = 0
+            else:
+                # Trường hợp cũ: chỉ lưu số phase (int hoặc str)
+                try:
+                    phase_val = int(entry)
+                except:
+                    phase_val = 0
+                sort_time = 0
+                reward_info = "Tài nguyên cơ bản"
 
-                    # Nếu inventory là Dict (chuẩn mới)
+            # 4. LỌC VÀ LẤY QUÀ TỪ INVENTORY
+            if phase_val > 0: # Chỉ lấy nếu đã chơi
+                # Nếu chưa có reward trong dungeon_progress, thử lấy từ inventory (logic của bạn)
+                if reward_info == "Tài nguyên cơ bản":
+                    inventory = u_info.get('inventory', {})
                     if isinstance(inventory, dict) and inventory:
                         try:
-                            # Lấy item cuối cùng trong danh sách value
-                            recent_item = list(inventory.values())[-1]
-                        except:
-                            pass
-                    # Nếu inventory là List (chuẩn cũ - phòng hờ)
+                            reward_info = list(inventory.values())[-1]
+                        except: pass
                     elif isinstance(inventory, list) and inventory:
-                        recent_item = inventory[-1]
+                        reward_info = inventory[-1]
 
-                    # 6. THÊM VÀO DANH SÁCH KẾT QUẢ
-                    filtered_logs.append({
-                        "name": u_info.get('name', 'Học sĩ ẩn danh'),
-                        "phase": phase_val,
-                        "time": u_info.get('best_time', {}).get(str_land_id, 999), # 999 là chưa có time
-                        "reward_recent": recent_item
-                    })
-            except ValueError:
-                continue # Nếu phase không phải số thì bỏ qua
+                filtered_logs.append({
+                    "name": u_info.get('name', 'Học sĩ ẩn danh'),
+                    "phase": phase_val,
+                    "time": sort_time, # Dùng để sắp xếp người mới nhất
+                    "reward_recent": reward_info
+                })
 
     return filtered_logs
-    
+
 def get_arena_logs():
-    """Lấy dữ liệu Tứ đại cao thủ và Lịch sử đấu trường"""
-    # Giả sử bạn lưu lịch sử đấu trường trong st.session_state.arena_history
-    history = st.session_state.get('arena_history', [])
-    all_users = st.session_state.data
-    
-    # 1. Tính toán Tứ đại cao thủ
+    """
+    Lấy dữ liệu Tứ đại cao thủ và Lịch sử đấu trường TỪ GOOGLE SHEETS (thông qua load_loi_dai)
+    """
+    try:
+        # [QUAN TRỌNG] Gọi hàm này để lấy dữ liệu thật từ Sheets (đã cache)
+        # Thay vì lấy st.session_state.arena_history rỗng tuếch
+        ld_data = load_loi_dai() 
+        matches = ld_data.get('matches', {})
+    except:
+        return [], []
+
     win_counts = {}
-    for match in history:
-        # match['winners'] là danh sách tên những người thắng trong trận đó
-        for winner in match.get('winners', []):
-            win_counts[winner] = win_counts.get(winner, 0) + 1
+    recent_matches = []
+    
+    # Sắp xếp trận đấu mới nhất lên đầu
+    sorted_matches = sorted(matches.items(), key=lambda x: x[1].get('created_at', ''), reverse=True)
+
+    for mid, m in sorted_matches:
+        if m.get('status') == 'finished':
+            # --- 1. TÍNH ĐIỂM CAO THỦ ---
+            winner = m.get('winner')
+            winners_list = []
             
-    # Sắp xếp lấy Top 4
-    top_4_raw = sorted(win_counts.items(), key=lambda x: x[1], reverse=True)[:4]
-    
-    # 2. Chuẩn bị dữ liệu hiển thị
+            # Xác định danh sách người thắng (Team hoặc Solo)
+            if winner == 'team1':
+                winners_list = m.get('challenger_team', [])
+                winner_text = "Đội Thách Đấu"
+            elif winner == 'team2':
+                winners_list = m.get('opponent_team', [])
+                winner_text = "Đội Nhận Kèo"
+            elif winner and winner != 'Hòa':
+                winners_list = [winner]
+                # Lấy tên hiển thị
+                w_name = st.session_state.data.get(winner, {}).get('name', 'Ẩn danh')
+                winner_text = w_name
+            else:
+                winner_text = "Hòa"
+
+            # Cộng điểm thắng
+            for uid in winners_list:
+                if uid: win_counts[uid] = win_counts.get(uid, 0) + 1
+
+            # --- 2. TẠO LOG NHẬT KÝ (Lấy 10 trận) ---
+            if len(recent_matches) < 10:
+                p1_id = m.get('challenger')
+                p1_name = st.session_state.data.get(p1_id, {}).get('name', 'Người bí ẩn')
+                
+                p2_id = m.get('opponent')
+                p2_name = st.session_state.data.get(p2_id, {}).get('name', 'Đối thủ')
+                
+                # Format tỷ số
+                score = f"{m.get('final_score_team1', 0)} - {m.get('final_score_team2', 0)}"
+                
+                recent_matches.append({
+                    "p1": p1_name,
+                    "p2": p2_name,
+                    "score": score,
+                    "bet": m.get('bet', 0),
+                    "winner_name": winner_text
+                })
+
+    # --- 3. XỬ LÝ TOP 4 ---
+    sorted_winners = sorted(win_counts.items(), key=lambda x: x[1], reverse=True)[:4]
     top_4_details = []
-    for name, wins in top_4_raw:
-        # Tìm thêm avatar hoặc role của người đó nếu cần
-        top_4_details.append({"name": name, "wins": wins})
-        
-    return top_4_details, history[-10:] # Trả về Top 4 và 10 trận gần nhất
     
+    for uid, wins in sorted_winners:
+        u_name = st.session_state.data.get(uid, {}).get('name', uid)
+        top_4_details.append({"name": u_name, "wins": wins})
+        
+    return top_4_details, recent_matches    
 
 from datetime import datetime
 

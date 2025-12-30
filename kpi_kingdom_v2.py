@@ -99,106 +99,131 @@ def emergency_fix_data_file():
 # 🔥 KÍCH HOẠT NGAY LẬP TỨC
 emergency_fix_data_file()
         
+# ==============================================================================
+# 🏟️ POPUP: SẢNH VINH QUANG ĐẤU TRƯỜNG (Kết nối Google Sheets)
+# ==============================================================================
 @st.dialog("🏟️ SẢNH VINH QUANG ĐẤU TRƯỜNG", width="large")
 def show_arena_info_popup():
     import user_module
+    
+    # Lấy dữ liệu thực tế từ hàm vừa viết
     top_4, recent_matches = user_module.get_arena_logs()
     
-    # --- PHẦN 1: TỨ ĐẠI CAO THỦ (Sử dụng Card bự, font chữ Bangers) ---
-    st.markdown("<h2 style='text-align: center; color: #ff4b4b; font-family: sans-serif;'>🏆 TỨ ĐẠI CAO THỦ 🏆</h2>", unsafe_allow_html=True)
+    # --- PHẦN 1: TỨ ĐẠI CAO THỦ ---
+    st.markdown("<h2 style='text-align: center; color: #ff4b4b; font-family: sans-serif; margin-bottom: 20px;'>🏆 TỨ ĐẠI CAO THỦ PVP 🏆</h2>", unsafe_allow_html=True)
     
     if not top_4:
-        st.info("Chưa có cao thủ nào lộ diện trên đấu trường!")
+        st.info("🌪️ Đấu trường chưa tìm ra nhà vô địch nào!")
     else:
-        cols = st.columns(4)
+        # Tự động chia cột dựa trên số lượng cao thủ (tối đa 4)
+        num_cols = len(top_4)
+        cols = st.columns(num_cols)
+        
         colors = ["#f1c40f", "#bdc3c7", "#e67e22", "#3498db"]
         icons = ["🥇", "🥈", "🥉", "🏅"]
         
         for i, fighter in enumerate(top_4):
             with cols[i]:
                 st.markdown(f"""
-                    <div style="text-align:center; border:3px solid {colors[i]}; border-radius:20px; padding:20px; background: #1e1e1e; color: white;">
-                        <p style="font-size:50px; margin:0;">{icons[i]}</p>
-                        <p style="font-size:24px; font-weight:bold; margin:5px 0;">{fighter['name'].upper()}</p>
-                        <p style="font-size:18px; color:{colors[i]};">🔥 {fighter['wins']} TRẬN THẮNG</p>
+                    <div style="text-align:center; border:3px solid {colors[i]}; border-radius:15px; padding:15px; background: #2c3e50; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+                        <div style="font-size:40px; margin-bottom:5px;">{icons[i]}</div>
+                        <div style="font-size:18px; font-weight:bold; color: #ecf0f1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{fighter['name']}</div>
+                        <div style="font-size:14px; color:{colors[i]}; margin-top:5px;">🔥 {fighter['wins']} TRẬN THẮNG</div>
                     </div>
                 """, unsafe_allow_html=True)
 
-    st.write("---")
+    st.divider()
     
-    # --- PHẦN 2: 10 TRẬN CHIẾN GẦN NHẤT (Bảng to, rõ ràng) ---
-    st.markdown("<h3 style='text-align: center; color: #3498db;'>⚔️ NHẬT KÝ CHIẾN TRƯỜNG ⚔️</h3>", unsafe_allow_html=True)
+    # --- PHẦN 2: NHẬT KÝ CHIẾN TRƯỜNG ---
+    st.markdown("<h3 style='text-align: center; color: #3498db;'>⚔️ NHẬT KÝ CHIẾN TRƯỜNG (10 TRẬN GẦN NHẤT) ⚔️</h3>", unsafe_allow_html=True)
     
     if not recent_matches:
-        st.write("<p style='text-align:center;'>Đấu trường đang yên bình...</p>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align:center; color:gray; padding:20px;'><i>Chưa có trận đấu nào được ghi nhận...</i></div>", unsafe_allow_html=True)
     else:
-        for match in reversed(recent_matches):
-            # Thiết kế mỗi dòng trận đấu như một thanh Banner bự
+        # Hiển thị danh sách (recent_matches đã được sort mới -> cũ)
+        for match in recent_matches:
             st.markdown(f"""
-                <div style="background: linear-gradient(90deg, #2c3e50, #000000); 
-                            border-radius: 15px; padding: 15px; margin-bottom: 10px; 
-                            border-left: 10px solid #ff4b4b; display: flex; 
-                            justify-content: space-between; align-items: center; color: white;">
-                    <div style="flex: 2; font-size: 20px;">
-                        <b>{match['p1']}</b> <span style="color:#ff4b4b;">VS</span> <b>{match['p2']}</b>
+                <div style="background: linear-gradient(90deg, #1a252f, #000000); 
+                            border-radius: 10px; padding: 12px 20px; margin-bottom: 12px; 
+                            border-left: 6px solid #e74c3c; display: flex; 
+                            justify-content: space-between; align-items: center; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    <div style="flex: 3;">
+                        <span style="font-size: 16px; color: #bdc3c7;">Trận đấu:</span><br>
+                        <b style="font-size: 18px; color: #ffffff;">{match['p1']}</b> 
+                        <span style="color:#e74c3c; font-weight:900; margin: 0 5px;">VS</span> 
+                        <b style="font-size: 18px; color: #ffffff;">{match['p2']}</b>
                     </div>
-                    <div style="flex: 1; text-align: center; font-size: 22px; color: #f1c40f; font-weight: bold;">
-                        {match['score']}
+                    
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 24px; color: #f1c40f; font-weight: 900; letter-spacing: 2px;">{match['score']}</div>
                     </div>
+                    
                     <div style="flex: 2; text-align: right;">
-                        <span style="font-size: 16px; color: #aaa;">Tiền cược:</span> 
-                        <b style="font-size: 20px; color: #2ecc71;">💰 {match['bet']}</b><br>
-                        <span style="font-size: 14px;">Người thắng: <b style="color:#f1c40f;">{match['winner_name']}</b></span>
+                        <div style="font-size: 14px; color: #2ecc71;">💰 Cược: <b>{match['bet']} KPI</b></div>
+                        <div style="font-size: 14px; color: #f39c12;">🏆 Thắng: <b>{match['winner_name']}</b></div>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
 
+
+# ==============================================================================
+# 📜 POPUP: THÔNG TIN THÁM HIỂM (Lấy dữ liệu từ Player Data)
+# ==============================================================================
 @st.dialog("📜 THÔNG TIN THÁM HIỂM")
 def show_land_info_popup(land_name, land_id):
-    import importlib
-    import user_module # Import để gọi hàm lấy log
+    import user_module
+    
+    # Lấy log từ dữ liệu người chơi hiện tại (đã sync từ Sheets)
     logs = user_module.get_dungeon_logs(land_id)
     
     if not logs:
-        st.info("🌀 Vùng đất này hiện chưa có dấu chân nhà thám hiểm nào.")
+        st.info(f"🌀 Vùng đất **{land_name}** còn rất hoang sơ, chưa ai đặt chân tới.")
         return
 
     # --- TOP 3 VINH DANH ---
     st.markdown(f"### 🏆 BẢNG VÀNG: {land_name.upper()}")
-    # Sắp xếp theo Phase cao nhất, sau đó đến thời gian thấp nhất
-    top_3 = sorted(logs, key=lambda x: (-x['phase'], x['time']))[:3]
     
-    cols = st.columns(3)
+    # Sắp xếp: Phase cao nhất -> Thời gian mới nhất (nếu có)
+    # Lưu ý: 'time' ở đây là timestamp, càng lớn là càng mới. Nhưng rank thì ai đạt trước thường xếp trên.
+    # Logic chuẩn: Phase cao nhất -> Ai đạt được trước (time nhỏ hơn) thì xếp trên (nếu lưu time đạt được).
+    # Tuy nhiên dữ liệu 'last_run' là lần chạy cuối, nên ta cứ sort theo Phase giảm dần.
+    top_3 = sorted(logs, key=lambda x: x['phase'], reverse=True)[:3]
+    
+    cols = st.columns(len(top_3))
     ranks = ["🥇 HẠNG 1", "🥈 HẠNG 2", "🥉 HẠNG 3"]
     colors = ["#f1c40f", "#bdc3c7", "#e67e22"]
-    icons = ["👑", "⚔️", "🛡️"]
     
     for i, player in enumerate(top_3):
         with cols[i]:
             st.markdown(f"""
-                <div style="text-align:center; border:2px solid {colors[i]}; border-radius:15px; padding:10px; background: #fffdf0;">
-                    <p style="font-size:30px; margin:0;">{icons[i]}</p>
-                    <b style="color:{colors[i]}">{ranks[i]}</b><br>
-                    <span style="font-weight:bold;">{player['name']}</span><br>
-                    <small>Đã đạt: Phase {player['phase']}</small>
+                <div style="text-align:center; border:2px solid {colors[i]}; border-radius:12px; padding:10px; background: #fffdf0; color: #333;">
+                    <div style="font-size:24px;">{['👑', '⚔️', '🛡️'][i]}</div>
+                    <b style="color:{colors[i]}; font-size: 14px;">{ranks[i]}</b><br>
+                    <span style="font-weight:bold; font-size: 16px;">{player['name']}</span><br>
+                    <span style="color: #555; font-size: 12px;">Đã đạt: Phase {player['phase']}</span>
                 </div>
             """, unsafe_allow_html=True)
 
-    st.write("---")
+    st.divider()
     
     # --- 10 HOẠT ĐỘNG GẦN ĐÂY ---
-    st.markdown("### 🕒 HOẠT ĐỘNG GẦN ĐÂY")
-    # Lấy 10 bản ghi mới nhất
-    recent_10 = logs[-10:] 
+    st.markdown("### 🕒 CÁC NHÀ THÁM HIỂM GẦN ĐÂY")
     
-    for entry in reversed(recent_10):
+    # Sắp xếp theo thời gian chạy gần nhất (nếu có dữ liệu time)
+    recent_logs = sorted(logs, key=lambda x: x['time'], reverse=True)[:10]
+    
+    for entry in recent_logs:
         st.markdown(f"""
-            <div style="background:#f8f9fa; border-radius:8px; padding:10px; margin-bottom:8px; border-left:4px solid #3498db; display: flex; justify-content: space-between;">
-                <span>✨ <b>{entry['name']}</b> vừa thám hiểm Phase {entry['phase']}</span>
-                <span style="color:#2ecc71;">🎁 {entry['reward_recent']}</span>
+            <div style="background:#f1f8ff; border-radius:8px; padding:8px 12px; margin-bottom:8px; border-left:4px solid #3498db; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 16px;">🏃 <b>{entry['name']}</b></span>
+                    <span style="font-size: 14px; color: #555; margin-left: 10px;">đang ở <b>Phase {entry['phase']}</b></span>
+                </div>
+                <div style="font-size: 14px; color:#27ae60; font-weight: bold;">
+                    🎁 {entry['reward_recent']}
+                </div>
             </div>
-        """, unsafe_allow_html=True)
- 
+        """, unsafe_allow_html=True) 
 def hien_thi_bang_vang_diem_so():
     """Hiển thị Top 10 học sinh (Phiên bản Emerald High Contrast)"""
     
