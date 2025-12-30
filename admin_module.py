@@ -1403,10 +1403,23 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     with col_l1:
                         reward_type = st.selectbox("Loại quà:", ["Item (Vật phẩm)", "Currency (Tiền tệ)"])
                     
+                    # --- [SỬA LỖI] Khởi tạo biến trước để tránh lỗi UnboundLocalError ---
+                    target_id = "-- Chọn --" 
+
                     with col_l2:
                         if reward_type == "Item (Vật phẩm)":
                             selected_display = st.selectbox("Chọn vật phẩm (Cả đồ ẩn):", item_options)
-                            target_id = item_id_map[selected_display]
+                            target_id = item_id_map.get(selected_display, "-- Chọn --")
+                        else:
+                            # Xử lý cho Currency
+                            currency_opts = {
+                                "KPI": "kpi", 
+                                "Tri Thức": "Tri_Thuc", 
+                                "Chiến Tích": "Chien_Tich", 
+                                "Vinh Dự": "Vinh_Du"
+                            }
+                            curr_display = st.selectbox("Chọn loại tiền:", list(currency_opts.keys()))
+                            target_id = currency_opts[curr_display]
 
                     with col_l3:
                         drop_rate = st.number_input("Tỷ lệ %:", min_value=0.1, max_value=100.0, value=10.0, step=0.1)
@@ -1416,7 +1429,8 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     add_btn = st.form_submit_button("➕ Thêm")
 
                     if add_btn:
-                        if target_id != "-- Chọn --":
+                        # Kiểm tra target_id hợp lệ (khác "-- Chọn --" và không rỗng)
+                        if target_id and target_id != "-- Chọn --":
                             st.session_state.temp_loot_table.append({
                                 "type": "item" if reward_type == "Item (Vật phẩm)" else "currency",
                                 "id": target_id,
@@ -1424,6 +1438,9 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                 "amount": drop_qty
                             })
                             st.success(f"Đã thêm {target_id} ({drop_rate}%)")
+                            # st.rerun() # Có thể rerun để cập nhật danh sách ngay lập tức nếu cần
+                        else:
+                            st.error("Vui lòng chọn vật phẩm hoặc loại tiền hợp lệ!")
 
                 if st.session_state.temp_loot_table:
                     st.markdown("##### 📋 Danh sách tỷ lệ rơi độc lập:")
