@@ -1415,46 +1415,79 @@ def xu_ly_boss_chet(user_id, all_data, save_data_func):
     st.rerun()
     
 def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
-    # --- 1. KHỞI TẠO TRẠNG THÁI BAN ĐẦU (Sửa lỗi AttributeError) ---
+    import os
+    import json
+    import time
+    
+    # --- 1. KHỞI TẠO TRẠNG THÁI ---
     if "match_id_active" not in st.session_state or st.session_state.get("last_match_id") != match_id:
         st.session_state.current_q = 0
         st.session_state.user_score = 0
-        st.session_state.start_time = time.time() # Khởi tạo mốc thời gian
+        st.session_state.start_time = time.time()
         st.session_state.last_match_id = match_id
         st.session_state.match_id_active = match_id
 
-    # Đảm bảo start_time luôn tồn tại trước khi chạy tiếp
     if "start_time" not in st.session_state:
         st.session_state.start_time = time.time()
 
-
-
-    # --- 3. TẢI ĐỀ THI ---
+    # --- 2. XỬ LÝ ĐƯỜNG DẪN FILE (FIX LỖI TẠI ĐÂY) ---
     grade = match_info.get('grade', 'grade_6')
-    subject = match_info.get('subject', 'toan')
-    path = f"quiz_data/{grade}/{subject}.json"
+    raw_subject = match_info.get('subject', 'toan') # Ví dụ: "Toán", "Văn"
     
+    # [QUAN TRỌNG] Bộ từ điển chuyển đổi tên hiển thị -> tên file
+    # Giúp hệ thống hiểu: "Toán" chính là file "toan.json"
+    file_map = {
+        "Toán": "toan", "toan": "toan",
+        "Lý": "ly",     "ly": "ly",
+        "Hóa": "hoa",   "hoa": "hoa",
+        "Văn": "van",   "van": "van",
+        "Anh": "anh",   "anh": "anh",
+        "Sinh": "sinh", "sinh": "sinh",
+        "Sử": "su",     "su": "su",
+        "Địa": "dia",   "dia": "dia"
+    }
+    
+    # Lấy tên file chuẩn (nếu không có trong map thì dùng lower() làm phao cứu sinh)
+    file_name = file_map.get(raw_subject, raw_subject.lower())
+    
+    # Tạo đường dẫn chuẩn
+    path = f"quiz_data/{grade}/{file_name}.json"
+    
+    # --- 3. ĐỌC FILE TRỰC TIẾP ---
     if not os.path.exists(path):
-        st.error(f"❌ Không tìm thấy file đề thi tại: {path}")
+        st.error(f"❌ **LỖI FILE:** Không tìm thấy file đề thi!")
+        st.code(f"Đường dẫn hệ thống đang tìm: {path}")
+        st.warning(f"👉 Môn thi là **{raw_subject}**, hệ thống đã chuyển thành tên file **{file_name}.json**")
+        st.info("Hãy kiểm tra lại xem bạn đã upload file vào đúng thư mục `quiz_data/grade_6/` chưa?")
+        return # Dừng chương trình để bạn sửa lỗi
+
+    try:
+        with open(path, "r", encoding='utf-8') as f:
+            all_questions = json.load(f)
+    except Exception as e:
+        st.error(f"❌ File `{file_name}.json` bị lỗi cú pháp JSON: {e}")
         return
 
-    with open(path, "r", encoding='utf-8') as f:
-        all_questions = json.load(f)
-    
+    # Lấy câu hỏi theo độ khó
     level = match_info.get('level', 'easy')
     questions = all_questions.get(level, [])[:5]
     
+    if not questions:
+        st.error(f"⚠️ File `{file_name}.json` không có câu hỏi nào thuộc mức độ `{level}`.")
+        return
+
     limit_map = {"easy": 15, "medium": 20, "hard": 25, "extreme": 30}
     time_limit = limit_map.get(level, 15)
 
-    # --- 4. GIAO DIỆN CÂU HỎI ---
+    # --- 4. GIAO DIỆN LÀM BÀI ---
     q_idx = st.session_state.current_q
     if q_idx < len(questions):
         q = questions[q_idx]
         st.subheader(f"⚔️ CÂU HỎI {q_idx + 1}/5")
+        
         st.info(q['question'])
         
-        # TÍNH THỜI GIAN (Sử dụng session_state an toàn)
+        # ĐỒNG HỒ ĐẾM NGƯỢC
         elapsed = time.time() - st.session_state.start_time
         remaining = max(0, time_limit - int(elapsed))
         
@@ -1462,58 +1495,59 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         st.markdown(f"<h2 style='text-align: center; color: {color};'>⏳ {remaining}s</h2>", unsafe_allow_html=True)
 
         with st.form(key=f"quiz_form_{q_idx}_{current_user_id}"):
-            ans = st.radio("Chọn đáp án đúng:", q['options'], index=None)
+            ans = st.radio("Chọn đáp án:", q['options'], index=None)
             submitted = st.form_submit_button("XÁC NHẬN")
 
+        # XỬ LÝ NỘP BÀI HOẶC HẾT GIỜ
         if submitted or remaining <= 0:
             if ans == q['answer']:
                 st.session_state.user_score += 1
+            
             st.session_state.current_q += 1
-            st.session_state.start_time = time.time() # Reset thời gian cho câu mới
+            st.session_state.start_time = time.time() # Reset giờ cho câu sau
             st.rerun()
         
-        # Tự động cập nhật đồng hồ mỗi giây
         time.sleep(1)
         st.rerun()
         
     else:
-        # 1. Hiển thị kết quả tạm thời
-        st.success(f"🎉 Bạn đã hoàn thành bài thi với {st.session_state.user_score}/5 điểm!")
+        # --- 5. KẾT THÚC BÀI THI ---
+        st.success(f"🎉 Hoàn thành! Điểm số: {st.session_state.user_score}/5")
         
-        # 2. Đọc lại dữ liệu lôi đài mới nhất để tránh ghi đè đè lên điểm của người kia
+        # Tải lại dữ liệu lôi đài mới nhất từ Cloud (để tránh ghi đè người khác)
         ld_data = load_loi_dai()
-        m = ld_data['matches'][match_id]
         
-        # Lưu điểm cá nhân (score_ID)
-        m[f"score_{current_user_id}"] = st.session_state.user_score
-                
-        # 3. Xác định danh sách tất cả người phải thi để kiểm tra xem đủ chưa
-        c_team = m.get('challenger_team', [])
-        if not c_team: c_team = [m.get('challenger')]
-        o_team = m.get('opponent_team', [])
-        if not o_team: o_team = [m.get('opponent')]
-        all_p = c_team + o_team
-        
-        # Đếm số người thực tế đã có key "score_ID" trong trận đấu
-        finished_p = [uid for uid in all_p if f"score_{uid}" in m]
-        
-        if len(finished_p) >= len(all_p):
-            # NẾU ĐÃ ĐỦ NGƯỜI: Gọi trọng tài ngay lập tức
-            # Lưu ý: Phải truyền ld_data vào để trọng tài xử lý trên dữ liệu vừa cập nhật
-            trong_tai_tong_ket(match_id, ld_data, save_data_func)
-            st.balloons()
-            st.info("🏁 Trận đấu đã kết thúc! Đang tính toán bảng điểm...")
+        # Kiểm tra xem trận đấu còn tồn tại không
+        if match_id in ld_data['matches']:
+            m = ld_data['matches'][match_id]
+            
+            # Lưu điểm cá nhân
+            m[f"score_{current_user_id}"] = st.session_state.user_score
+            
+            # Kiểm tra đủ người chưa
+            c_team = m.get('challenger_team', []) or [m.get('challenger')]
+            o_team = m.get('opponent_team', []) or [m.get('opponent')]
+            all_p = c_team + o_team
+            
+            finished_p = [uid for uid in all_p if f"score_{uid}" in m]
+            
+            if len(finished_p) >= len(all_p):
+                # ĐỦ NGƯỜI -> GỌI TRỌNG TÀI
+                trong_tai_tong_ket(match_id, ld_data, save_data_func)
+                st.balloons()
+                st.info("🏁 Đã có kết quả chung cuộc! Hãy xem bảng tổng sắp.")
+            else:
+                # CHƯA ĐỦ -> LƯU TẠM
+                save_loi_dai(ld_data)
+                st.warning(f"⏳ Đã lưu điểm của bạn. Đợi {len(all_p) - len(finished_p)} người nữa...")
         else:
-            # NẾU CHƯA ĐỦ: Chỉ lưu điểm của mình và chờ
-            save_loi_dai(ld_data)
-            st.warning(f"⏳ Đã lưu điểm. Cần thêm {len(all_p) - len(finished_p)} người hoàn thành để tổng kết.")
+            st.error("⚠️ Trận đấu này đã bị hủy hoặc không còn tồn tại.")
 
-        # Nút thoát để xóa các biến tạm trong session
-        if st.button("XÁC NHẬN & QUAY LẠI", type="primary"):
+        # Nút thoát
+        if st.button("QUAY LẠI SẢNH", type="primary"):
             for k in ["current_q", "user_score", "start_time", "match_id_active", "last_match_id"]:
                 if k in st.session_state: del st.session_state[k]
             st.rerun()
-
 
 def load_loi_dai():
     """
