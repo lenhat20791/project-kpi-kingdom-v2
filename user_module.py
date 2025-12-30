@@ -893,8 +893,8 @@ def load_data(file_path=DATA_FILE_PATH):
 
 def tinh_va_tra_thuong_global(killer_id, all_data):
     """
-    Tính thưởng Boss và xử lý rơi đồ.
-    [FIX] Chuyển đổi Inventory sang dạng List để nhận Rương thành công.
+    Tính thưởng Boss.
+    [FIX FINAL] Bỏ Top 5 + Fix lỗi Inventory (Dict -> List).
     """
     import random
     
@@ -905,27 +905,40 @@ def tinh_va_tra_thuong_global(killer_id, all_data):
     contributions = boss.get("contributions", {})
     if not contributions: return [], 0
 
-    # 2. Duyệt qua từng người
+    # Tìm MVP (Người gây sát thương cao nhất)
+    mvp_id = max(contributions, key=contributions.get) 
+
+    killer_rewards_display = [] 
+    killer_total_dmg = 0
+
+    # Duyệt qua từng người tham gia
     for uid, damage in contributions.items():
         if uid not in all_data: continue
         player = all_data[uid]
         player_rewards = [] 
 
-        # --- A. CHUẨN HÓA TÚI ĐỒ (Quan trọng để nhận Rương) ---
-        # Nếu chưa có túi -> Tạo list rỗng
-        if 'inventory' not in player: 
+        # =========================================================
+        # 🔥 1. CHUẨN HÓA TÚI ĐỒ (FIX LỖI APPEND)
+        # =========================================================
+        if 'inventory' not in player or player['inventory'] is None:
             player['inventory'] = []
-        
-        # Nếu túi đang là Dict (kiểu cũ) -> Chuyển sang List (kiểu mới)
-        # Ví dụ: {'Tao': 2} -> ['Tao', 'Tao']
+            
+        # Nếu đang là Dict (kiểu cũ) -> Ép sang List (kiểu mới)
         if isinstance(player['inventory'], dict):
             flat_list = []
             for item_name, count in player['inventory'].items():
-                flat_list.extend([item_name] * int(count))
+                try:
+                    # Nhân bản item theo số lượng (VD: {'Tao': 2} -> ['Tao', 'Tao'])
+                    flat_list.extend([item_name] * int(count))
+                except: pass
             player['inventory'] = flat_list
-        # -----------------------------------------------------
+            
+        # Đảm bảo chắc chắn là List
+        if not isinstance(player['inventory'], list):
+            player['inventory'] = []
+        # =========================================================
 
-        # --- B. THƯỞNG KPI/EXP ---
+        # --- 2. TÍNH KPI/EXP CƠ BẢN ---
         k_rate = boss.get('kpi_rate', 1.0)
         e_rate = boss.get('exp_rate', 5.0)
         
@@ -941,54 +954,54 @@ def tinh_va_tra_thuong_global(killer_id, all_data):
         player_rewards.append(f"💰 +{kpi_bonus} KPI")
         player_rewards.append(f"✨ +{exp_bonus} EXP")
 
-        # --- C. THƯỞNG RƯƠNG BÁU (TOP 5) ---
-        if uid in top_5_ids:
-            rank = top_5_ids.index(uid) + 1
-            # Bây giờ inventory chắc chắn là List, append thoải mái
+        # --- 3. QUÀ KẾT LIỄU (LAST HIT) ---
+        # Chỉ người kết liễu mới nhận được Rương Báu
+        if str(uid) == str(killer_id):
             player['inventory'].append("Rương Báu")
-            
-            if rank == 1:
-                player_rewards.append("🎁 Rương Báu (Thưởng TOP 1 Damage)")
-            else:
-                player_rewards.append(f"🎁 Rương Báu (Thưởng Top {rank} Damage)")
+            player_rewards.append("🎁 Rương Báu (Thưởng Kết Liễu)")
 
-        # --- D. DROP NGẪU NHIÊN ---
+        # --- 4. DROP NGẪU NHIÊN (Cho tất cả) ---
         drop_table = boss.get('drop_table', [])
         if drop_table:
             weights = [item.get('rate', 0) for item in drop_table]
             if weights and sum(weights) > 0:
                 chosen = random.choices(drop_table, weights=weights, k=1)[0]
+                
                 if chosen.get('type') == 'item':
                     amt = chosen.get('amount', 1)
                     iname = chosen.get('id', 'Vật phẩm')
                     for _ in range(amt):
                         player['inventory'].append(iname)
                     player_rewards.append(f"📦 {iname} (x{amt})")
+                    
                 elif chosen.get('type') == 'currency':
                      target = chosen.get('id', 'Tri_Thuc')
                      player[target] = player.get(target, 0) + chosen.get('amount', 1)
+                     player_rewards.append(f"📘 +{chosen['amount']} {target}")
 
-        # --- E. THƯỞNG DANH HIỆU ---
-        if uid == mvp_id:
+        # --- 5. THƯỞNG DANH HIỆU MVP ---
+        if str(uid) == str(mvp_id):
             player['kpi'] += 50
             player['exp'] += 100
             player_rewards.append(f"👑 MVP: +50 KPI & +100 EXP")
 
-        if uid == killer_id:
+        # Bonus KPI thêm cho Last Hit
+        if str(uid) == str(killer_id):
             bonus_kill_kpi = 20.0
             player['kpi'] += bonus_kill_kpi
-            player_rewards.append(f"🗡️ Kết liễu: +{bonus_kill_kpi} KPI")
+            player_rewards.append(f"🗡️ Bonus Last Hit: +{bonus_kill_kpi} KPI")
 
         # Check level
         try: check_up_level(player) 
         except: pass
 
-        if uid == killer_id:
+        # Lưu log hiển thị Popup
+        if str(uid) == str(killer_id):
             killer_rewards_display = player_rewards
             killer_total_dmg = damage
 
     sys_conf['active_boss'] = None 
-    return killer_rewards_display, killer_total_dmg      
+    return killer_rewards_display, killer_total_dmg
 @st.dialog("🎁 KHO BÁU CHIẾN THẮNG")
 def hien_thi_ruong_bau(user_id, total_dmg, rewards_from_boss):
     # --- GIAO DIỆN CHÚC MỪNG ---
