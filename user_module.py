@@ -1310,7 +1310,7 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                 if player['hp'] <= 0:
                      # Gọi hàm thua
                     try:
-                        xu_ly_thua_cuoc(player, boss, save_data_func)
+                        xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data)
                     except NameError:
                         st.error("Bạn đã thua cuộc.")
                         st.session_state.dang_danh_boss = False
@@ -1323,21 +1323,39 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                     st.rerun()
                     
 # --- HÀM PHỤ TRỢ (Để code gọn hơn) ---
-def xu_ly_thua_cuoc(player, boss, save_data_func):
+def xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data):
+    # 1. Cập nhật thông tin trọng thương
     player['hp'] = 0
-    # Chết trong 30 phút
+    # Thời gian hồi sinh: Hiện tại + 30 phút
     player['reborn_at'] = (datetime.now() + timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
-    player['last_defeat'] = {"boss_name": boss['ten'], "damage_taken": boss.get('damage', 10)}
-    st.session_state.dang_danh_boss = False
     
+    # Ghi lại lịch sử ai đánh bại
+    player['last_defeat'] = {
+        "boss_name": boss.get('ten', 'Boss'),
+        "damage_taken": boss.get('damage', 10),
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    
+    # 2. Reset trạng thái chiến đấu cục bộ
+    st.session_state.dang_danh_boss = False
     if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
     
-    # [FIX] Gọi lưu dữ liệu đầy đủ
-    save_data_func(st.session_state.data)
-    st.error("💀 BẠN ĐÃ BỊ HẠ GỤC!")
-    time.sleep(2)
-    st.rerun()
+    # --- [FIX QUAN TRỌNG] ĐỒNG BỘ DỮ LIỆU ---
+    # Đảm bảo thông tin player mới nhất được gán vào biến tổng all_data
+    all_data[user_id] = player
+    
+    # Cập nhật ngược lại vào session state để chắc chắn UI hiển thị đúng
+    st.session_state.data = all_data
+    
+    # Gọi hàm lưu ngay lập tức lên Google Sheets
+    save_data_func(all_data) 
 
+    # 3. Hiển thị thông báo
+    st.error(f"💀 BẠN ĐÃ BỊ {boss.get('ten', 'Boss')} HẠ GỤC!")
+    st.warning(f"⏳ Bạn cần nghỉ ngơi hồi sức đến: {player['reborn_at']}")
+    
+    time.sleep(3) 
+    st.rerun()
 def xu_ly_boss_chet(user_id, all_data, save_data_func):
     system_config = all_data.get('system_config', {})
     boss = system_config.get('active_boss')
