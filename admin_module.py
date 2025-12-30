@@ -1450,7 +1450,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
             if st.button("🎁 ĐÓNG GÓI RƯƠNG NGAY", type="primary", use_container_width=True):
                 # [FIX LỖI] Import thư viện datetime với tên riêng để không bị trùng biến 'datetime' ở nơi khác
                 import datetime as dt_lib 
-                
+                import time
                 if box_name and st.session_state.temp_loot_table:
                     # Tạo cấu trúc dữ liệu rương mới
                     new_chest_data = {
@@ -1480,7 +1480,6 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     st.session_state.data['shop_items'][box_name] = new_chest_data
                     
                     # Gọi hàm lưu an toàn lên Google Sheets
-                    import user_module
                     if user_module.save_all_to_sheets(st.session_state.data):
                         st.session_state.temp_loot_table = [] 
                         st.balloons()
