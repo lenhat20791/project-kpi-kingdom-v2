@@ -3033,7 +3033,7 @@ def get_arena_logs():
 from datetime import datetime
 
 def save_all_to_sheets(all_data):
-    # Import đầy đủ các thư viện cần thiết ngay trong hàm để tránh lỗi thiếu
+    # Import đầy đủ thư viện
     import time
     import math
     import json
@@ -3075,16 +3075,30 @@ def save_all_to_sheets(all_data):
                     if info.get('role') != 'admin':
                         count_student += 1
                     
-                    # Xử lý chỉ số game
-                    stats_keys = ["Vi_Pham", "Bonus", "KTTX", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", "Tri_Thuc", "Chien_Tich", "Vinh_Du", "Vinh_Quang", "total_score", "titles", "best_time"]
-                    stats_data = {k: info.get(k, 0) for k in stats_keys}
+                    # --- [QUAN TRỌNG] DANH SÁCH CÁC CHỈ SỐ LƯU VÀO JSON ---
+                    # Ta thêm "reborn_at" và "last_defeat" vào đây.
+                    # Nó sẽ được gói gọn vào cột stats_json, không cần tạo cột riêng.
+                    stats_keys = [
+                        "Vi_Pham", "Bonus", "KTTX", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", 
+                        "Tri_Thuc", "Chien_Tich", "Vinh_Du", "Vinh_Quang", 
+                        "total_score", "titles", "best_time",
+                        "reborn_at", "last_defeat" # <--- TỰ ĐỘNG LƯU VÀO ĐÂY
+                    ]
+                    
+                    stats_data = {}
+                    for k in stats_keys:
+                        if k in info:
+                            stats_data[k] = info[k]
+                            
                     special_perms = info.get('special_permissions', {}) if isinstance(info.get('special_permissions'), dict) else {}
                     
                     row = [
                         str(uid), info.get('name', ''), info.get('team', 'Chưa phân tổ'), info.get('role', 'u3'),
                         str(info.get('password', '123456')), info.get('kpi', 0), info.get('exp', 0), info.get('level', 1),
                         info.get('hp', 100), info.get('hp_max', 100), special_perms.get('world_chat_count', 0),
-                        json.dumps(stats_data, ensure_ascii=False),
+                        
+                        json.dumps(stats_data, ensure_ascii=False), # Chứa reborn_at trong này
+                        
                         json.dumps(info.get('inventory', {}), ensure_ascii=False),
                         json.dumps(info.get('dungeon_progress', {}), ensure_ascii=False)
                     ]
@@ -3131,30 +3145,26 @@ def save_all_to_sheets(all_data):
                 sys_conf = all_data.get('system_config', {})
                 boss_data = sys_conf.get('active_boss')
                 
-                if boss_data: # Chỉ thêm nếu boss tồn tại (không phải None/Empty)
+                if boss_data:
                     final_boss_json = {"active_boss": boss_data}
                     settings_rows.append(["active_boss", json.dumps(final_boss_json, ensure_ascii=False)])
                 
-                # C. Xóa cũ & Ghi mới (Kể cả khi chỉ còn Header - tức là đã xóa hết Boss)
+                # C. Xóa cũ & Ghi mới
                 if len(settings_rows) >= 1: 
                     sh_settings.clear()
                     sh_settings.update('A1', settings_rows)
-                    # st.info("✅ Settings: Đã đồng bộ.")
                     
             except Exception as e:
                 st.warning(f"⚠️ Lỗi tab Settings: {e}")
 
             # =========================================================
-            # --- 3. ĐỒNG BỘ SHOP (ĐÃ SỬA LỖI XÓA SẠCH) ---
+            # --- 3. ĐỒNG BỘ SHOP ---
             # =========================================================
             try:
                 sh_shop = spreadsheet.worksheet("Shop")
                 shop_items = all_data.get('shop_items', {})
-                
-                # Luôn chuẩn bị Header
                 shop_rows = [["ID", "Name", "Type", "Price", "Currency", "Full_Data_JSON"]]
                 
-                # Nếu có vật phẩm thì thêm vào danh sách
                 if shop_items:
                     for item_id, info in shop_items.items():
                         if isinstance(info, dict):
@@ -3168,14 +3178,10 @@ def save_all_to_sheets(all_data):
                                 full_json_str 
                             ])
                 
-                # [QUAN TRỌNG] Luôn thực hiện clear và update
-                # Ngay cả khi shop_items rỗng (shop_rows chỉ có header) -> Sheet sẽ được xóa sạch
                 sh_shop.clear()
                 sh_shop.update('A1', shop_rows)
                 
-                if not shop_items:
-                    st.info("🗑️ Shop: Kho hàng đã được dọn sạch trên Sheets.")
-                else:
+                if shop_items:
                     st.info(f"✅ Shop: Đã lưu {len(shop_items)} vật phẩm.")
                     
             except Exception as e:
@@ -3191,7 +3197,8 @@ def save_all_to_sheets(all_data):
             
         except Exception as e:
             st.error(f"❌ LỖI KẾT NỐI: {e}")
-            return False            
+            return False
+            
 def load_data_from_sheets():
     """
     Truy xuất toàn bộ dữ liệu vương quốc từ Cloud:
