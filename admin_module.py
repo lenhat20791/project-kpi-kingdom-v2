@@ -643,7 +643,7 @@ def admin_quan_ly_boss():
             st.session_state.data['system_config']['active_boss'] = None
             
             # 2. LƯU LẠI ĐỂ ĐỒNG BỘ VIỆC XÓA
-            import user_module
+
             if user_module.save_all_to_sheets(st.session_state.data):
                 st.success("💥 Đã xóa Boss khỏi hệ thống!")
                 time.sleep(1)
