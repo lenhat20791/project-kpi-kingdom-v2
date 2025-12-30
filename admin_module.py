@@ -1528,7 +1528,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                 if st.button("🔓 Hiện", key=f"unhide_list_{tid}", help="Đưa vật phẩm này quay lại Shop", use_container_width=True):
                                     st.session_state.data['shop_items'][tid]['is_listed'] = True
                                     
-                                    import user_module
+
                                     user_module.save_all_to_sheets(st.session_state.data)
                                     st.success(f"Đã niêm yết '{tinfo.get('name')}'!")
                                     st.rerun()
@@ -1537,7 +1537,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                 if st.button("🗑️ Xóa", key=f"del_hidden_{tid}", help="Xóa vĩnh viễn", type="primary", use_container_width=True):
                                     del st.session_state.data['shop_items'][tid]
                                     
-                                    import user_module
+
                                     user_module.save_all_to_sheets(st.session_state.data)
                                     st.success(f"Đã xóa vĩnh viễn '{tid}'!")
                                     st.rerun()
