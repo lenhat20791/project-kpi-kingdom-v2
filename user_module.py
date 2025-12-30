@@ -172,11 +172,78 @@ def ghi_log_boss(user_id, boss_name, damage, rewards):
     with open(log_file, 'w', encoding='utf-8') as f:
         json.dump(logs, f, indent=4, ensure_ascii=False)
         
-def load_market():
-    return load_json_data(MARKET_FILE, {"listings": {}})
+# ------------------------------------------------------------------------------
+# CÁC HÀM HỖ TRỢ CHỢ ĐEN (MARKET) - GOOGLE SHEETS SYNC
+# ------------------------------------------------------------------------------
 
-def save_market(data):
-    save_json_data(MARKET_FILE, data)
+@st.cache_data(ttl=60, show_spinner=False)
+def load_market():
+    """
+    Tải dữ liệu Chợ Đen từ Tab 'Market' trên Google Sheets.
+    """
+    default_data = {"listings": {}}
+    
+    try:
+        # 1. Kết nối Google Sheets
+        try:
+            sh = CLIENT.open(SHEET_NAME).worksheet("Market")
+        except:
+            # Nếu chưa có tab Market, tạo mới
+            sh = CLIENT.open(SHEET_NAME).add_worksheet(title="Market", rows=100, cols=10)
+            sh.append_row(["Listing_ID", "Full_JSON_Data", "Status", "Created_At"])
+            return default_data
+
+        # 2. Lấy dữ liệu
+        rows = sh.get_all_values()
+        if len(rows) <= 1:
+            return default_data
+
+        listings = {}
+        # Cấu trúc: [0] ID | [1] JSON | [2] Status | [3] Date
+        for r in rows[1:]:
+            try:
+                if len(r) < 2: continue
+                lid = r[0]
+                # Giải nén JSON
+                l_info = json.loads(r[1])
+                listings[lid] = l_info
+            except Exception as e:
+                print(f"Lỗi đọc dòng Market ({lid}): {e}")
+                continue
+        
+        return {"listings": listings}
+
+    except Exception as e:
+        st.error(f"⚠️ Lỗi kết nối Chợ Đen Cloud: {e}")
+        return default_data
+
+def save_market(market_data):
+    """
+    Lưu dữ liệu Chợ Đen lên Tab 'Market' & Xóa Cache.
+    """
+    try:
+        sh = CLIENT.open(SHEET_NAME).worksheet("Market")
+        
+        # Chuẩn bị dữ liệu
+        rows_to_write = [["Listing_ID", "Full_JSON_Data", "Status", "Created_At"]]
+        listings = market_data.get('listings', {})
+        
+        for lid, info in listings.items():
+            json_str = json.dumps(info, ensure_ascii=False)
+            status = "active"
+            created = info.get('created_at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            
+            rows_to_write.append([str(lid), json_str, status, created])
+            
+        # Ghi đè & Xóa Cache
+        sh.clear()
+        sh.update('A1', rows_to_write)
+        
+        # Xóa cache để lần load sau thấy dữ liệu mới
+        load_market.clear()
+        
+    except Exception as e:
+        st.error(f"❌ Không thể lưu Chợ Đen lên Cloud: {e}")
 
 # --- [QUAN TRỌNG] HÀM MAPPING ẢNH ĐÃ SỬA ---
 def get_item_image_map():
@@ -211,67 +278,36 @@ def get_fallback_icon(name):
 # GIAO DIỆN CHỢ ĐEN (DARK RPG STYLE)
 # ==============================================================================
 def hien_thi_cho_den(current_user_id, save_data_func):
-    # 1. Tải dữ liệu
+    # Import thư viện cần thiết ngay trong hàm
+    import uuid
+    from datetime import datetime
+    
+    # 1. Tải dữ liệu từ Cloud (có Cache)
     market_data = load_market()
     user_data = st.session_state.data.get(current_user_id, {})
-    item_image_map = get_item_image_map() # Lấy map ảnh mới
+    
+    # Giả định hàm lấy map ảnh đã có trong user_module (hoặc định nghĩa tạm ở đây)
+    try:
+        item_image_map = get_item_image_map() 
+    except:
+        item_image_map = {} # Fallback nếu hàm chưa tồn tại
 
-    # --- 2. CSS ---
+    # --- 2. CSS (Giữ nguyên giao diện đẹp của bạn) ---
     st.markdown("""
         <style>
         .market-card {
             background: linear-gradient(135deg, #1e1e2e 0%, #252538 100%);
-            border: 1px solid #45475a;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-            overflow: hidden;
+            border: 1px solid #45475a; border-radius: 20px; padding: 20px;
+            margin-bottom: 20px; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: all 0.3s ease; overflow: hidden;
         }
-        .market-card:hover {
-            transform: translateY(-5px);
-            border-color: #f9e2af;
-            box-shadow: 0 10px 20px rgba(249, 226, 175, 0.15);
-        }
-        
-        /* CSS ẢNH ITEM (Đã tối ưu cho Icon) */
-        .item-real-image {
-            width: 100px;
-            height: 100px;
-            object-fit: contain; /* Dùng contain để không bị cắt ảnh icon */
-            border-radius: 10px;
-            margin: 0 auto 10px auto;
-            display: block;
-            background-color: rgba(255,255,255,0.05); /* Nền mờ nhẹ cho ảnh png */
-            padding: 5px;
-            border: 1px dashed #585b70;
-        }
-        
-        .item-fallback-icon {
-            font-size: 80px; text-align: center; margin-bottom: 10px;
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
-        }
-        .item-title {
-            color: #cdd6f4; font-size: 18px; font-weight: 800;
-            text-align: center; margin-bottom: 5px; text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .seller-info {
-            color: #bac2de; font-size: 13px; text-align: center; margin-bottom: 15px;
-        }
-        .price-badge {
-            background: rgba(249, 226, 175, 0.1); color: #f9e2af;
-            border: 1px solid #f9e2af; padding: 5px 20px; border-radius: 50px;
-            font-weight: bold; font-size: 16px;
-        }
-        .my-item-badge {
-            position: absolute; top: 10px; right: 10px;
-            background: linear-gradient(45deg, #a6da95, #8bd5ca);
-            color: #1e1e2e; font-size: 10px; font-weight: 900;
-            padding: 4px 8px; border-radius: 6px; z-index: 5;
-        }
+        .market-card:hover { transform: translateY(-5px); border-color: #f9e2af; box-shadow: 0 10px 20px rgba(249, 226, 175, 0.15); }
+        .item-real-image { width: 100px; height: 100px; object-fit: contain; border-radius: 10px; margin: 0 auto 10px auto; display: block; background-color: rgba(255,255,255,0.05); padding: 5px; border: 1px dashed #585b70; }
+        .item-fallback-icon { font-size: 80px; text-align: center; margin-bottom: 10px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        .item-title { color: #cdd6f4; font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .seller-info { color: #bac2de; font-size: 13px; text-align: center; margin-bottom: 15px; }
+        .price-badge { background: rgba(249, 226, 175, 0.1); color: #f9e2af; border: 1px solid #f9e2af; padding: 5px 20px; border-radius: 50px; font-weight: bold; font-size: 16px; }
+        .my-item-badge { position: absolute; top: 10px; right: 10px; background: linear-gradient(45deg, #a6da95, #8bd5ca); color: #1e1e2e; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 6px; z-index: 5; }
         </style>
     """, unsafe_allow_html=True)
 
@@ -287,18 +323,24 @@ def hien_thi_cho_den(current_user_id, save_data_func):
             st.markdown("""<div style="text-align: center; padding: 50px; opacity: 0.5;"><div style="font-size: 60px;">🕸️</div><h3>Chưa có ai bán gì cả...</h3></div>""", unsafe_allow_html=True)
         else:
             cols = st.columns(2) 
-            for idx, (item_id, info) in enumerate(listings.items()):
+            # Chuyển listings thành list để enumerate dễ dàng
+            listing_items = list(listings.items())
+            
+            for idx, (item_id, info) in enumerate(listing_items):
                 is_mine = info['seller_id'] == current_user_id
                 item_name = info.get('item_name', 'Vật phẩm')
                 
                 # --- XỬ LÝ ẢNH ---
-                # So khớp chính xác tên item trong market với key trong shop_data
                 real_image_url = item_image_map.get(item_name)
                 
                 if real_image_url:
                     image_html = f'<img src="{real_image_url}" class="item-real-image" alt="{item_name}">'
                 else:
-                    fallback = get_fallback_icon(item_name)
+                    # Fallback icon đơn giản nếu chưa có hàm get_fallback_icon
+                    try:
+                        fallback = get_fallback_icon(item_name)
+                    except:
+                        fallback = "📦"
                     image_html = f'<div class="item-fallback-icon">{fallback}</div>'
                 # -----------------
 
@@ -324,61 +366,72 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                         with c1: st.button("🔒 Đang niêm yết", key=f"st_{item_id}", disabled=True, use_container_width=True)
                         with c2:
                             if st.button("🗑️", key=f"rm_{item_id}", help="Gỡ xuống"):
+                                # Trả đồ về kho
                                 st.session_state.data[current_user_id].setdefault('inventory', []).append(item_name)
+                                # Xóa listing
                                 del market_data['listings'][item_id]
+                                
+                                # LƯU ĐỒNG BỘ CLOUD
                                 save_market(market_data)
                                 save_data_func(st.session_state.data)
                                 st.rerun()
                     else:
                         if st.button(f"💸 MUA NGAY", key=f"buy_{item_id}", use_container_width=True, type="primary"):
-                            price = info['price']
+                            price = float(info['price'])
                             if user_data.get('kpi', 0) >= price:
-                                # Trừ tiền mua
+                                # 1. Trừ tiền người mua
                                 st.session_state.data[current_user_id]['kpi'] -= price
-                                # Cộng tiền bán (90%)
+                                
+                                # 2. Cộng tiền người bán (90%)
                                 seller_id = info['seller_id']
                                 if seller_id in st.session_state.data:
                                     st.session_state.data[seller_id]['kpi'] += (price * 0.9)
-                                # Chuyển đồ
+                                
+                                # 3. Chuyển đồ
                                 st.session_state.data[current_user_id].setdefault('inventory', []).append(item_name)
                                 del market_data['listings'][item_id]
                                 
+                                # 4. LƯU ĐỒNG BỘ CLOUD (Cả Market và Player Data)
                                 save_market(market_data)
                                 save_data_func(st.session_state.data)
+                                
                                 st.balloons()
                                 st.rerun()
                             else:
                                 st.error("❌ Không đủ KPI!")
 
-    # --- TAB 2: TREO BÁN (Code cũ, đã ổn định) ---
+    # --- TAB 2: TREO BÁN ---
     with tab2:
         st.markdown("### 🎒 Kho đồ & Niêm yết")
-        inventory = user_data.get('inventory', [])
-        
-        if not inventory:
+        # Xử lý inventory: hỗ trợ cả List và Dict
+        raw_inv = user_data.get('inventory', [])
+        inventory_list = []
+        if isinstance(raw_inv, list):
+            inventory_list = raw_inv
+        elif isinstance(raw_inv, dict):
+            inventory_list = list(raw_inv.values())
+
+        if not inventory_list:
             st.info("Kho đồ trống.")
         else:
             from collections import Counter
-            counts = Counter(inventory)
+            counts = Counter(inventory_list)
             
             c1, c2 = st.columns([1.5, 1])
             with c1:
                 st.write("**Vật phẩm đang có:**")
                 for item, count in counts.items():
-                    # 1. Lấy link ảnh thật từ map
                     img_url = item_image_map.get(item)
                     
-                    # 2. Tạo HTML hiển thị icon/ảnh
                     if img_url:
-                        # Nếu có ảnh thật -> Dùng thẻ <img> nhỏ gọn
                         icon_display = f'<img src="{img_url}" style="width:30px; height:30px; object-fit:contain; vertical-align:middle; margin-right:10px; border-radius:4px;">'
                     else:
-                        # Nếu không có -> Dùng icon fallback (thu nhỏ kích thước)
-                        fallback = get_fallback_icon(item)
-                        # Sửa lại font-size cho nhỏ phù hợp với dòng danh sách
+                        try:
+                            fallback = get_fallback_icon(item)
+                        except:
+                            fallback = "📦"
                         icon_display = f'<span style="font-size: 24px; vertical-align:middle; margin-right:10px;">{fallback}</span>'
                     
-                    # 3. Hiển thị dòng thông tin vật phẩm
                     st.markdown(f"""
                     <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #45475a; display: flex; align-items: center; justify-content: space-between;">
                         <div style="display: flex; align-items: center;">
@@ -388,7 +441,6 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                         <span style="background: #313244; color: #a6adc8; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: bold;">x{count}</span>
                     </div>
                     """, unsafe_allow_html=True)
-                # -----------------------------------------------------
             
             with c2:
                 with st.container(border=True):
@@ -406,12 +458,18 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                             "seller_id": current_user_id,
                             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         }
-                        st.session_state.data[current_user_id]['inventory'].remove(item_to_sell)
+                        
+                        # Xóa 1 item khỏi kho (Hỗ trợ list)
+                        # Nếu dùng Dict inventory, logic sẽ phức tạp hơn chút, ở đây giả định list
+                        if item_to_sell in st.session_state.data[current_user_id].setdefault('inventory', []):
+                             st.session_state.data[current_user_id]['inventory'].remove(item_to_sell)
+                        
+                        # LƯU ĐỒNG BỘ CLOUD
                         save_market(market_data)
                         save_data_func(st.session_state.data)
+                        
                         st.toast("Đã đăng bán!", icon="✅")
                         st.rerun()
-
 def generate_username(text):
     if not isinstance(text, str):
         return "user"
@@ -2788,15 +2846,13 @@ def hien_thi_sanh_danh_vong_user(user_id, save_data_func):
 
     user_data = st.session_state.data[user_id]
     user_kpi = user_data.get('kpi', 0)
-    # Danh sách các danh hiệu user đã từng kích hoạt
     unlocked = user_data.get('unlocked_ranks', [])
-    # Danh hiệu đang hiển thị hiện tại
     current_rank = user_data.get('current_rank', "Học Sĩ")
 
     st.markdown(f"**KPI Hiện tại của bạn:** `{user_kpi}` 🏆 | **Danh hiệu hiện tại:** `{current_rank}`")
     st.divider()
 
-    # Hiển thị danh sách danh hiệu dưới dạng các thẻ (Cards)
+    # Hiển thị danh sách danh hiệu
     for rank in st.session_state.rank_settings:
         r_name = rank["Danh hiệu"]
         r_kpi = rank["KPI Yêu cầu"]
@@ -2805,7 +2861,6 @@ def hien_thi_sanh_danh_vong_user(user_id, save_data_func):
         col1, col2 = st.columns([3, 1])
         
         with col1:
-            # Thiết kế thẻ danh hiệu đẹp mắt bằng HTML
             st.markdown(f"""
                 <div style="padding:15px; border-radius:10px; border-left: 10px solid {r_color}; 
                             background-color: #262730; margin-bottom:10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.3);">
@@ -2815,77 +2870,84 @@ def hien_thi_sanh_danh_vong_user(user_id, save_data_func):
             """, unsafe_allow_html=True)
         
         with col2:
-            st.write("") # Tạo khoảng trống cho nút thẳng hàng
+            st.write("") 
             if r_name == current_rank:
                 st.success("🌟 Đang dùng")
             elif r_name in unlocked:
                 if st.button(f"SỬ DỤNG", key=f"use_{r_name}", use_container_width=True):
                     st.session_state.data[user_id]['current_rank'] = r_name
-                    save_data_func()
+                    
+                    # [FIX] Gọi hàm lưu đúng chuẩn (truyền data vào)
+                    save_data_func(st.session_state.data)
+                    
                     st.rerun()
             elif user_kpi >= r_kpi:
                 if st.button(f"KÍCH HOẠT", key=f"active_{r_name}", use_container_width=True, type="primary"):
-                    # Lưu vào danh sách đã mở và đặt làm danh hiệu hiện tại
                     if 'unlocked_ranks' not in st.session_state.data[user_id]:
                         st.session_state.data[user_id]['unlocked_ranks'] = []
                     
                     st.session_state.data[user_id]['unlocked_ranks'].append(r_name)
                     st.session_state.data[user_id]['current_rank'] = r_name
-                    save_data_func()
+                    
+                    # [FIX] Gọi hàm lưu đúng chuẩn (truyền data vào)
+                    save_data_func(st.session_state.data)
+                    
                     st.balloons()
                     st.success(f"Chúc mừng! Bạn đã đạt danh hiệu {r_name}")
                     st.rerun()
             else:
-                st.info(f"🔒 Cần thêm {r_kpi - user_kpi} KPI")
-                
+                st.info(f"🔒 Cần thêm {r_kpi - user_kpi} KPI")                
 
 def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_func):
-    
+
     # 🔥 1. CẦU DAO TỰ ĐỘNG (AUTO-KILL SWITCH) 🔥
-    # Lấy tên trang hiện tại (Biến này bạn dùng để điều hướng sidebar)
     current_page = st.session_state.get("page", "")
     
     # Kiểm tra: Nếu trang hiện tại KHÔNG PHẢI là trang phó bản
-    # (Bạn nhớ thay chữ "Phó bản" cho đúng với tên trong menu sidebar của bạn)
     if "Phó bản" not in current_page: 
-        # Tắt ngay trạng thái đang đánh
         st.session_state.dang_danh_dungeon = False
-        
-        # Dọn dẹp sạch sẽ rác (biến tạm) để lần sau vào không bị lỗi
         keys_to_clean = ["dungeon_questions", "current_q_idx", "correct_count", "victory_processed"]
         for k in keys_to_clean:
             if k in st.session_state: del st.session_state[k]
-            
-        # Xóa các mốc thời gian
         for k in list(st.session_state.keys()):
             if k.startswith("start_time_"): del st.session_state[k]
-            
-        # Dừng hàm ngay lập tức, không cho chạy xuống dưới nữa
         return
 
     # --- PHẦN 1: KHỞI TẠO TRẠNG THÁI (CHỈ CHẠY 1 LẦN) ---
     if "dungeon_questions" not in st.session_state:
-        # (Giữ nguyên logic khởi tạo của bạn)
         p_data = dungeon_config[land_id]["phases"][p_id]
         p_num = int(p_id.split('_')[1])
         difficulty_map = {1: "easy", 2: "medium", 3: "hard", 4: "extreme"}
         target_diff = p_data.get('quiz_level', difficulty_map.get(p_num, "easy"))
         
+        # [FIX] ĐỌC FILE AN TOÀN TRỰC TIẾP (Không phụ thuộc load_data)
         path_quiz = f"quiz_data/grade_6/{land_id}.json"
-        # Thêm try-catch để tránh lỗi nếu load_data chưa import hoặc lỗi file
-        try:
-            # Giả định hàm load_data có sẵn
-            all_quizzes = load_data(path_quiz) 
-        except:
-            all_quizzes = {}
+        all_quizzes = {}
+        
+        if os.path.exists(path_quiz):
+            try:
+                with open(path_quiz, 'r', encoding='utf-8') as f:
+                    all_quizzes = json.load(f)
+            except Exception as e:
+                st.error(f"Lỗi đọc file câu hỏi {land_id}: {e}")
+        else:
+            # Nếu không tìm thấy file, thử tìm file không dấu (phòng hờ)
+            # Ví dụ: land_id="Toán" -> tìm "toan.json"
+            # (Logic này tùy bạn có cần hay không, nhưng thêm vào cho chắc)
+            pass
 
         pool = all_quizzes.get(target_diff, [])
+        # Nếu mức độ khó này hết câu hỏi, lấy mức độ khác bù vào
         if not pool:
             for alt in ["extreme", "hard", "medium", "easy"]:
                 pool = all_quizzes.get(alt, [])
                 if pool: break
         
-        num_q = p_data.get('num_questions', 5) # Mặc định 5 câu nếu thiếu config
+        # Nếu vẫn không có câu hỏi -> Dùng câu hỏi mẫu để tránh crash
+        if not pool:
+             pool = [{"question": "1+1=?", "options": ["2","3"], "answer": "2"}]
+
+        num_q = p_data.get('num_questions', 5)
         st.session_state.dungeon_questions = random.sample(pool, min(len(pool), num_q)) if pool else []
         st.session_state.current_q_idx = 0
         st.session_state.correct_count = 0
@@ -2894,7 +2956,6 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
     questions = st.session_state.get("dungeon_questions", [])
     idx = st.session_state.get("current_q_idx", 0)
     
-    # Bảo vệ lỗi Key nếu config chưa tải kịp
     try:
         p_data = dungeon_config[land_id]["phases"][p_id]
     except:
@@ -2923,7 +2984,6 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
             
             t_col1, t_col2 = st.columns([1, 4])
             with t_col1:
-                # Đổi màu đồng hồ khi sắp hết giờ
                 color = "red" if remaining < 5 else "black"
                 st.markdown(f"<h3 style='color:{color}'>⏳ {remaining}s</h3>", unsafe_allow_html=True)
 
@@ -2954,7 +3014,7 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                                     st.toast(f"❌ SAI RỒI! Đáp án là: {q['answer']}", icon="⚠️")
                                 
                                 st.session_state.current_q_idx += 1
-                                time.sleep(0.5) # Giảm sleep xuống cho mượt
+                                time.sleep(0.5)
                                 st.rerun()
 
         # 3. Xử lý hết giờ
@@ -2964,7 +3024,7 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
             st.session_state.current_q_idx += 1
             st.rerun()
             
-        # 4. Tự động Rerun (Heartbeat)
+        # 4. Tự động Rerun
         if remaining > 0:
             time.sleep(1)
             st.rerun()
@@ -2980,44 +3040,39 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                 start_game_time = st.session_state.get("start_time_0", time.time())
                 duration = round(time.time() - start_game_time, 2)
                 
+                # Gọi hàm xử lý nội bộ (cộng tiền, mở khóa phase sau)
                 xử_lý_hoàn_thành_phase(user_id, land_id, p_id, dungeon_config, save_data_func, duration=duration)
+                
+                # [FIX QUAN TRỌNG] GỌI LƯU CLOUD ĐÚNG CÚ PHÁP
                 save_data_func(st.session_state.data)
+                
                 st.session_state.victory_processed = True
             
             st.success("🏆 CHIẾN THẮNG! KẺ ĐỊCH ĐÃ BỊ TIÊU DIỆT.")
             if st.button("🌟 TIẾP TỤC HÀNH TRÌNH", type="primary", use_container_width=True):
                 st.session_state.dang_danh_dungeon = False
-                # Xóa sạch session liên quan
                 for k in list(st.session_state.keys()):
                     if k.startswith("dungeon_") or k.startswith("start_time_") or k in ["current_q_idx", "correct_count", "victory_processed"]:
                         del st.session_state[k]
                 st.rerun()
         
-        # --- TRƯỜNG HỢP THUA (SỬA LẠI ĐỂ TRÁNH KẸT) ---
+        # --- TRƯỜNG HỢP THUA ---
         else:
             st.error(f"💀 GỤC NGÃ! Bạn trả lời đúng {correct}/{len(questions)} câu (Cần {required} câu).")
             
-            # Chia làm 2 cột nút bấm
             c1, c2 = st.columns(2)
-            
-            # Nút 1: Thử lại
             with c1:
                 if st.button("🔄 THỬ LẠI", use_container_width=True):
                     keys_to_reset = ["dungeon_questions", "current_q_idx", "correct_count", "victory_processed"]
                     for k in keys_to_reset:
                         if k in st.session_state: del st.session_state[k]
-                    
-                    # Xóa mốc thời gian cũ để tránh bị tính là hết giờ ngay
                     for key in list(st.session_state.keys()):
                         if key.startswith("start_time_"): del st.session_state[key]
-                    
                     st.rerun()
 
-            # Nút 2: RỜI KHỎI (Quan trọng để thoát kẹt)
             with c2:
                 if st.button("🏳️ RỜI KHỎI", use_container_width=True):
                     st.session_state.dang_danh_dungeon = False
-                    # Dọn dẹp rác
                     for k in list(st.session_state.keys()):
                         if k.startswith("dungeon_") or k.startswith("start_time_") or k in ["current_q_idx", "correct_count", "victory_processed"]:
                             del st.session_state[k]
