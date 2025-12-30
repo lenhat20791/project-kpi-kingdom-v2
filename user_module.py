@@ -1549,6 +1549,7 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
                 if k in st.session_state: del st.session_state[k]
             st.rerun()
 
+@st.cache_data(ttl=60, show_spinner=False)
 def load_loi_dai():
     """
     Tải dữ liệu Lôi Đài từ Tab 'PVP' trên Google Sheets.
@@ -1557,16 +1558,16 @@ def load_loi_dai():
     default_data = {"matches": {}, "rankings": {}}
     
     try:
-        # Mở Sheet PVP
+        # 1. Kết nối Google Sheets và mở Tab PVP
         try:
             sh = CLIENT.open(SHEET_NAME).worksheet("PVP")
         except:
-            # Nếu chưa có tab PVP, tạo mới luôn
+            # Nếu chưa có tab PVP, tạo mới luôn với Header chuẩn
             sh = CLIENT.open(SHEET_NAME).add_worksheet(title="PVP", rows=100, cols=10)
             sh.append_row(["Match_ID", "Full_JSON_Data", "Status", "Created_At"])
             return default_data
 
-        # Lấy toàn bộ dữ liệu (bỏ qua dòng tiêu đề)
+        # 2. Lấy toàn bộ dữ liệu (bỏ qua dòng tiêu đề)
         rows = sh.get_all_values()
         if len(rows) <= 1:
             return default_data
@@ -1576,71 +1577,76 @@ def load_loi_dai():
         thirty_days_ago = now - timedelta(days=30)
         need_save = False # Cờ đánh dấu nếu có xóa dữ liệu cũ
 
-        # Duyệt từng dòng để tái tạo dữ liệu
-        # Cấu trúc: [0] ID, [1] JSON, [2] Status, [3] Date
+        # 3. Duyệt từng dòng để tái tạo dữ liệu
+        # Cấu trúc cột: [0] ID | [1] JSON | [2] Status | [3] Created_At
         for r in rows[1:]:
             try:
                 if len(r) < 2: continue
                 
                 mid = r[0]
-                m_data = json.loads(r[1]) # Giải nén JSON từ cột B
+                # Giải nén JSON từ cột B (Full_JSON_Data)
+                m_data = json.loads(r[1]) 
                 
                 # --- LOGIC DỌN DẸP TỰ ĐỘNG ---
                 created_at_str = m_data.get('created_at', "")
                 if created_at_str:
                     try:
+                        # Chỉ lấy 10 ký tự đầu (dd/mm/yyyy) để so sánh
                         match_date = datetime.strptime(created_at_str[:10], "%d/%m/%Y")
+                        
+                        # Nếu trận đấu cũ hơn 30 ngày -> Bỏ qua (không thêm vào dict matches)
                         if match_date < thirty_days_ago:
-                            need_save = True # Đánh dấu cần cập nhật lại Sheet
-                            continue # Bỏ qua, không thêm vào matches (Xóa)
+                            need_save = True # Đánh dấu là đã có sự thay đổi (xóa bớt)
+                            continue 
                     except:
-                        pass # Lỗi ngày tháng thì cứ giữ lại cho an toàn
+                        pass # Nếu lỗi định dạng ngày tháng thì cứ giữ lại cho an toàn
 
+                # Nếu qua được cửa kiểm tra thì thêm vào danh sách
                 matches[mid] = m_data
+                
             except Exception as e:
-                print(f"Lỗi đọc dòng PVP: {e}")
+                print(f"Lỗi đọc dòng PVP ({mid}): {e}")
                 continue
         
         final_data = {"matches": matches, "rankings": {}}
 
-        # Nếu có dọn dẹp rác, lưu lại ngay để Sheet sạch sẽ
+        # 4. Nếu có dọn dẹp rác (need_save == True), lưu lại ngay để Sheet sạch sẽ
         if need_save:
+            # Lưu ý: Hàm save_loi_dai phải được định nghĩa trong cùng module hoặc import vào
             save_loi_dai(final_data)
 
         return final_data
 
     except Exception as e:
+        # Nếu lỗi (ví dụ Quota 429), trả về mặc định để App không bị sập
         st.error(f"⚠️ Lỗi kết nối Lôi Đài Cloud: {e}")
         return default_data
 def save_loi_dai(data):
     """
-    Lưu dữ liệu Lôi Đài lên Tab 'PVP' trên Google Sheets.
-    Cơ chế: Xóa cũ -> Ghi mới (Toàn vẹn dữ liệu).
+    Lưu dữ liệu Lôi Đài & Xóa Cache để cập nhật ngay lập tức.
     """
     try:
         sh = CLIENT.open(SHEET_NAME).worksheet("PVP")
         
-        # Chuẩn bị dữ liệu để ghi
-        # Header
+        # ... (Giữ nguyên đoạn code chuẩn bị rows_to_write) ...
         rows_to_write = [["Match_ID", "Full_JSON_Data", "Status", "Created_At"]]
-        
         matches = data.get('matches', {})
-        
-        # Chuyển đổi mỗi trận đấu thành 1 dòng
         for mid, m_info in matches.items():
             json_str = json.dumps(m_info, ensure_ascii=False)
             status = m_info.get('status', 'unknown')
             created = m_info.get('created_at', '')
-            
             rows_to_write.append([str(mid), json_str, status, created])
             
         # Ghi đè lên Google Sheets
         sh.clear()
         sh.update('A1', rows_to_write)
         
+        # [QUAN TRỌNG] XÓA CACHE CỦA HÀM LOAD
+        # Để lần tải tiếp theo (st.rerun) nó sẽ lấy dữ liệu mới nhất vừa lưu
+        load_loi_dai.clear()
+        
     except Exception as e:
         st.error(f"❌ Không thể lưu Lôi Đài lên Cloud: {e}")
-
 @st.dialog("🏁 KẾT QUẢ TRẬN ĐẤU")
 def hien_thi_bang_diem_chung_cuoc(match_id, ld_data):
     # Kiểm tra an toàn xem trận đấu còn tồn tại không
