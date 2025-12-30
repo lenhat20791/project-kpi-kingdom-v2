@@ -1181,34 +1181,44 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
     st.divider()
     import os # Import để kiểm tra file hệ thống
 
-    # --- 1. XÁC ĐỊNH ĐƯỜNG DẪN FILE ---
-    # Lấy tên môn, xóa khoảng trắng và chuyển về chữ thường để tránh lỗi "Toán" vs "toan"
-    mon_boss_raw = boss.get('mon', 'toan')
+    # --- 1. GIAI ĐOẠN DEBUG (SẼ IN RA LOG CHO BẠN XEM) ---
+    print("\n" + "="*50)
+    print("🕵️ BẮT ĐẦU DEBUG TÌM FILE CÂU HỎI")
     
-    # [QUAN TRỌNG] Tạo đường dẫn file
-    # Giả sử cấu trúc là: quiz_data/grade_6/boss/toan.json
-    path_quiz = f"quiz_data/grade_6/boss/{mon_boss_raw}.json"
+    mon_boss = boss.get('mon', 'toan')
+    # Đường dẫn mà code đang cố tìm
+    target_path = f"quiz_data/grade_6/boss/{mon_boss}.json"
     
-    # --- 🕵️ PHẦN DEBUG: SOI ĐƯỜNG DẪN (SẼ XÓA SAU KHI FIX XONG) ---
-    with st.expander("🕵️ [DEBUG] Tại sao báo lỗi 'Ngân hàng trống'?", expanded=True):
-        st.write(f"📂 Thư mục gốc của App: `{os.getcwd()}`")
-        st.write(f"👾 Dữ liệu môn của Boss: `{mon_boss_raw}`")
-        st.write(f"🔍 Hệ thống đang tìm file tại: `{path_quiz}`")
+    print(f"👉 Mục tiêu: Tìm file '{target_path}'")
+    print(f"👉 Thư mục hiện tại (Current Dir): {os.getcwd()}")
+    
+    # Quét toàn bộ thư mục quiz_data xem có cái gì trong đó
+    found_files = []
+    if os.path.exists("quiz_data"):
+        for root, dirs, files in os.walk("quiz_data"):
+            for file in files:
+                full_path = os.path.join(root, file).replace("\\", "/")
+                found_files.append(full_path)
+    
+    print(f"👉 Danh sách file thực tế tìm thấy trong 'quiz_data':")
+    for f in found_files:
+        print(f"   - {f}")
         
-        # Kiểm tra xem file có tồn tại không
-        if os.path.exists(path_quiz):
-            st.success(f"✅ Đã tìm thấy file: {path_quiz}")
+    if target_path in found_files:
+        print("✅ KẾT QUẢ: File CÓ tồn tại!")
+    else:
+        print("❌ KẾT QUẢ: File KHÔNG tồn tại (Sai tên hoặc sai chỗ)!")
+    print("="*50 + "\n")
+
+    # Hiển thị lên Web để bạn tiện đối chiếu
+    with st.expander("🕵️ KẾT QUẢ SOI FILE (Bấm để xem)", expanded=True):
+        st.write(f"Đang tìm: `{target_path}`")
+        if target_path in found_files:
+            st.success("✅ File này có tồn tại!")
         else:
-            st.error(f"❌ KHÔNG TÌM THẤY file: {path_quiz}")
-            
-            # Kiểm tra xem thư mục cha có tồn tại không
-            parent_dir = "quiz_data/grade_6/boss"
-            if os.path.exists(parent_dir):
-                files_in_dir = os.listdir(parent_dir)
-                st.info(f"📂 Các file thực tế đang có trong thư mục `{parent_dir}`:")
-                st.code(files_in_dir) # In ra danh sách file để bạn so sánh
-            else:
-                st.error(f"❌ Thư mục `{parent_dir}` cũng KHÔNG tồn tại! Bạn hãy kiểm tra lại cấu trúc thư mục.")
+            st.error("❌ Không tìm thấy file này!")
+            st.write("Dưới đây là các file thực tế đang có (hãy kiểm tra kỹ chính tả):")
+            st.code("\n".join(found_files))
 
     # --- 2. LOAD DỮ LIỆU THẬT (KHÔNG DÙNG BACKUP) ---
     try:
