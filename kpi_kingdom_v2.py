@@ -11,6 +11,12 @@ import base64
 import zipfile
 from datetime import datetime, timedelta
 import streamlit.components.v1 as components
+import importlib
+# --- 🔥 THÊM ĐOẠN NÀY ĐỂ TỰ ĐỘNG CẬP NHẬT CODE MỚI KHI RERUN 🔥 ---
+# Mỗi khi app chạy lại, nó sẽ xóa bản nhớ đệm cũ và nạp code mới nhất
+importlib.reload(admin_module)
+importlib.reload(user_module)
+importlib.reload(item_system)
 
 # Gom nhóm Import Module
 import user_module

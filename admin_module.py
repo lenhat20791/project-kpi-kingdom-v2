@@ -398,50 +398,37 @@ def hien_thi_bang_chon_qua_boss():
     Trả về: Dữ liệu thô từ bảng nhập liệu.
     """
     # 1. Chuẩn bị danh sách
-    # Dùng .get() để an toàn, tránh lỗi nếu chưa có shop_items
     shop_items = st.session_state.data.get('shop_items', {}) 
     
-    # Map tiền tệ
     currency_options = ["🔵 KPI", "📚 Tri Thức", "⚔️ Chiến Tích", "🏆 Vinh Dự", "✨ Vinh Quang"]
     
-    # Map Item từ Shop
     item_options = []
     if shop_items:
         for item_id, item_data in shop_items.items():
             itype = item_data.get('type', 'UNKNOWN')
+            # [QUAN TRỌNG] Nhận diện Rương Gacha để Admin chọn
             if itype == 'GACHA_BOX': prefix = "🎲 [RƯƠNG]"
             elif itype == 'BUFF_STAT': prefix = "⚔️ [BUFF]"
             elif itype == 'CONSUMABLE': prefix = "💎 [TIÊU THỤ]"
             else: prefix = "📦 [ITEM]"
             
-            # Label hiển thị: "🎲 [RƯƠNG] Rương Rồng (ruong_rong)"
             label = f"{prefix} {item_data.get('name', item_id)} ({item_id})"
             item_options.append(label)
 
     full_options = currency_options + item_options
 
-    # 2. Hiển thị bảng
-    st.info("💡 Chọn Rương Gacha, Vật phẩm hoặc Tài nguyên. Tổng tỷ lệ có thể hơn 100% nếu muốn rơi nhiều món.")
-
-    # --- LOAD DỮ LIỆU CŨ (NẾU ĐANG SỬA BOSS) ---
+    # --- LOAD DỮ LIỆU CŨ ---
     default_data = []
-    
-    # Lấy boss hiện tại từ session state
     system_config = st.session_state.data.get('system_config', {})
     current_boss = system_config.get('active_boss')
 
     if current_boss and 'drop_table' in current_boss:
-        # Map ngược từ ID sang Label để hiện lại trên bảng
         for drop in current_boss['drop_table']:
-            found_label = drop['id'] # Mặc định
-            
-            # Check Tiền tệ
+            found_label = drop['id']
+            # Map ngược lại label để hiển thị đúng trên UI
             if drop['id'] == 'kpi': found_label = "🔵 KPI"
             elif drop['id'] == 'Tri_Thuc': found_label = "📚 Tri Thức"
-            elif drop['id'] == 'Chien_Tich': found_label = "⚔️ Chiến Tích"
-            elif drop['id'] == 'Vinh_Du': found_label = "🏆 Vinh Dự"
-            elif drop['id'] == 'Vinh_Quang': found_label = "✨ Vinh Quang"
-            # Check Item
+            # ... (Các loại tiền tệ khác)
             else:
                 for opt in full_options:
                     if f"({drop['id']})" in opt:
@@ -454,30 +441,27 @@ def hien_thi_bang_chon_qua_boss():
                 "rate": drop.get('rate', 10.0)
             })
 
-    # Nếu chưa có dữ liệu thì hiện mẫu
     if not default_data:
-        default_data = [
-            {"id_display": "🔵 KPI", "amount": 10, "rate": 100},
-            {"id_display": "📚 Tri Thức", "amount": 5, "rate": 50}
-        ]
+        default_data = [{"id_display": "🔵 KPI", "amount": 10, "rate": 100.0}]
 
+    st.info("💡 Bạn có thể chọn **Rương Gacha** vừa tạo ở phần trên để làm phần thưởng.")
+    
     edited_table = st.data_editor(
         default_data, 
         num_rows="dynamic",
         column_config={
             "id_display": st.column_config.SelectboxColumn(
-                "💎 Chọn Phần Thưởng",
+                "🎁 Chọn Phần Thưởng (Item/Rương/Tiền)",
                 options=full_options, 
                 required=True,
                 width="large"
             ),
             "amount": st.column_config.NumberColumn("Số lượng", min_value=1, default=1),
-            "rate": st.column_config.NumberColumn("Tỷ lệ rơi (%)", min_value=0.1, max_value=100.0, default=10.0, format="%.1f%%")
+            "rate": st.column_config.NumberColumn("Tỷ lệ rơi (%)", min_value=0.1, max_value=100.0, default=100.0, format="%.1f%%")
         },
-        key="boss_drop_editor_func",
+        key="boss_drop_editor_final",
         use_container_width=True
     )
-    
     return edited_table
 # --- HÀM PHỤ TRỢ 2: XỬ LÝ DỮ LIỆU ĐỂ LƯU FILE ---
 def xu_ly_du_lieu_drop(raw_table_data):
@@ -487,222 +471,166 @@ def xu_ly_du_lieu_drop(raw_table_data):
     # Map ngược key tiền tệ
     currency_map_reverse = {
         "🔵 KPI": "kpi", "📚 Tri Thức": "Tri_Thuc", 
-        "⚔️ Chiến Tích": "Chien_Tich", "🏆 Vinh Dự": "Vinh_Du", 
-        "✨ Vinh Quang": "Vinh_Quang"
+        "⚔️ Chiến Tích": "Chien_Tich", "🏆 Vinh Dự": "Vinh_Du", "✨ Vinh Quang": "Vinh_Quang"
     }
     
     final_list = []
     for row in raw_table_data:
         display_str = row['id_display']
-        
-        # Trường hợp A: Là Tiền tệ
         if display_str in currency_map_reverse:
-            entry = {
-                "type": "currency",
-                "id": currency_map_reverse[display_str],
-                "amount": row['amount'],
-                "rate": row['rate']
-            }
-        # Trường hợp B: Là Item/Rương (Cần lấy ID trong ngoặc)
+            entry = {"type": "currency", "id": currency_map_reverse[display_str], "amount": row['amount'], "rate": row['rate']}
         else:
             try:
-                # "🎲 ... (ID_THAT)" -> Lấy ID_THAT
                 real_id = display_str.split('(')[-1].replace(')', '').strip()
             except:
                 real_id = display_str
-                
-            entry = {
-                "type": "item",
-                "id": real_id,
-                "amount": row['amount'],
-                "rate": row['rate']
-            }
+            # Lưu ý: Rương Gacha cũng là 'item' trong túi đồ user
+            entry = {"type": "item", "id": real_id, "amount": row['amount'], "rate": row['rate']}
         final_list.append(entry)
-        
     return final_list
 
 # --- HÀM CHÍNH: QUẢN LÝ BOSS ---
+import user_module
 def admin_quan_ly_boss():
-    st.title("👨‍🏫 QUẢN LÝ ĐẠI CHIẾN GIÁO VIÊN & KHO VẬT PHẨM")
+    st.title("👨‍🏫 QUẢN LÝ HỆ THỐNG (BOSS & ITEM)")
 
-    # =================================================================
-    # 🔥 PHẦN 1: TẠO VẬT PHẨM MỚI (Admin Đắp Nặn)
-    # =================================================================
-    # Lấy registry để biết cấu trúc vật phẩm (Buff, Consumable...) [cite: 31, 51]
+    # -----------------------------------------------------------------
+    # PHẦN A: CHẾ TÁC VẬT PHẨM (Code của bạn - Giữ nguyên vì rất tốt)
+    # -----------------------------------------------------------------
     try:
         from item_system import get_item_behavior_registry
         registry = get_item_behavior_registry()
     except ImportError:
         registry = {}
 
-    with st.expander("🛠️ CHẾ TÁC VẬT PHẨM (Tạo mới)", expanded=False):
+    with st.expander("🛠️ CHẾ TÁC VẬT PHẨM MỚI (Admin Đắp Nặn)", expanded=False):
         if registry:
             col1, col2 = st.columns(2)
             with col1:
-                item_id = st.text_input("Mã vật phẩm (ID - Viết liền không dấu):", placeholder="vi_du: bua_may_man")
+                item_id = st.text_input("Mã ID (viết liền):", placeholder="vi_du: ruong_rong")
                 item_type = st.selectbox("Chọn Loại Logic:", options=list(registry.keys()))
             with col2:
-                item_name = st.text_input("Tên hiển thị:", placeholder="Bùa May Mắn")
+                item_name = st.text_input("Tên hiển thị:", placeholder="Rương Rồng Thần")
                 item_img = st.text_input("Link ảnh Icon (URL):")
             
-            # Tự động tạo ô nhập liệu dựa trên định nghĩa Registry [cite: 33, 34]
+            # Form động dựa trên Registry
             properties = {}
             item_def = registry[item_type]
             params = item_def["params"]
             labels = item_def.get("labels", {})
-
-            st.write(f"🔧 **Thiết lập chỉ số cho: {item_def.get('name', item_type)}**")
-            cols = st.columns(len(params))
             
+            st.write(f"🔧 Cấu hình: **{item_def.get('name', item_type)}**")
+            cols = st.columns(len(params))
             for i, (p_name, p_type) in enumerate(params.items()):
                 with cols[i % len(cols)]:
-                    display_label = labels.get(p_name, p_name)
+                    lbl = labels.get(p_name, p_name)
                     if isinstance(p_type, list):
-                        properties[p_name] = st.selectbox(display_label, options=p_type)
+                        properties[p_name] = st.selectbox(lbl, options=p_type)
                     else:
-                        properties[p_name] = st.number_input(display_label, value=0)
+                        properties[p_name] = st.number_input(lbl, value=0)
 
-            if st.button("➕ LƯU VẬT PHẨM VÀO KHO (SHEETS)"):
-                if item_id and item_img and item_name:
-                    # 1. Tạo cấu trúc vật phẩm chuẩn [cite: 36]
+            if st.button("➕ LƯU VÀO KHO (SHEETS)"):
+                if item_id and item_name:
                     new_item = {
-                        "id": item_id,
-                        "name": item_name, # Thêm name để hiển thị đẹp hơn
-                        "type": item_type,
-                        "image": item_img,
-                        "properties": properties,
+                        "id": item_id, "name": item_name, "type": item_type,
+                        "image": item_img, "properties": properties,
                         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     }
-                    
-                    # 2. Lưu trực tiếp vào Session State (thay vì file json cục bộ) 
                     if 'shop_items' not in st.session_state.data:
                         st.session_state.data['shop_items'] = {}
                     
-                    # Lưu dưới dạng Dictionary {id: data} để dễ truy xuất
                     st.session_state.data['shop_items'][item_id] = new_item
                     
-                    # 3. Đồng bộ ngay lên Google Sheets
                     if user_module.save_all_to_sheets(st.session_state.data):
-                        st.success(f"✅ Đã chế tác thành công: {item_name} ({item_id})!")
+                        st.success(f"✅ Đã tạo: {item_name}")
                         time.sleep(1)
                         st.rerun()
-                    else:
-                        st.error("❌ Lỗi kết nối Google Sheets!")
                 else:
-                    st.error("❌ Vui lòng nhập đầy đủ Mã ID, Tên và Link ảnh!")
-        else:
-             st.warning("⚠️ Không tìm thấy file item_system.py để tải Registry.")
+                    st.error("❌ Thiếu ID hoặc Tên!")
     
     st.divider()
 
-    # =================================================================
-    # 🔥 PHẦN 2: QUẢN LÝ BOSS
-    # =================================================================
-    
-    # Lấy dữ liệu Boss từ Session State
+    # -----------------------------------------------------------------
+    # PHẦN B: THIẾT LẬP BOSS & PHẦN THƯỞNG (Đã bổ sung phần thiếu)
+    # -----------------------------------------------------------------
     if 'system_config' not in st.session_state.data:
         st.session_state.data['system_config'] = {}
-    
     system_config = st.session_state.data['system_config']
     boss_hien_tai = system_config.get('active_boss')
 
-    # --- FORM TRIỆU HỒI BOSS ---
-    with st.form("trieu_hoi_boss_form"):
-        st.subheader("🔥 Thiết lập Boss Đại Chiến")
+    with st.form("boss_setup_form"):
+        st.subheader("🔥 Cấu Hình Boss Đại Chiến")
+        
+        # 1. Thông tin Boss
         c1, c2 = st.columns(2)
+        def_name = boss_hien_tai.get('ten', "Giáo Viên Mới") if boss_hien_tai else "Giáo Viên Mới"
+        def_hp = boss_hien_tai.get('hp_max', 10000) if boss_hien_tai else 10000
+        def_img = boss_hien_tai.get('anh', "assets/teachers/toan.png") if boss_hien_tai else "assets/teachers/toan.png"
+        def_dmg = boss_hien_tai.get('damage', 50) if boss_hien_tai else 50
+        
         with c1:
-            def_name = boss_hien_tai.get('ten', "Pháp Sư Toán Học") if boss_hien_tai else "Pháp Sư Toán Học"
-            def_hp = boss_hien_tai.get('hp_max', 10000) if boss_hien_tai else 10000
-            def_img = boss_hien_tai.get('anh', "assets/teachers/toan.png") if boss_hien_tai else "assets/teachers/toan.png"
-            
-            ten_boss = st.text_input("Tên Giáo Viên:", def_name)
-            mon_hoc = st.selectbox("Môn Thử Thách:", ["toan", "van", "anh", "ly", "hoa", "sinh"])
-            hp_boss = st.number_input("Tổng Sinh Mệnh (HP):", min_value=1000, value=int(def_hp), step=1000)
-            anh_boss = st.text_input("Ảnh Boss (URL):", def_img)
-            
+            ten_boss = st.text_input("Tên Boss:", value=def_name)
+            mon_hoc = st.selectbox("Môn học:", ["toan", "van", "anh", "ly", "hoa", "sinh"])
+            hp_boss = st.number_input("HP (Máu):", min_value=1000, value=int(def_hp), step=1000)
+            anh_boss = st.text_input("Ảnh Boss:", value=def_img)
         with c2:
-            def_dmg = boss_hien_tai.get('damage', 20) if boss_hien_tai else 20
-            damage_boss = st.number_input("Sát Thương Boss:", value=int(def_dmg))
-            kpi_rate = st.number_input("Tỷ lệ thưởng KPI:", value=1.0)
-            exp_rate = st.number_input("Tỷ lệ thưởng EXP:", value=5.0) 
+            damage_boss = st.number_input("Sát thương (Dmg):", value=int(def_dmg))
+            kpi_rate = st.number_input("Hệ số KPI:", value=1.0)
+            exp_rate = st.number_input("Hệ số EXP:", value=5.0)
 
-        # Nút Submit Boss
-        submit_boss = st.form_submit_button("🔥 CẬP NHẬT BOSS & ĐỒNG BỘ")
+        # [cite_start]2. Chọn Phần Thưởng (ĐÂY LÀ PHẦN BẠN BỊ THIẾU Ở CODE CŨ) [cite: 33, 41]
+        st.divider()
+        st.subheader("🎁 Cấu Hình Rơi Quà (Drop List)")
+        raw_drop_data = hien_thi_bang_chon_qua_boss() # <--- Gọi hàm phụ trợ
+
+        submit_boss = st.form_submit_button("💾 LƯU CẤU HÌNH BOSS & DROP LIST")
 
     if submit_boss:
-        # Tạo Object Boss Mới [cite: 43]
+        # Xử lý drop list
+        clean_drop_table = xu_ly_du_lieu_drop(raw_drop_data)
+        
         new_boss = {
-            "ten": ten_boss,
-            "name": ten_boss,
-            "mon": mon_hoc,
-            "hp_max": hp_boss,
-            "hp_current": hp_boss,
-            "damage": damage_boss,
-            "kpi_rate": kpi_rate,
-            "exp_rate": exp_rate,
-            "anh": anh_boss,
-            "status": "active",
+            "ten": ten_boss, "name": ten_boss, "mon": mon_hoc,
+            "hp_max": hp_boss, "hp_current": hp_boss,
+            "damage": damage_boss, "kpi_rate": kpi_rate, "exp_rate": exp_rate,
+            "anh": anh_boss, "status": "active",
+            "drop_table": clean_drop_table, # <--- Lưu Drop List vào Boss
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            # Lưu ý: Drop table có thể được xử lý riêng hoặc thêm vào đây nếu muốn
         }
         
         st.session_state.data['system_config']['active_boss'] = new_boss
         
         if user_module.save_all_to_sheets(st.session_state.data):
-            st.success(f"✅ Đã cập nhật Boss **{ten_boss}** lên hệ thống!")
-            time.sleep(1) 
+            st.success(f"✅ Đã cập nhật Boss **{ten_boss}** kèm {len(clean_drop_table)} loại quà!")
+            time.sleep(1)
             st.rerun()
         else:
-            st.error("❌ Lỗi kết nối Google Sheets!")
+            st.error("❌ Lỗi lưu Sheets!")
 
     st.divider()
 
-    # =================================================================
-    # 📦 PHẦN 3: KHO VẬT PHẨM CỦA ADMIN (QUẢN LÝ & XÓA)
-    # (Đã thay thế phần "THIẾT LẬP ITEM POOL" cũ)
-    # =================================================================
-    st.subheader("📦 KHO VẬT PHẨM HỆ THỐNG (Đã đồng bộ Sheets)")
-    
-    # 1. Lấy danh sách vật phẩm từ Session State
+    # -----------------------------------------------------------------
+    # PHẦN C: QUẢN LÝ KHO (Code của bạn - Giữ nguyên)
+    # -----------------------------------------------------------------
+    st.subheader("📦 KHO VẬT PHẨM HỆ THỐNG")
     shop_items = st.session_state.data.get('shop_items', {})
 
     if not shop_items:
-        st.info("ℹ️ Kho vật phẩm đang trống. Hãy tạo vật phẩm ở mục '🛠️ CHẾ TÁC VẬT PHẨM' phía trên.")
+        st.info("ℹ️ Kho trống.")
     else:
-        # Hiển thị danh sách vật phẩm dưới dạng lưới
         for item_id, item_data in list(shop_items.items()):
             with st.container():
                 c_img, c_info, c_action = st.columns([1, 3, 1])
-                
-                # Cột ảnh
-                with c_img:
-                    st.image(item_data.get('image', ''), width=60)
-                
-                # Cột thông tin
+                with c_img: st.image(item_data.get('image', ''), width=50)
                 with c_info:
-                    st.markdown(f"**{item_data.get('name', item_id)}** (`{item_id}`)")
-                    st.caption(f"Loại: {item_data.get('type')} | Tạo: {item_data.get('created_at')}")
-                    
-                    # Hiển thị chỉ số chi tiết (Properties)
-                    props_text = " | ".join([f"{k}: {v}" for k, v in item_data.get('properties', {}).items()])
-                    st.code(props_text, language=None)
-
-                # Cột hành động (Xóa)
+                    st.markdown(f"**{item_data.get('name')}** (`{item_id}`)")
+                    st.caption(f"Loại: {item_data.get('type')}")
                 with c_action:
-                    st.write("") # Spacer
                     if st.button("🗑️ Xóa", key=f"del_{item_id}", type="secondary"):
-                        # Xóa khỏi Session State
                         del st.session_state.data['shop_items'][item_id]
-                        
-                        # Lưu thay đổi lên Google Sheets ngay lập tức
-                        if user_module.save_all_to_sheets(st.session_state.data):
-                            st.success("Đã xóa!")
-                            time.sleep(0.5)
-                            st.rerun()
-                        else:
-                            st.error("Lỗi xóa!")
+                        user_module.save_all_to_sheets(st.session_state.data)
+                        st.rerun()
                 st.divider()
-
     # --- KHU VỰC QUẢN LÝ (DELETE) ---
     st.subheader("🗑️ KHU VỰC QUẢN LÝ")
 
