@@ -1516,54 +1516,96 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
 
 
 def load_loi_dai():
-    if os.path.exists("loi_dai.json"):
-        with open("loi_dai.json", "r", encoding='utf-8') as f:
-            try:
-                data = json.load(f)
-                if isinstance(data, dict) and 'matches' in data:
-                    
-                    # --- LOGIC DỌN DẸP TỰ ĐỘNG ---
-                    now = datetime.now()
-                    thirty_days_ago = now - timedelta(days=30)
-                    
-                    old_matches = data.get('matches', {})
-                    cleaned_matches = {}
-                    da_xoa = 0
-                    
-                    for m_id, m_info in old_matches.items():
-                        try:
-                            # 1. Lấy chuỗi thời gian từ key 'created_at' (Ví dụ: "26/12/2025 08:21")
-                            time_str = m_info.get('created_at', "")
-                            
-                            # 2. Chuyển đổi định dạng Ngày/Tháng/Năm (format: %d/%m/%Y)
-                            # Chúng ta chỉ lấy 10 ký tự đầu để so sánh ngày cho nhẹ
-                            ngay_tran_dau = datetime.strptime(time_str[:10], "%d/%m/%Y")
-                            
-                            # 3. Kiểm tra nếu trận đấu trong vòng 30 ngày thì giữ lại
-                            if ngay_tran_dau > thirty_days_ago:
-                                cleaned_matches[m_id] = m_info
-                            else:
-                                da_xoa += 1
-                        except:
-                            # Nếu có lỗi định dạng (trận cũ quá hoặc lỗi data), giữ lại để an toàn
-                            cleaned_matches[m_id] = m_info
-                    
-                    # Cập nhật và lưu nếu có thay đổi
-                    if da_xoa > 0:
-                        data['matches'] = cleaned_matches
-                        save_loi_dai(data)
-                    # -----------------------------
+    """
+    Tải dữ liệu Lôi Đài từ Tab 'PVP' trên Google Sheets.
+    Tự động dọn dẹp các trận đấu cũ quá 30 ngày.
+    """
+    default_data = {"matches": {}, "rankings": {}}
+    
+    try:
+        # Mở Sheet PVP
+        try:
+            sh = CLIENT.open(SHEET_NAME).worksheet("PVP")
+        except:
+            # Nếu chưa có tab PVP, tạo mới luôn
+            sh = CLIENT.open(SHEET_NAME).add_worksheet(title="PVP", rows=100, cols=10)
+            sh.append_row(["Match_ID", "Full_JSON_Data", "Status", "Created_At"])
+            return default_data
 
-                    return data
-                else:
-                    return {"matches": {}, "rankings": {}}
-            except:
-                return {"matches": {}, "rankings": {}}
-    return {"matches": {}, "rankings": {}}
-# Hàm phụ để lưu dữ liệu lôi đài
+        # Lấy toàn bộ dữ liệu (bỏ qua dòng tiêu đề)
+        rows = sh.get_all_values()
+        if len(rows) <= 1:
+            return default_data
+
+        matches = {}
+        now = datetime.now()
+        thirty_days_ago = now - timedelta(days=30)
+        need_save = False # Cờ đánh dấu nếu có xóa dữ liệu cũ
+
+        # Duyệt từng dòng để tái tạo dữ liệu
+        # Cấu trúc: [0] ID, [1] JSON, [2] Status, [3] Date
+        for r in rows[1:]:
+            try:
+                if len(r) < 2: continue
+                
+                mid = r[0]
+                m_data = json.loads(r[1]) # Giải nén JSON từ cột B
+                
+                # --- LOGIC DỌN DẸP TỰ ĐỘNG ---
+                created_at_str = m_data.get('created_at', "")
+                if created_at_str:
+                    try:
+                        match_date = datetime.strptime(created_at_str[:10], "%d/%m/%Y")
+                        if match_date < thirty_days_ago:
+                            need_save = True # Đánh dấu cần cập nhật lại Sheet
+                            continue # Bỏ qua, không thêm vào matches (Xóa)
+                    except:
+                        pass # Lỗi ngày tháng thì cứ giữ lại cho an toàn
+
+                matches[mid] = m_data
+            except Exception as e:
+                print(f"Lỗi đọc dòng PVP: {e}")
+                continue
+        
+        final_data = {"matches": matches, "rankings": {}}
+
+        # Nếu có dọn dẹp rác, lưu lại ngay để Sheet sạch sẽ
+        if need_save:
+            save_loi_dai(final_data)
+
+        return final_data
+
+    except Exception as e:
+        st.error(f"⚠️ Lỗi kết nối Lôi Đài Cloud: {e}")
+        return default_data
 def save_loi_dai(data):
-    with open("loi_dai.json", "w", encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+    """
+    Lưu dữ liệu Lôi Đài lên Tab 'PVP' trên Google Sheets.
+    Cơ chế: Xóa cũ -> Ghi mới (Toàn vẹn dữ liệu).
+    """
+    try:
+        sh = CLIENT.open(SHEET_NAME).worksheet("PVP")
+        
+        # Chuẩn bị dữ liệu để ghi
+        # Header
+        rows_to_write = [["Match_ID", "Full_JSON_Data", "Status", "Created_At"]]
+        
+        matches = data.get('matches', {})
+        
+        # Chuyển đổi mỗi trận đấu thành 1 dòng
+        for mid, m_info in matches.items():
+            json_str = json.dumps(m_info, ensure_ascii=False)
+            status = m_info.get('status', 'unknown')
+            created = m_info.get('created_at', '')
+            
+            rows_to_write.append([str(mid), json_str, status, created])
+            
+        # Ghi đè lên Google Sheets
+        sh.clear()
+        sh.update('A1', rows_to_write)
+        
+    except Exception as e:
+        st.error(f"❌ Không thể lưu Lôi Đài lên Cloud: {e}")
 
 @st.dialog("🏁 KẾT QUẢ TRẬN ĐẤU")
 def hien_thi_bang_diem_chung_cuoc(match_id, ld_data):
@@ -1647,23 +1689,23 @@ def trong_tai_tong_ket(match_id, ld_data, save_data_func):
     m = ld_data['matches'][match_id]
     bet = m.get('bet', 0)
     
-    # Lấy danh sách 2 đội
+    # ... (Logic tính điểm giữ nguyên như cũ) ...
     t1 = m.get('challenger_team', [])
     if not t1: t1 = [m.get('challenger')]
     t2 = m.get('opponent_team', [])
     if not t2: t2 = [m.get('opponent')]
 
-    # Tính điểm từng đội từ score_ID
     s1 = sum(m.get(f"score_{uid}", 0) for uid in t1 if uid)
     s2 = sum(m.get(f"score_{uid}", 0) for uid in t2 if uid)
 
-    # Phân định thắng thua
     if s1 > s2: winner = "team1"
     elif s2 > s1: winner = "team2"
     else: winner = "Hòa"
 
-    # Cộng/Tràn KPI
+    # Cộng/Trừ KPI cho người chơi (Dữ liệu Player)
     data = st.session_state.data
+    
+    # --- LOGIC CỘNG ĐIỂM GIỮ NGUYÊN [cite: 33-34] ---
     if winner == "Hòa":
         for uid in t1 + t2:
             if uid in data: data[uid]['kpi'] += bet
@@ -1676,16 +1718,17 @@ def trong_tai_tong_ket(match_id, ld_data, save_data_func):
                 data[uid]['kpi'] += (bet * 2)
                 data[uid]['Chien_Tich'] = data[uid].get('Chien_Tich', 0) + bonus_ct
         
-    # CẬP NHẬT TRẠNG THÁI KẾT THÚC (Để không bị treo)
+    # CẬP NHẬT TRẠNG THÁI TRẬN ĐẤU
     m['status'] = 'finished'
     m['winner'] = winner
     m['final_score_team1'] = s1
     m['final_score_team2'] = s2
     
-    # Lưu file
+    # 1. Lưu dữ liệu TRẬN ĐẤU lên tab PVP
     save_loi_dai(ld_data)
-    save_data_func(data)
     
+    # 2. Lưu dữ liệu NGƯỜI CHƠI (KPI) lên tab Players
+    save_data_func(data)    
 def hien_thi_loi_dai(current_user_id, save_data_func):
     # --- BỔ SUNG: KIỂM TRA VÀ TỰ PHỤC HỒI DỮ LIỆU RỖNG ---
     ld_data = load_loi_dai() 

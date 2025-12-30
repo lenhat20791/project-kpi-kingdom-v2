@@ -11,7 +11,7 @@ import base64
 import zipfile
 from datetime import datetime, timedelta
 import streamlit.components.v1 as components
-import importlib   
+import importlib 
 
 # 2. --- [QUAN TRỌNG] IMPORT MODULE CỦA BẠN TRƯỚC ---
 # Phải import thì Python mới biết admin_module là gì
@@ -352,7 +352,6 @@ def hien_thi_bang_vang_diem_so():
     # 3. RENDER HTML
     list_html = ""
     if top_scores.empty:
-        # Đổi màu chữ thông báo thành màu Bạc sáng để dễ đọc
         list_html = "<div style='text-align:center; padding: 30px; color:#bdc3c7; font-style:italic;'>⏳ Chưa có dữ liệu điểm số...</div>"
     else:
         rank = 1
@@ -370,32 +369,31 @@ def hien_thi_bang_vang_diem_so():
                 row_class += " kb-top3"
                 icon = "🥉"
             else:
-                # Top 4-10: Số trắng trong vòng tròn mờ
                 icon = f"<div style='width:22px; height:22px; background:rgba(255,255,255,0.15); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8em; color:white; font-weight:bold;'>{rank}</div>"
 
             display_name = row['name']
             
+            # [QUAN TRỌNG] Đẩy sát lề trái để tránh lỗi hiển thị thành Code Block
             list_html += f"""
-            <div class="{row_class}">
-                <div style="width:30px; text-align:center; font-size:1.2em;">{icon}</div>
-                <div class="user-name">{display_name}</div>
-                <div class="score-badge">{row['total_score']:.1f}</div>
-            </div>
-            """
+<div class="{row_class}">
+    <div style="width:30px; text-align:center; font-size:1.2em;">{icon}</div>
+    <div class="user-name">{display_name}</div>
+    <div class="score-badge">{row['total_score']:.1f}</div>
+</div>"""
             rank += 1
 
-    # In ra màn hình
+    # In ra màn hình (Cũng đẩy sát lề HTML bên trong)
     st.markdown(f"""
-    <div class="knowledge-board">
-        <div class="kb-header">📜 CAO THỦ HỌC TẬP</div>
-        <div class="kb-list">
-            {list_html}
-        </div>
-        <div style="text-align: center; font-size: 0.7em; margin-top: 15px; color: #bdc3c7; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px;">
-            ✨ Điểm số được cập nhật liên tục ✨
-        </div>
+<div class="knowledge-board">
+    <div class="kb-header">📜 CAO THỦ HỌC TẬP</div>
+    <div class="kb-list">
+    {list_html}
     </div>
-    """, unsafe_allow_html=True)
+    <div style="text-align: center; font-size: 0.7em; margin-top: 15px; color: #bdc3c7; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px;">
+        ✨ Điểm số được cập nhật liên tục ✨
+    </div>
+</div>
+""", unsafe_allow_html=True)
  
 # --- KHỞI TẠO TRẠNG THÁI HỆ THỐNG (Clean) ---
 if 'logged_in' not in st.session_state:
