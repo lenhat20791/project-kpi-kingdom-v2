@@ -1448,16 +1448,20 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
             
             # --- NÚT ĐÓNG GÓI (TẠO RƯƠNG) ---
             if st.button("🎁 ĐÓNG GÓI RƯƠNG NGAY", type="primary", use_container_width=True):
+                # [FIX LỖI] Import thư viện datetime với tên riêng để không bị trùng biến 'datetime' ở nơi khác
+                import datetime as dt_lib 
+                
                 if box_name and st.session_state.temp_loot_table:
                     # Tạo cấu trúc dữ liệu rương mới
                     new_chest_data = {
                         "id": box_name,
-                        "name": box_display_name if box_display_name else box_name, # Ưu tiên tên hiển thị
+                        # Ưu tiên tên hiển thị, nếu không có thì dùng ID
+                        "name": box_display_name if 'box_display_name' in locals() and box_display_name else box_name, 
                         "price": box_price,
                         "currency_buy": box_curr,
                         "image": box_img if box_img else "https://cdn-icons-png.flaticon.com/512/4256/4256846.png",
                         "type": "GACHA_BOX",  
-                        "is_listed": is_listed, # <--- Trạng thái ẩn/hiện do Admin chọn
+                        "is_listed": is_listed, 
                         "properties": {
                             "rarity": box_rarity,
                             "loot_table": st.session_state.temp_loot_table 
@@ -1465,7 +1469,8 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         "limit_type": "none", 
                         "limit_value": 0,
                         "desc": f"Chứa {len(st.session_state.temp_loot_table)} loại quà. Mở để thử vận may!",
-                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        # [FIX LỖI] Dùng dt_lib.datetime.now() thay vì datetime.now()
+                        "created_at": dt_lib.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     }
                     
                     # Lưu vào Shop Items
@@ -1480,7 +1485,9 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         st.session_state.temp_loot_table = [] 
                         st.balloons()
                         status_msg = "đã được BÀY BÁN trên Shop" if is_listed else "đã được CẤT VÀO KHO ẨN"
-                        st.success(f"✅ Rương **{box_display_name}** {status_msg} thành công!")
+                        # Kiểm tra an toàn biến box_display_name khi hiển thị thông báo
+                        disp_name = box_display_name if 'box_display_name' in locals() and box_display_name else box_name
+                        st.success(f"✅ Rương **{disp_name}** {status_msg} thành công!")
                         time.sleep(1)
                         st.rerun()
                     else:
