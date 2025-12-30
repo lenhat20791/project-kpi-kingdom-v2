@@ -571,7 +571,7 @@ def admin_quan_ly_boss():
         with c1:
             ten_boss = st.text_input("Tên Boss:", value=def_name)
             mon_hoc = st.selectbox("Môn học:", ["toan", "van", "anh", "ly", "hoa", "sinh"])
-            hp_boss = st.number_input("HP (Máu):", min_value=1000, value=int(def_hp), step=1000)
+            hp_boss = st.number_input("HP (Máu):", min_value=10, value=int(def_hp), step=100)
             anh_boss = st.text_input("Ảnh Boss:", value=def_img)
         with c2:
             damage_boss = st.number_input("Sát thương (Dmg):", value=int(def_dmg))
