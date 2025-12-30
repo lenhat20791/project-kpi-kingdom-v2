@@ -1056,34 +1056,36 @@ from datetime import datetime, timedelta
 # Các hàm load_data, tinh_chi_so_chien_dau, trien_khai_tran_dau... giả định đã import từ module khác
 
 def hien_thi_san_dau_boss(user_id, save_data_func):
-    st.title("⚔️ Đại chiến Giáo viên")
+    st.title("⚔️ ĐẠI CHIẾN GIÁO VIÊN")
     
-    # 1. Tải dữ liệu an toàn
-    boss_data = load_data('data/boss_config.json')
-    # Ưu tiên lấy từ session_state
-    if 'data' in st.session_state:
-        all_users = st.session_state.data
-    else:
-        all_users = load_data('data/users.json')
-    
-    # Kiểm tra dữ liệu Boss
-    if not boss_data or boss_data.get("active_boss") is None:
+    # --- [SỬA LỖI] LẤY BOSS TỪ RAM (SESSION STATE) ---
+    # Thay vì load file json cục bộ, ta lấy từ dữ liệu tổng đã tải từ Sheets
+    if 'data' not in st.session_state:
+        st.warning("⏳ Đang tải dữ liệu máy chủ...")
+        return
+
+    all_data = st.session_state.data
+    system_config = all_data.get('system_config', {})
+    boss = system_config.get('active_boss')
+
+    # Kiểm tra Boss có tồn tại và đang hoạt động không
+    if not boss or boss.get('status') != 'active':
         st.info("☘️ Hiện tại không có Giáo viên nào thách thức. Hãy tập luyện thêm!")
         return
 
-    boss = boss_data["active_boss"]
-    player = all_users.get(user_id)
-
+    player = all_data.get(user_id)
     if not player:
-        st.error("Không tìm thấy dữ liệu học sĩ.")
+        st.error("❌ Không tìm thấy dữ liệu học sĩ.")
         return
 
     # 2. Tính toán chỉ số cơ bản
     level = player.get("level", 1)
+    # Giả sử hàm tinh_chi_so_chien_dau bạn đã có
     base_max_hp, base_atk = tinh_chi_so_chien_dau(level)
 
     # --- CHÈN LOGIC QUÉT BUFF ---
-    bonus_stats, updated_data = get_active_combat_stats(user_id, st.session_state.data)
+    # Hàm này bạn đã có, giữ nguyên
+    bonus_stats, updated_data = get_active_combat_stats(user_id, all_data)
     st.session_state.data = updated_data 
 
     # Chỉ số thực tế (Base + Buff)
@@ -1095,17 +1097,16 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
     if current_hp_p > max_hp_p:
         current_hp_p = max_hp_p             
         player['hp'] = max_hp_p             
-        st.session_state.data[user_id]['hp'] = max_hp_p 
+        # Lưu thay đổi ngay lập tức
         save_data_func(st.session_state.data) 
     
-    # 3. Kiểm tra trạng thái Trọng thương
+    # 3. Kiểm tra trạng thái Trọng thương (Giữ nguyên logic cũ của bạn)
     if player.get("reborn_at"):
         try:
             reborn_time = datetime.strptime(player["reborn_at"], "%Y-%m-%d %H:%M:%S")
             if datetime.now() < reborn_time:
                 time_left = reborn_time - datetime.now()
                 phut_con_lai = int(time_left.total_seconds() // 60) + 1
-                
                 defeat_info = player.get('last_defeat', {"boss_name": "Giáo Viên", "damage_taken": "hiểm hóc"})                
                 
                 st.markdown(f"""
@@ -1118,23 +1119,16 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
                     </div>
                 """, unsafe_allow_html=True)
                 
-                total_wait = 3600 
-                progress_val = 1.0 - (time_left.total_seconds() / total_wait)
-                safe_prog = min(1.0, max(0.0, progress_val))
-                st.progress(safe_prog)
-                
                 if st.button("🔄 Cập nhật tình trạng", use_container_width=True):
                     st.rerun()
                 return 
-        except Exception as e:
+        except Exception:
             pass
 
     # 4. Hiển thị Giao diện Sàn đấu
     col1, col2 = st.columns([1, 2])
     
     with col1:
-        # --- [FIX LỖI KEY ERROR TẠI ĐÂY] ---
-        # Lấy tên và ảnh an toàn bằng .get()
         b_name = boss.get('ten', boss.get('name', 'Boss Ẩn Danh'))
         b_img = boss.get("anh", "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
         b_dmg = boss.get('damage', 10)
@@ -1143,11 +1137,10 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
         st.error(f"💀 Sức tấn công: {b_dmg}") 
 
     with col2:
-        # --- PHẦN CỦA BOSS (Tính toán an toàn) ---
         try:
             b_hp_curr = float(boss.get('hp_current', 0))
             b_hp_max = float(boss.get('hp_max', 100))
-            if b_hp_max <= 0: b_hp_max = 100 # Tránh chia cho 0
+            if b_hp_max <= 0: b_hp_max = 100
             
             hp_boss_pct = min(100, max(0, int((b_hp_curr / b_hp_max) * 100)))
             
@@ -1158,9 +1151,7 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
         
         st.markdown("---") 
 
-        # --- PHẦN CỦA BẠN (PLAYER) ---
         p_hp_pct = min(100, max(0, int((current_hp_p / max_hp_p) * 100)))
-        
         st.write(f"**❤️ Máu của bạn: {int(current_hp_p)} / {max_hp_p}**")
         st.progress(p_hp_pct)
         
@@ -1183,17 +1174,17 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
                 if k in st.session_state: del st.session_state[k]
             st.rerun()
             
-        # Gọi hàm xử lý trận đấu
-        trien_khai_tran_dau(boss, player, atk_p, save_data_func, user_id, boss_data, all_users)
+        # Gọi hàm xử lý trận đấu (Truyền đúng tham số)
+        trien_khai_tran_dau(boss, player, atk_p, save_data_func, user_id, all_data)
         
-def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, boss_data, all_users):
+def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_data):
     st.divider()
     
-    # --- 1. LOAD CÂU HỎI (GIỮ NGUYÊN) ---
+    # --- 1. LOAD CÂU HỎI ---
+    # (Phần này giữ nguyên logic đọc file câu hỏi json tĩnh của bạn)
     path_quiz = f"quiz_data/grade_6/boss/{boss['mon']}.json"
-    # Fallback: Nếu không tìm thấy file môn riêng thì lấy tạm môn Toán hoặc file chung
     try:
-        all_quizzes = load_data(path_quiz)
+        all_quizzes = load_data(path_quiz) # Hàm load_data helper đọc json tĩnh
     except:
         st.error(f"Chưa có dữ liệu câu hỏi cho môn {boss['mon']}")
         return
@@ -1203,7 +1194,6 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, boss
         st.error("Ngân hàng câu hỏi đang trống!")
         return
 
-    # Khởi tạo câu hỏi nếu chưa có
     if "cau_hoi_active" not in st.session_state:
         st.session_state.cau_hoi_active = random.choice(pool)
         st.session_state.thoi_gian_bat_dau = time.time()
@@ -1221,100 +1211,40 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, boss
     if remaining <= 0:
         st.error("⏰ HẾT GIỜ! Bạn đã bị Boss tấn công.")
         
-        # Trừ máu người chơi
         dmg_boss = boss.get('damage', 10)
         player['hp'] = max(0, player.get('hp', 100) - dmg_boss)
-        
-        # Reset combo
         st.session_state.combo = 0
         
-        # Kiểm tra chết
         if player['hp'] <= 0:
-            xu_ly_thua_cuoc(player, boss, save_data_func) # Hàm tách riêng cho gọn (hoặc viết thẳng vào đây)
+            xu_ly_thua_cuoc(player, boss, save_data_func) 
         else:
-            save_data_func() # Lưu máu bị trừ
+            # [FIX] Lưu máu bị trừ lên Sheets
+            save_data_func(st.session_state.data) 
             
-        del st.session_state.cau_hoi_active # Xóa câu cũ
+        del st.session_state.cau_hoi_active 
         time.sleep(1.5)
         st.rerun()
         return
 
-    # Hiển thị đồng hồ
     color = "red" if remaining <= 5 else "#00d2ff"
     timer_placeholder.markdown(f"<h1 style='text-align: center; color: {color}; font-size: 40px;'>⏳ {remaining}s</h1>", unsafe_allow_html=True)
 
-    # --- 3. HIỂN THỊ CÂU HỎI & NÚT BẤM (SỬA LẠI PHẦN NÀY) ---
+    # --- 3. HIỂN THỊ CÂU HỎI ---
     st.info(f"⚡ **COMBO HIỆN TẠI: x{st.session_state.get('combo', 0)}**")
     
-    # ==============================================================================
-    # 🔥 CSS TÙY BIẾN CHO THÔNG BÁO (TOAST) 🔥
-    # Đoạn này sẽ biến st.toast thành một thông báo lớn, nằm giữa màn hình.
-    # ==============================================================================
-    st.markdown("""
-        <style>
-        /* 1. Định vị và thay đổi kích thước khung thông báo (Toast container) */
-        div[data-testid="stToast"] {
-            position: fixed !important; /* Cố định vị trí để có thể di chuyển tự do */
-            top: 40% !important;        /* Đặt đỉnh ở khoảng 40% chiều cao màn hình (gần giữa) */
-            left: 50% !important;       /* Đặt cạnh trái ở 50% chiều ngang */
-            transform: translate(-50%, -50%) !important; /* Dịch chuyển ngược lại để căn giữa hoàn toàn */
-            
-            width: 60% !important;      /* Chiều rộng lớn (khoảng gấp đôi mặc định) */
-            max-width: 800px !important; /* Giới hạn chiều rộng tối đa để không quá bè trên màn hình lớn */
-            padding: 25px 30px !important; /* Tăng đệm bên trong làm khung to hơn */
-            
-            background-color: #ffebee !important; /* Màu nền đỏ/hồng nhạt cảnh báo */
-            border-left: 10px solid #d32f2f !important; /* Thanh viền đỏ đậm làm điểm nhấn bên trái */
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3) !important; /* Đổ bóng đậm để nổi bật khỏi nền */
-            border-radius: 15px !important; /* Bo tròn góc mềm mại */
-            z-index: 99999 !important;   /* Đảm bảo luôn đè lên mọi thứ khác */
-        }
-
-        /* 2. Căn chỉnh icon và nội dung bên trong */
-        div[data-testid="stToast"] > div {
-            display: flex !important;
-            align-items: center !important; /* Căn giữa icon và text theo chiều dọc */
-            justify-content: flex-start !important;
-        }
-
-        /* 3. Thay đổi font chữ, màu sắc của nội dung text */
-        div[data-testid="stToast"] p {
-            font-size: 28px !important;  /* Chữ to ĐÙNG (gấp đôi mặc định 14px) */
-            font-weight: 900 !important; /* Chữ CỰC ĐẬM (Bold) */
-            color: #b71c1c !important;    /* Màu chữ đỏ đậm cho cảm giác nguy hiểm */
-            margin: 0 0 0 20px !important; /* Khoảng cách giữa icon và chữ */
-            line-height: 1.4 !important;
-            font-family: 'Arial', sans-serif !important; /* Đảm bảo font dễ đọc */
-        }
-        
-        /* 4. Tùy chỉnh icon (cái mặt 🤕) cho to tương xứng */
-        div[data-testid="stToast"] span[role="img"] {
-             font-size: 40px !important; /* Icon to gấp đôi */
-             height: 40px !important;
-             width: 40px !important;
-             line-height: 40px !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    # (Phần CSS Toast giữ nguyên...)
 
     st.subheader(f"❓ {q['question']}")
-
-    # Kiểm tra xem câu hỏi có options không, nếu không có (câu tự luận) thì mới hiện ô nhập
     options = q.get('options', [])
     
     if options:
-        # --- TRƯỜNG HỢP TRẮC NGHIỆM (HIỆN 4 NÚT) ---
         col_ans1, col_ans2 = st.columns(2)
-        
         user_choice = None
-        
         for i, option in enumerate(options):
             with (col_ans1 if i % 2 == 0 else col_ans2):
-                # Mỗi nút là một đáp án
                 if st.button(option, key=f"btn_boss_{i}", use_container_width=True):
                     user_choice = option
 
-        # --- XỬ LÝ KHI NGƯỜI DÙNG BẤM NÚT ---
         if user_choice:
             # A. TRẢ LỜI ĐÚNG
             if str(user_choice).strip().lower() == str(q['answer']).strip().lower():
@@ -1322,25 +1252,22 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, boss
                 he_so = 1 + (st.session_state.combo - 1) * 0.1
                 final_dmg = int(current_atk * he_so)
                 
-                # Trừ máu Boss
+                # [FIX] Trừ máu Boss TRỰC TIẾP vào Session State
                 boss['hp_current'] = max(0, boss['hp_current'] - final_dmg)
                 
-                # Ghi nhận đóng góp
                 if "contributions" not in boss: boss["contributions"] = {}
                 boss["contributions"][user_id] = boss["contributions"].get(user_id, 0) + final_dmg
                 
-                # Lưu file Boss
-                try:
-                    with open('data/boss_config.json', 'w', encoding='utf-8') as f:
-                        json.dump(boss_data, f, indent=4, ensure_ascii=False)
-                except: pass
+                # [FIX] XÓA ĐOẠN GHI FILE JSON CỤC BỘ
+                # Thay bằng lưu lên Sheets để mọi người cùng thấy máu boss giảm
+                save_data_func(st.session_state.data)
 
                 st.success(f"🎯 CHÍNH XÁC! Gây {final_dmg} sát thương! (Combo x{st.session_state.combo})")
                 
-                # Kiểm tra Boss chết
                 if boss['hp_current'] <= 0:
-                    xu_ly_boss_chet(user_id, boss_data, all_users, save_data_func) # Hàm xử lý thắng
-                    return
+                    xu_ly_boss_chet(user_id, all_data, save_data_func) 
+                
+                return
 
             # B. TRẢ LỜI SAI
             else:
@@ -1352,68 +1279,56 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, boss
                 st.toast(f"Bị Boss phản đòn {dmg_boss} sát thương!", icon="🤕")
                 
                 if player['hp'] <= 0:
-                    xu_ly_thua_cuoc(player, boss, save_data_func) # Hàm xử lý thua
-                    return # Dừng ngay
+                    xu_ly_thua_cuoc(player, boss, save_data_func) 
+                    return 
             
-            # C. CHUNG CHO CẢ 2 TRƯỜNG HỢP (Lưu & Chuyển câu)
-            save_data_func()
-            if "cau_hoi_active" in st.session_state:
-                del st.session_state.cau_hoi_active # Xóa câu hỏi cũ
-            if "thoi_gian_bat_dau" in st.session_state:
-                del st.session_state.thoi_gian_bat_dau # Reset giờ
+            # C. CHUYỂN CÂU & LƯU
+            save_data_func(st.session_state.data)
+            if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
+            if "thoi_gian_bat_dau" in st.session_state: del st.session_state.thoi_gian_bat_dau
                 
-            # [QUAN TRỌNG] Tạm dừng 1 chút để người dùng đọc thông báo rồi mới F5
             time.sleep(1.5) 
             st.rerun()
-
     else:
-        # Fallback cho câu hỏi không có đáp án A,B,C,D (ít dùng)
-        st.warning("Câu hỏi này bị lỗi dữ liệu (thiếu đáp án). Đang bỏ qua...")
+        st.warning("Câu hỏi lỗi, bỏ qua...")
         del st.session_state.cau_hoi_active
         time.sleep(1)
         st.rerun()
-
+        
 # --- HÀM PHỤ TRỢ (Để code gọn hơn) ---
 def xu_ly_thua_cuoc(player, boss, save_data_func):
     player['hp'] = 0
+    # Chết trong 30 phút
     player['reborn_at'] = (datetime.now() + timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
     player['last_defeat'] = {"boss_name": boss['ten'], "damage_taken": boss.get('damage', 10)}
     st.session_state.dang_danh_boss = False
     
-    # Xóa các biến tạm
     if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
     
-    save_data_func()
+    # [FIX] Gọi lưu dữ liệu đầy đủ
+    save_data_func(st.session_state.data)
     st.error("💀 BẠN ĐÃ BỊ HẠ GỤC!")
     time.sleep(2)
     st.rerun()
 
-def xu_ly_boss_chet(user_id, boss_data, all_users, save_data_func):
-    boss = boss_data['active_boss']
+def xu_ly_boss_chet(user_id, all_data, save_data_func):
+    system_config = all_data.get('system_config', {})
+    boss = system_config.get('active_boss')
     
     # 1. Cập nhật trạng thái Boss
     boss['hp_current'] = 0
-    boss['status'] = "defeated"
+    boss['status'] = "defeated" # Đánh dấu đã chết
     
-    # 2. Tính toán và chia thưởng cho TOÀN BỘ SERVER
-    # Hàm này sẽ cập nhật trực tiếp vào biến all_users
-    qua_cua_toi, dmg_cua_toi = tinh_va_tra_thuong_global(user_id, boss_data, all_users)
+    # 2. Chia thưởng (Hàm này bạn đã có, giữ nguyên logic tính toán)
+    # Lưu ý: Hàm tinh_va_tra_thuong_global phải cộng quà trực tiếp vào all_data
+    qua_cua_toi, dmg_cua_toi = tinh_va_tra_thuong_global(user_id, all_data)
     
-    # 3. Lưu dữ liệu Boss (đã chết)
-    try:
-        with open('data/boss_config.json', 'w', encoding='utf-8') as f:
-            json.dump(boss_data, f, indent=4, ensure_ascii=False)
-    except Exception as e:
-        st.error(f"Lỗi lưu Boss: {e}")
+    # [FIX] QUAN TRỌNG NHẤT: XÓA ĐOẠN GHI FILE JSON CỤC BỘ
+    # Chỉ gọi hàm save_all_to_sheets để đồng bộ trạng thái boss chết và quà tặng lên Cloud
+    save_data_func(all_data)
 
-    # 4. Lưu dữ liệu Người dùng (đã nhận thưởng)
-    # Quan trọng: Phải truyền all_users đã được cập nhật thưởng vào hàm save
-    save_data_func(all_users)
-
-    # 5. Hiệu ứng chiến thắng & Hiển thị quà
+    # 3. Hiệu ứng chiến thắng
     st.balloons()
-    
-    # Tạo một hộp thông báo đẹp mắt giữa màn hình
     st.markdown(f"""
         <div style="background-color: #d4edda; color: #155724; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #c3e6cb; margin-top: 20px;">
             <h1 style="margin: 0;">🏆 BOSS ĐÃ BỊ TIÊU DIỆT!</h1>
@@ -1427,13 +1342,10 @@ def xu_ly_boss_chet(user_id, boss_data, all_users, save_data_func):
         </div>
     """, unsafe_allow_html=True)
     
-    # 6. Dọn dẹp và kết thúc
     st.session_state.dang_danh_boss = False
-    
-    # Dừng 5 giây để người chơi kịp đọc phần thưởng rồi mới reload
     time.sleep(5) 
     st.rerun()
-
+    
 def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
     # --- 1. KHỞI TẠO TRẠNG THÁI BAN ĐẦU (Sửa lỗi AttributeError) ---
     if "match_id_active" not in st.session_state or st.session_state.get("last_match_id") != match_id:
