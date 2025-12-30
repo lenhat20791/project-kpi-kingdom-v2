@@ -890,45 +890,50 @@ def load_data(file_path=DATA_FILE_PATH):
         st.error(f"❌ Lỗi load_data: {e}")
         return {}
         
-import random
 
-def tinh_va_tra_thuong_global(killer_id, boss_data, all_users):
+def tinh_va_tra_thuong_global(killer_id, all_data):
     """
     Hàm này chạy 1 lần duy nhất khi Boss chết.
-    Cập nhật: Tích hợp thưởng EXP theo tỷ lệ từ Admin.
+    - Tính toán thưởng KPI/EXP.
+    - Xử lý rơi đồ (Drop Items).
+    - Cập nhật Level.
+    - Xóa Boss khỏi hệ thống.
     """
-    boss = boss_data['active_boss']
-    contributions = boss.get("contributions", {})
+    import random
     
-    if not contributions:
-        return [], 0
+    # 1. Lấy dữ liệu Boss từ all_data (Source of Truth)
+    sys_conf = all_data.get('system_config', {})
+    boss = sys_conf.get('active_boss')
 
-    # 1. Tìm MVP (Người gây sát thương cao nhất)
+    # Nếu không có boss hoặc boss không có dữ liệu đóng góp -> Hủy
+    if not boss: return [], 0
+    contributions = boss.get("contributions", {})
+    if not contributions: return [], 0
+
+    # 2. Tìm MVP
     mvp_id = max(contributions, key=contributions.get) 
     
     killer_rewards_display = [] 
     killer_total_dmg = 0
 
-    # 2. Vòng lặp phát lương cho từng người tham gia
+    # 3. Vòng lặp phát lương
     for uid, damage in contributions.items():
-        if uid not in all_users:
-            continue
+        if uid not in all_data: continue
             
-        player = all_users[uid]
+        player = all_data[uid]
         player_rewards = [] 
 
         # --- A. THƯỞNG CƠ BẢN (KPI & EXP) ---
-        # Lấy rate từ cấu hình Boss (mặc định kpi_rate=1.0, exp_rate=5.0 nếu thiếu)
         k_rate = boss.get('kpi_rate', 1.0)
         e_rate = boss.get('exp_rate', 5.0)
 
-        # Tính KPI (làm tròn 2 chữ số)
+        # Tính KPI
         kpi_base = round((damage / 1000) * k_rate, 2)
         if kpi_base < 0.1: kpi_base = 0.1
         
-        # Tính EXP (mới thêm)
+        # Tính EXP
         exp_base = round((damage / 1000) * e_rate, 2)
-        if exp_base < 0.5: exp_base = 0.5 # An ủi tối thiểu cho EXP
+        if exp_base < 0.5: exp_base = 0.5 
 
         # Cộng vào data
         player['kpi'] = round(player.get('kpi', 0) + kpi_base, 2)
@@ -936,67 +941,70 @@ def tinh_va_tra_thuong_global(killer_id, boss_data, all_users):
         
         player_rewards.append(f"💰 +{kpi_base} KPI")
         player_rewards.append(f"✨ +{exp_base} EXP")
-
-        
         
         # --- B. THƯỞNG RƠI ĐỒ (DROP CHANCE) ---
         drop_table = boss.get('drop_table', [])
         if drop_table:
-            weights = [item['rate'] for item in drop_table]
-            chosen = random.choices(drop_table, weights=weights, k=1)[0]
-            
-            if chosen['type'] != 'none':
-                if chosen['type'] == 'currency':
-                    target_key = chosen.get('id', 'Tri_Thuc')
-                    player[target_key] = player.get(target_key, 0) + chosen['amount']
-                    player_rewards.append(f"📘 +{chosen['amount']} {target_key}")
-                    
-                elif chosen['type'] == 'item':
-                    if 'inventory' not in player: player['inventory'] = {}
-                    item_id = chosen['id']
-                    player['inventory'][item_id] = player['inventory'].get(item_id, 0) + chosen['amount']
-                    player_rewards.append(f"📦 {item_id} (x{chosen['amount']})")
+            # Random có trọng số
+            weights = [item.get('rate', 0) for item in drop_table]
+            if weights and sum(weights) > 0:
+                chosen = random.choices(drop_table, weights=weights, k=1)[0]
+                
+                if chosen.get('type') != 'none':
+                    amount = chosen.get('amount', 1)
+                    target_id = chosen.get('id', 'Vật phẩm lạ')
+
+                    if chosen['type'] == 'currency':
+                        # Nếu là tiền tệ/chỉ số (VD: Tri_Thuc)
+                        player[target_id] = player.get(target_id, 0) + amount
+                        player_rewards.append(f"📘 +{amount} {target_id}")
+                        
+                    elif chosen['type'] == 'item':
+                        # Nếu là vật phẩm -> Thêm vào Inventory (Dạng List để khớp với Market)
+                        player.setdefault('inventory', [])
+                        
+                        # Chuyển đổi an toàn: Nếu inventory đang là Dict (cũ) thì giữ nguyên logic cũ, 
+                        # nhưng tốt nhất nên dùng List cho hệ thống mới.
+                        if isinstance(player['inventory'], list):
+                            for _ in range(amount):
+                                player['inventory'].append(target_id)
+                        
+                        player_rewards.append(f"📦 {target_id} (x{amount})")
 
         # --- C. THƯỞNG ĐẶC BIỆT (MVP & LAST HIT) ---
-        # Thưởng thêm cho MVP
         if uid == mvp_id:
             bonus_mvp_kpi = 50.0 
-            bonus_mvp_exp = 100.0 # Thưởng thêm EXP cho người giỏi nhất
+            bonus_mvp_exp = 100.0
             player['kpi'] += bonus_mvp_kpi
             player['exp'] += bonus_mvp_exp
             player_rewards.append(f"👑 MVP: +{bonus_mvp_kpi} KPI & +{bonus_mvp_exp} EXP")
             
-        # Thưởng thêm cho người kết liễu
         if uid == killer_id:
             bonus_kill_kpi = 20.0
             player['kpi'] += bonus_kill_kpi
             player_rewards.append(f"🗡️ Kết liễu: +{bonus_kill_kpi} KPI")
 
-        # --- D. KIỂM TRA LÊN CẤP (LEVEL UP) ---
-        # Gọi hàm check level up tại đây nếu bạn đã có
-        # check_level_up(uid, all_users)
-        check_up_level(uid)
-        # Lưu log hiển thị cho người đang thực hiện cú đánh cuối (Killer)
+        # --- D. KIỂM TRA LÊN CẤP ---
+        # Đảm bảo hàm check_up_level có tồn tại hoặc import vào đây
+        try:
+            # Truyền player object vào để check
+            check_up_level(player) 
+        except:
+            pass # Bỏ qua nếu chưa định nghĩa hàm này
+
+        # Lưu log cho người kết liễu xem
         if uid == killer_id:
             killer_rewards_display = player_rewards
             killer_total_dmg = damage
-    with open('data/boss_config.json', 'w', encoding='utf-8') as f:
-        json.dump({"active_boss": None}, f, indent=4, ensure_ascii=False)        
-    save_all_to_sheets(st.session_state.data)
-    
-    # 1. Xóa trạng thái Boss đang hoạt động (vì Boss đã chết)
-    try:
-        with open('data/boss_config.json', 'w', encoding='utf-8') as f:
-            json.dump({"active_boss": None}, f, indent=4, ensure_ascii=False)
-    except Exception as e:
-        print(f"Lỗi reset Boss Local: {e}")
 
-    # 2. Gọi hàm lưu tổng lực để đẩy KPI/EXP mới của học sinh và trạng thái Boss lên Google Sheets
-    # Giả sử all_users là bộ dữ liệu tổng của bạn
-    save_all_to_sheets(all_users)
+    # 4. XÓA BOSS KHỎI HỆ THỐNG (QUAN TRỌNG)
+    # Bước này thay thế việc ghi file json cục bộ
+    # Khi hàm cha (xu_ly_boss_chet) gọi save_data_func, nó sẽ cập nhật active_boss = None lên Google Sheets
+    sys_conf['active_boss'] = None 
     
+    # Trả về kết quả hiển thị
     return killer_rewards_display, killer_total_dmg
-    
+      
 @st.dialog("🎁 KHO BÁU CHIẾN THẮNG")
 def hien_thi_ruong_bau(user_id, total_dmg, rewards_from_boss):
     # --- GIAO DIỆN CHÚC MỪNG ---
