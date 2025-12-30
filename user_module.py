@@ -1179,28 +1179,60 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
         
 def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_data):
     st.divider()
+    import os # Import để kiểm tra file hệ thống
+
+    # --- 1. XÁC ĐỊNH ĐƯỜNG DẪN FILE ---
+    # Lấy tên môn, xóa khoảng trắng và chuyển về chữ thường để tránh lỗi "Toán" vs "toan"
+    mon_boss_raw = boss.get('mon', 'toan')
     
-    # --- 1. LOAD CÂU HỎI ---
-    # (Phần này giữ nguyên logic đọc file câu hỏi json tĩnh của bạn)
-    path_quiz = f"quiz_data/grade_6/boss/{boss['mon']}.json"
+    # [QUAN TRỌNG] Tạo đường dẫn file
+    # Giả sử cấu trúc là: quiz_data/grade_6/boss/toan.json
+    path_quiz = f"quiz_data/grade_6/boss/{mon_boss_raw}.json"
+    
+    # --- 🕵️ PHẦN DEBUG: SOI ĐƯỜNG DẪN (SẼ XÓA SAU KHI FIX XONG) ---
+    with st.expander("🕵️ [DEBUG] Tại sao báo lỗi 'Ngân hàng trống'?", expanded=True):
+        st.write(f"📂 Thư mục gốc của App: `{os.getcwd()}`")
+        st.write(f"👾 Dữ liệu môn của Boss: `{mon_boss_raw}`")
+        st.write(f"🔍 Hệ thống đang tìm file tại: `{path_quiz}`")
+        
+        # Kiểm tra xem file có tồn tại không
+        if os.path.exists(path_quiz):
+            st.success(f"✅ Đã tìm thấy file: {path_quiz}")
+        else:
+            st.error(f"❌ KHÔNG TÌM THẤY file: {path_quiz}")
+            
+            # Kiểm tra xem thư mục cha có tồn tại không
+            parent_dir = "quiz_data/grade_6/boss"
+            if os.path.exists(parent_dir):
+                files_in_dir = os.listdir(parent_dir)
+                st.info(f"📂 Các file thực tế đang có trong thư mục `{parent_dir}`:")
+                st.code(files_in_dir) # In ra danh sách file để bạn so sánh
+            else:
+                st.error(f"❌ Thư mục `{parent_dir}` cũng KHÔNG tồn tại! Bạn hãy kiểm tra lại cấu trúc thư mục.")
+
+    # --- 2. LOAD DỮ LIỆU THẬT (KHÔNG DÙNG BACKUP) ---
     try:
-        all_quizzes = load_data(path_quiz) # Hàm load_data helper đọc json tĩnh
-    except:
-        st.error(f"Chưa có dữ liệu câu hỏi cho môn {boss['mon']}")
+        all_quizzes = load_data(path_quiz)
+    except Exception as e:
+        st.error(f"💥 Lỗi cú pháp JSON trong file `{path_quiz}`: {e}")
         return
 
+    # Lấy danh sách câu hỏi
     pool = all_quizzes.get("easy", []) + all_quizzes.get("medium", [])
+
     if not pool:
-        st.error("Ngân hàng câu hỏi đang trống!")
+        st.warning(f"⚠️ File `{path_quiz}` có tồn tại nhưng không tìm thấy danh sách 'easy' hoặc 'medium'.")
+        st.json(all_quizzes) # In nội dung file ra để kiểm tra
         return
 
+    # Khởi tạo câu hỏi nếu chưa có
     if "cau_hoi_active" not in st.session_state:
         st.session_state.cau_hoi_active = random.choice(pool)
         st.session_state.thoi_gian_bat_dau = time.time()
 
     q = st.session_state.cau_hoi_active
 
-    # --- 2. ĐỒNG HỒ ĐẾM NGƯỢC ---
+    # --- 3. ĐỒNG HỒ ĐẾM NGƯỢC ---
     THOI_GIAN_GIOI_HAN = 15 
     elapsed = time.time() - st.session_state.get("thoi_gian_bat_dau", time.time())
     remaining = int(THOI_GIAN_GIOI_HAN - elapsed)
@@ -1218,7 +1250,6 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
         if player['hp'] <= 0:
             xu_ly_thua_cuoc(player, boss, save_data_func) 
         else:
-            # [FIX] Lưu máu bị trừ lên Sheets
             save_data_func(st.session_state.data) 
             
         del st.session_state.cau_hoi_active 
@@ -1229,10 +1260,20 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
     color = "red" if remaining <= 5 else "#00d2ff"
     timer_placeholder.markdown(f"<h1 style='text-align: center; color: {color}; font-size: 40px;'>⏳ {remaining}s</h1>", unsafe_allow_html=True)
 
-    # --- 3. HIỂN THỊ CÂU HỎI ---
+    # --- 4. HIỂN THỊ CÂU HỎI ---
     st.info(f"⚡ **COMBO HIỆN TẠI: x{st.session_state.get('combo', 0)}**")
     
-    # (Phần CSS Toast giữ nguyên...)
+    # CSS Toast (Giữ nguyên)
+    st.markdown("""
+        <style>
+        div[data-testid="stToast"] {
+            position: fixed !important; top: 40% !important; left: 50% !important;
+            transform: translate(-50%, -50%) !important; width: 60% !important;
+            background-color: #ffebee !important; border-left: 10px solid #d32f2f !important;
+            z-index: 99999 !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
     st.subheader(f"❓ {q['question']}")
     options = q.get('options', [])
@@ -1246,30 +1287,25 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                     user_choice = option
 
         if user_choice:
-            # A. TRẢ LỜI ĐÚNG
+            # A. ĐÚNG
             if str(user_choice).strip().lower() == str(q['answer']).strip().lower():
                 st.session_state.combo = st.session_state.get('combo', 0) + 1
                 he_so = 1 + (st.session_state.combo - 1) * 0.1
                 final_dmg = int(current_atk * he_so)
                 
-                # [FIX] Trừ máu Boss TRỰC TIẾP vào Session State
                 boss['hp_current'] = max(0, boss['hp_current'] - final_dmg)
-                
                 if "contributions" not in boss: boss["contributions"] = {}
                 boss["contributions"][user_id] = boss["contributions"].get(user_id, 0) + final_dmg
                 
-                # [FIX] XÓA ĐOẠN GHI FILE JSON CỤC BỘ
-                # Thay bằng lưu lên Sheets để mọi người cùng thấy máu boss giảm
                 save_data_func(st.session_state.data)
 
                 st.success(f"🎯 CHÍNH XÁC! Gây {final_dmg} sát thương! (Combo x{st.session_state.combo})")
                 
                 if boss['hp_current'] <= 0:
                     xu_ly_boss_chet(user_id, all_data, save_data_func) 
-                
                 return
 
-            # B. TRẢ LỜI SAI
+            # B. SAI
             else:
                 st.session_state.combo = 0
                 dmg_boss = boss.get('damage', 10)
@@ -1282,7 +1318,7 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                     xu_ly_thua_cuoc(player, boss, save_data_func) 
                     return 
             
-            # C. CHUYỂN CÂU & LƯU
+            # C. CHUYỂN CÂU
             save_data_func(st.session_state.data)
             if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
             if "thoi_gian_bat_dau" in st.session_state: del st.session_state.thoi_gian_bat_dau
@@ -1290,9 +1326,8 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
             time.sleep(1.5) 
             st.rerun()
     else:
-        st.warning("Câu hỏi lỗi, bỏ qua...")
+        st.warning("Câu hỏi lỗi...")
         del st.session_state.cau_hoi_active
-        time.sleep(1)
         st.rerun()
         
 # --- HÀM PHỤ TRỢ (Để code gọn hơn) ---
