@@ -3089,17 +3089,17 @@ def save_all_to_sheets(all_data):
                 return False
 
             # =========================================================
-            # --- 2. ĐỒNG BỘ SETTINGS & BOSS ---
+            # --- 2. ĐỒNG BỘ SETTINGS & BOSS (ĐÃ SỬA LỖI XÓA BOSS) ---
             # =========================================================
             try:
                 sh_settings = spreadsheet.worksheet("Settings")
                 settings_rows = [["Config_Key", "Value"]]
                 
-                # A. Rank Settings
+                # A. Lưu Rank Settings
                 if "rank_settings" in all_data:
                     settings_rows.append(["rank_settings", json.dumps(all_data["rank_settings"], ensure_ascii=False)])
                 
-                # B. Boss (Lấy từ RAM - all_data)
+                # B. Lưu Boss
                 sys_conf = all_data.get('system_config', {})
                 boss_data = sys_conf.get('active_boss')
                 
@@ -3107,10 +3107,12 @@ def save_all_to_sheets(all_data):
                     final_boss_json = {"active_boss": boss_data}
                     settings_rows.append(["active_boss", json.dumps(final_boss_json, ensure_ascii=False)])
                 
-                if len(settings_rows) > 1:
+                # [QUAN TRỌNG] Thay đổi điều kiện tại đây:
+                # Cho phép lưu ngay cả khi chỉ có header (để xóa sạch dữ liệu cũ nếu cần)
+                if len(settings_rows) >= 1: 
                     sh_settings.clear()
                     sh_settings.update('A1', settings_rows)
-                    st.write("tab Settings: Đã đồng bộ xong.")
+                    # st.write("tab Settings: Đã đồng bộ xong.")
                     
             except Exception as e:
                 st.warning(f"⚠️ Lỗi nhẹ tab Settings: {e}")
