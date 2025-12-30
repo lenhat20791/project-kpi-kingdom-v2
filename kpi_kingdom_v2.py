@@ -1,4 +1,4 @@
-# Thay thế cụm import cũ bằng đoạn này cho gọn:
+# 1. Import các thư viện hệ thống trước
 import re
 import pandas as pd
 import streamlit as st
@@ -11,12 +11,25 @@ import base64
 import zipfile
 from datetime import datetime, timedelta
 import streamlit.components.v1 as components
-import importlib
-# --- 🔥 THÊM ĐOẠN NÀY ĐỂ TỰ ĐỘNG CẬP NHẬT CODE MỚI KHI RERUN 🔥 ---
-# Mỗi khi app chạy lại, nó sẽ xóa bản nhớ đệm cũ và nạp code mới nhất
-importlib.reload(admin_module)
-importlib.reload(user_module)
-importlib.reload(item_system)
+import importlib 
+
+# 2. --- [QUAN TRỌNG] IMPORT MODULE CỦA BẠN TRƯỚC ---
+# Phải import thì Python mới biết admin_module là gì
+import admin_module
+import user_module
+import item_system
+
+# 3. --- SAU ĐÓ MỚI ĐƯỢC RELOAD ---
+# Bây giờ Python đã biết admin_module là gì rồi, nó mới reload được
+try:
+    importlib.reload(admin_module)
+    importlib.reload(user_module)
+    importlib.reload(item_system)
+except Exception as e:
+    st.error(f"Lỗi Reload Module: {e}")
+# -----------------------------------------------------
+
+
 
 # Gom nhóm Import Module
 import user_module
