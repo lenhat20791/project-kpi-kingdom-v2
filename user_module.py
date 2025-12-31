@@ -3421,23 +3421,30 @@ def save_all_to_sheets(all_data):
                 return False
 
             # =========================================================
-            # --- 2. ĐỒNG BỘ SETTINGS & BOSS ---
+            # --- 2. ĐỒNG BỘ SETTINGS & BOSS (ĐÃ FIX LỖI LƯU THIẾU) ---
             # =========================================================
             try:
                 sh_settings = spreadsheet.worksheet("Settings")
                 settings_rows = [["Config_Key", "Value"]]
                 
-                # A. Rank Settings
+                # A. Rank Settings (Nằm ở root data)
                 if "rank_settings" in all_data:
                     settings_rows.append(["rank_settings", json.dumps(all_data["rank_settings"], ensure_ascii=False)])
                 
-                # B. Boss
+                # B. System Config (Boss, Rương Báu, v.v...)
                 sys_conf = all_data.get('system_config', {})
-                boss_data = sys_conf.get('active_boss')
                 
-                if boss_data:
-                    final_boss_json = {"active_boss": boss_data}
-                    settings_rows.append(["active_boss", json.dumps(final_boss_json, ensure_ascii=False)])
+                # 🔥 FIX QUAN TRỌNG: Duyệt qua TẤT CẢ các key trong system_config
+                for key, val in sys_conf.items():
+                    # Xử lý riêng cho Active Boss (để giữ tương thích ngược với cấu trúc cũ)
+                    if key == 'active_boss':
+                        if val: # Chỉ lưu nếu có boss
+                            final_boss_json = {"active_boss": val}
+                            settings_rows.append(["active_boss", json.dumps(final_boss_json, ensure_ascii=False)])
+                    
+                    # Xử lý các config khác (Rương báu chest_rewards, v.v...)
+                    else:
+                        settings_rows.append([key, json.dumps(val, ensure_ascii=False)])
                 
                 # C. Xóa cũ & Ghi mới
                 if len(settings_rows) >= 1: 
