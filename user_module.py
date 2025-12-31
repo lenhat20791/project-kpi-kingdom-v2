@@ -566,133 +566,161 @@ def hien_thi_pho_ban(user_id, save_data_func):
                     )
             
 
-def hien_thi_sanh_pho_ban_hoc_si(user_id):
-    # Bạn cần kiểm tra xem tên trang có phải là trang phó bản không
+def hien_thi_sanh_pho_ban_hoc_si(user_id, save_data_func): # <--- Thêm tham số save_data_func
+    # Kiểm tra trạng thái trang để tắt combat nếu cần
     current_page = st.session_state.get("page", "")
-    
-    # Nếu KHÔNG PHẢI trang phó bản mà vẫn đang bật trạng thái đánh -> TẮT NGAY
     if "Phó bản" not in current_page and st.session_state.get("dang_danh_dungeon"):
         st.session_state.dang_danh_dungeon = False
         st.rerun()
         return
-        
+
+    # Load Config (Cách an toàn)
     from admin_module import load_dungeon_config
     d_config = load_dungeon_config()
-    # --- BƯỚC 1: KIỂM TRA TRẠNG THÁI CHIẾN ĐẤU 
+    
+    # --- 🔥 TẠO KHUNG CHỨA DUY NHẤT (CHÌA KHÓA FIX LỖI) 🔥 ---
+    # Mọi giao diện sẽ được vẽ vào trong 'main_placeholder' này.
+    # Khi trạng thái đổi, cái cũ sẽ bị xóa sạch, không bao giờ bị chồng.
+    main_placeholder = st.empty()
+
+    # ==========================================================
+    # TRƯỜNG HỢP A: ĐANG CHIẾN ĐẤU (COMBAT MODE)
+    # ==========================================================
     if st.session_state.get("dang_danh_dungeon"):
-        land_id = st.session_state.get('selected_land')
-        p_id = st.session_state.get('selected_phase_id')
-        from admin_module import load_dungeon_config
-        d_config = load_dungeon_config()
-        
-        # Gọi hàm combat
-        trien_khai_combat_pho_ban(user_id, land_id, p_id, d_config, save_data)
-        
-        # Ngắt hàm tại đây để tránh hiện chồng chéo sảnh chờ bên dưới
-        return
-
-    # --- BƯỚC 2: GIAO DIỆN SẢNH CHỜ (CHỈ HIỆN KHI CHƯA ĐÁNH) ---
-    user_info = st.session_state.data.get(user_id)
-    
-    # Khởi tạo tiến độ nếu chưa có 
-    if 'dungeon_progress' not in user_info:
-        user_info['dungeon_progress'] = {"toan": 1, "van": 1, "anh": 1, "ly": 1, "hoa": 1, "sinh": 1}
-    
-    if 'viewing_land_id' not in st.session_state:
-        st.session_state.viewing_land_id = "toan"
-
-    from admin_module import load_dungeon_config
-    d_config = load_dungeon_config()
-    
-    # --- HEADER SẢNH CHỜ ---
-    st.markdown("""
-        <div style="background: #2c3e50; padding: 20px; border-radius: 15px; text-align: center; color: white; margin-bottom: 20px;">
-            <h1 style="margin: 0; color: #f1c40f;">🗺️ TRUNG TÂM THÁM HIỂM</h1>
-            <p style="margin: 0; opacity: 0.8;">Hãy chọn vùng đất thử thách để bắt đầu hành trình!</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    maps_data = [
-        ("toan", "📐 Rừng Toán Học"), ("van", "📖 Thung Lũng Văn"), ("anh", "🇬🇧 Hang Động Anh"),
-        ("ly", "⚡ Ngọn Núi Vật Lý"), ("hoa", "🧪 Hồ Nước Hóa Học"), ("sinh", "🌿 Vườn Sinh Học")
-    ]
-    
-    # Grid chọn vùng đất
-    row1 = st.columns(3)
-    row2 = st.columns(3)
-    for idx, (lid, lname) in enumerate(maps_data):
-        col = row1[idx] if idx < 3 else row2[idx - 3]
-        is_active = (st.session_state.viewing_land_id == lid)
-        if col.button(lname, key=f"btn_map_{lid}", use_container_width=True, type="primary" if is_active else "secondary"):
-            st.session_state.viewing_land_id = lid
-            st.rerun()
-
-    land_id = st.session_state.viewing_land_id
-    full_names = {m[0]: m[1] for m in maps_data}
-    selected_name = full_names.get(land_id, "Vùng đất bí ẩn")
-
-    # Kiểm tra tiến trình
-    current_phase_num = user_info['dungeon_progress'].get(land_id, 1)
-    if current_phase_num > 4:
-        st.success(f"🏆 Bạn đã phá đảo {selected_name}!")
-        if st.button("🔄 Thách thức lại Phase 4 (BOSS)"): current_phase_num = 4
-        else: return
-
-    p_id = f"phase_{current_phase_num}"
-    if land_id not in d_config or p_id not in d_config[land_id]["phases"]:
-        st.error("Dữ liệu phó bản đang được cập nhật.")
-        return
-
-    p_data = d_config[land_id]["phases"][p_id]
-    st.divider()
-
-    # Hiển thị Chi tiết Phase (ẢNH VÀ THÔNG TIN)
-    col1, col2 = st.columns([1, 1.5])
-    with col1:
-        st.markdown(f"""
-            <div style="border: 4px solid #2c3e50; border-radius: 15px; overflow: hidden; background: white; text-align: center; padding-top: 10px;">
-                <img src="{p_data['monster_img']}" style="width: 60%; display: block; margin: 0 auto;">
-                <div style="background: #2c3e50; color: white; text-align: center; padding: 8px; margin-top: 10px;">
-                    <b>👾 {p_data['monster_name']}</b>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-    with col2:
-        st.markdown(f"""
-            <div style="background: #fdfefe; padding: 20px; border-radius: 15px; border-left: 8px solid #e74c3c; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);">
-                <h3 style="margin:0; color: #c0392b;">🚩 PHASE {current_phase_num}: {p_data['title']}</h3>
-                <div style="margin-top: 15px;">
-                    <p>⚔️ <b>Độ khó:</b> {p_data['quiz_level'].upper()}</p>
-                    <p>⏳ <b>Thời gian:</b> {p_data['time_limit']} giây/câu</p>
-                    <p>📝 <b>Nhiệm vụ:</b> Trả lời đúng {p_data['num_questions']} câu</p>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        st.write("")
-        st.markdown("##### 🎁 PHẦN THƯỞNG:")
-        rew_c1, rew_c2, rew_c3 = st.columns(3)
-        rew_c1.metric("KPI", f"+{p_data['reward_kpi']}")
-        rew_c2.metric("EXP", f"+{p_data['reward_exp']}")
-        rew_c3.markdown(f"📦 **{p_data['item_drop_id']}**")
-
-    # NÚT BẮT ĐẦU 
-    st.write("")
-    _, col_btn, _ = st.columns([1, 2, 1])
-    with col_btn:
-        target_phase_id = f"phase_{current_phase_num}"
-        if st.button(f"⚔️ TIẾN VÀO {selected_name.upper()}", use_container_width=True, type="primary"):
-            # Dọn dẹp session_state trước khi vào trận 
-            for k in list(st.session_state.keys()):
-                if k in ["dungeon_questions", "current_q_idx", "correct_count", "victory_processed"] or k.startswith("start_time_"):
-                    del st.session_state[k]
+        with main_placeholder.container(): # Vẽ vào khung
+            land_id = st.session_state.get('selected_land')
+            p_id = st.session_state.get('selected_phase_id')
             
-            st.session_state.dang_danh_dungeon = True
-            st.session_state.selected_land = land_id 
-            st.session_state.selected_phase_id = target_phase_id
-            st.rerun()
+            # Gọi hàm combat (Dùng save_data_func đã truyền vào)
+            trien_khai_combat_pho_ban(user_id, land_id, p_id, d_config, save_data_func)
 
+    # ==========================================================
+    # TRƯỜNG HỢP B: ĐANG Ở SẢNH CHỜ (MENU MODE)
+    # ==========================================================
+    else:
+        with main_placeholder.container(): # Vẽ vào khung (Cái cũ tự mất)
+            user_info = st.session_state.data.get(user_id)
+            
+            # Khởi tạo tiến độ
+            if 'dungeon_progress' not in user_info:
+                user_info['dungeon_progress'] = {"toan": 1, "van": 1, "anh": 1, "ly": 1, "hoa": 1, "sinh": 1}
+            
+            if 'viewing_land_id' not in st.session_state:
+                st.session_state.viewing_land_id = "toan"
+
+            # --- HEADER ---
+            st.markdown("""
+                <div style="background: #2c3e50; padding: 20px; border-radius: 15px; text-align: center; color: white; margin-bottom: 20px;">
+                    <h1 style="margin: 0; color: #f1c40f;">🗺️ TRUNG TÂM THÁM HIỂM</h1>
+                    <p style="margin: 0; opacity: 0.8;">Hãy chọn vùng đất thử thách để bắt đầu hành trình!</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            maps_data = [
+                ("toan", "📐 Rừng Toán Học"), ("van", "📖 Thung Lũng Văn"), ("anh", "🇬🇧 Hang Động Anh"),
+                ("ly", "⚡ Ngọn Núi Vật Lý"), ("hoa", "🧪 Hồ Nước Hóa Học"), ("sinh", "🌿 Vườn Sinh Học")
+            ]
+            
+            # Grid chọn vùng đất (Callback để chuyển tab mượt mà)
+            def change_land_callback(lid):
+                st.session_state.viewing_land_id = lid
+
+            row1 = st.columns(3)
+            row2 = st.columns(3)
+            for idx, (lid, lname) in enumerate(maps_data):
+                col = row1[idx] if idx < 3 else row2[idx - 3]
+                is_active = (st.session_state.viewing_land_id == lid)
+                
+                # Dùng on_click để xử lý mượt hơn
+                col.button(
+                    lname, 
+                    key=f"btn_map_{lid}", 
+                    use_container_width=True, 
+                    type="primary" if is_active else "secondary",
+                    on_click=change_land_callback,
+                    args=(lid,)
+                )
+
+            land_id = st.session_state.viewing_land_id
+            full_names = {m[0]: m[1] for m in maps_data}
+            selected_name = full_names.get(land_id, "Vùng đất bí ẩn")
+
+            # --- THÔNG TIN PHASE ---
+            current_phase_num = user_info['dungeon_progress'].get(land_id, 1)
+            
+            # Xử lý khi phá đảo
+            if current_phase_num > 4:
+                st.success(f"🏆 Bạn đã phá đảo {selected_name}!")
+                if st.button("🔄 Thách thức lại Phase 4 (BOSS)"): 
+                    current_phase_num = 4
+                else:
+                    return # Dừng vẽ nếu đã phá đảo và không muốn đánh lại
+
+            p_id = f"phase_{current_phase_num}"
+            
+            # Kiểm tra dữ liệu config
+            if land_id not in d_config or p_id not in d_config[land_id]["phases"]:
+                st.warning(f"🚧 Dữ liệu {selected_name} đang được xây dựng. Vui lòng quay lại sau!")
+                return # Dừng vẽ để không lỗi
+
+            p_data = d_config[land_id]["phases"][p_id]
+            st.divider()
+
+            # Hiển thị Chi tiết (Ảnh & Info)
+            col1, col2 = st.columns([1, 1.5])
+            with col1:
+                st.markdown(f"""
+                    <div style="border: 4px solid #2c3e50; border-radius: 15px; overflow: hidden; background: white; text-align: center; padding-top: 10px;">
+                        <img src="{p_data.get('monster_img', '')}" style="width: 60%; display: block; margin: 0 auto;">
+                        <div style="background: #2c3e50; color: white; text-align: center; padding: 8px; margin-top: 10px;">
+                            <b>👾 {p_data.get('monster_name', 'Quái Vật')}</b>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+            with col2:
+                st.markdown(f"""
+                    <div style="background: #fdfefe; padding: 20px; border-radius: 15px; border-left: 8px solid #e74c3c; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);">
+                        <h3 style="margin:0; color: #c0392b;">🚩 PHASE {current_phase_num}: {p_data.get('title', 'Thử thách')}</h3>
+                        <div style="margin-top: 15px;">
+                            <p>⚔️ <b>Độ khó:</b> {str(p_data.get('quiz_level', 'easy')).upper()}</p>
+                            <p>⏳ <b>Thời gian:</b> {p_data.get('time_limit', 15)} giây/câu</p>
+                            <p>📝 <b>Nhiệm vụ:</b> Trả lời đúng {p_data.get('num_questions', 5)} câu</p>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                st.write("")
+                st.markdown("##### 🎁 PHẦN THƯỞNG:")
+                rew_c1, rew_c2, rew_c3 = st.columns(3)
+                rew_c1.metric("KPI", f"+{p_data.get('reward_kpi', 0)}")
+                rew_c2.metric("EXP", f"+{p_data.get('reward_exp', 0)}")
+                rew_c3.markdown(f"📦 **{p_data.get('item_drop_id', 'Không')}**")
+
+            # --- NÚT BẮT ĐẦU (Callback) ---
+            st.write("")
+            _, col_btn, _ = st.columns([1, 2, 1])
+            
+            def start_combat_callback(lid, pid):
+                # Dọn dẹp session
+                for k in list(st.session_state.keys()):
+                    if k in ["dungeon_questions", "current_q_idx", "correct_count", "victory_processed"] or k.startswith("start_time_"):
+                        del st.session_state[k]
+                
+                # Set trạng thái
+                st.session_state.dang_danh_dungeon = True
+                st.session_state.selected_land = lid 
+                st.session_state.selected_phase_id = pid
+            
+            with col_btn:
+                target_phase_id = f"phase_{current_phase_num}"
+                st.button(
+                    f"⚔️ TIẾN VÀO {selected_name.upper()}", 
+                    use_container_width=True, 
+                    type="primary",
+                    on_click=start_combat_callback,
+                    args=(land_id, target_phase_id)
+                )
 def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save_data_func, duration=None):
     import random
     
@@ -802,6 +830,7 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
 
     # Lưu dữ liệu
     save_data_func(st.session_state.data)
+
 def tinh_atk_tong_hop(user_info):
     """
     ATK = (Level * 5) + (Tổng điểm các bài kiểm tra)
