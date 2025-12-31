@@ -626,178 +626,153 @@ def admin_quan_ly_boss():
                             st.rerun()
 
     # ==========================================================================
-    # TAB 3: CẤU HÌNH RƯƠNG BÁU (Cài đặt Gacha) - TỰ ĐỘNG LOAD SHOP
+    # TAB 3: CẤU HÌNH RƯƠNG BÁU (Đã Fix lỗi chữ Hoa/Thường)
     # ==========================================================================
     with tab_chest:
         st.subheader("🎰 Cài đặt Ruột Rương Báu")
-        st.caption("Cấu hình tỷ lệ rơi đồ khi học sinh mở Rương.")
+        
+        # --- NÚT CẬP NHẬT (Để tải lại dữ liệu mới nhất từ Sheet) ---
+        if st.button("🔄 Cập nhật dữ liệu Shop từ Google Sheet", use_container_width=True):
+            if 'shop_config' in st.session_state:
+                del st.session_state.shop_config
+            st.rerun()
 
-        # --- 0. TỰ ĐỘNG TẢI DỮ LIỆU TỪ TAB 'SHOP' TRÊN GOOGLE SHEET ---
-        # Kiểm tra nếu chưa có dữ liệu Shop thì đi tải ngay lập tức
-        if 'shop_config' not in st.session_state or not st.session_state.shop_config:
+        # --- 0. TỰ ĐỘNG TẢI DỮ LIỆU TỪ SHOP ---
+        if 'shop_config' not in st.session_state:
             try:
-                # Kết nối Google Sheets (Sử dụng hàm get_gspread_client từ user_module hoặc code có sẵn)
-                # Giả sử bạn đã có hàm kết nối, nếu không thì dùng code chuẩn:
+                # 1. Kết nối & Mở file
                 from user_module import get_gspread_client
                 client = get_gspread_client()
                 
-                # Mở file Spreadsheet (Lấy URL hoặc ID từ secrets)
-                # Lưu ý: Thay 'Link_Google_Sheet_Cua_Ban' bằng ID hoặc URL thực tế nếu cần, 
-                # nhưng thường get_gspread_client đã xử lý việc auth.
-                # Ở đây ta lấy sheet đầu tiên hoặc mở theo tên nếu biết
-                
-                # Cách an toàn: Lấy sheet đang hoạt động
-                sh = client.open_by_key(st.secrets["gcp_service_account"]["spreadsheet_id"]) if "spreadsheet_id" in st.secrets.get("gcp_service_account", {}) else client.open_by_url(st.secrets["gcp_service_account"]["spreadsheet_url"])
-                
-                # Tìm tab tên là "Shop" hoặc "Cửa hàng"
-                try:
-                    wks = sh.worksheet("Shop")
-                except:
-                    try: wks = sh.worksheet("Cửa hàng")
-                    except: wks = None
+                # Mở file Spreadsheet (Thử ID -> URL -> File đầu tiên)
+                secrets_gcp = st.secrets.get("gcp_service_account", {})
+                if "spreadsheet_id" in secrets_gcp:
+                    sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+                elif "spreadsheet_url" in secrets_gcp:
+                    sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
+                else:
+                    sh = client.openall()[0]
+
+                # 2. Tìm tab Shop
+                wks = None
+                for name in ["Shop", "shop", "Cửa hàng", "Items"]:
+                    try:
+                        wks = sh.worksheet(name)
+                        break
+                    except: continue
                 
                 if wks:
                     st.session_state.shop_config = wks.get_all_records()
-                    # st.toast("Đã tải dữ liệu Shop thành công!", icon="✅")
+                    st.success("✅ Đã tải danh sách vật phẩm thành công!")
                 else:
-                    st.error("⚠️ Không tìm thấy tab tên 'Shop' hoặc 'Cửa hàng' trên Google Sheet!")
+                    st.error("⚠️ Không tìm thấy tab 'Shop' trên Google Sheet.")
                     st.session_state.shop_config = []
                     
             except Exception as e:
-                # st.warning(f"Không tải được Shop: {e}")
+                # st.warning(f"Chưa kết nối được Shop: {e}")
                 st.session_state.shop_config = []
 
-        # --- 1. HIỂN THỊ DANH SÁCH HIỆN TẠI ---
+        # --- 1. HIỂN THỊ LIST HIỆN TẠI (Giữ nguyên) ---
         if 'chest_rewards' not in sys_config:
             sys_config['chest_rewards'] = []
             
         current_rewards = sys_config['chest_rewards']
-        
         if current_rewards:
+            # Code hiển thị list cũ (không thay đổi)
             for idx, reward in enumerate(current_rewards):
                 with st.container(border=True):
                     c1, c2, c3, c4 = st.columns([0.5, 2, 1, 0.5])
                     with c1:
-                        icon = "📦"
-                        if reward['type'] == 'kpi': icon = "💰"
-                        elif reward['type'] == 'exp': icon = "✨"
-                        st.markdown(f"### {icon}")
+                        st.write("📦" if reward['type'] == 'item' else ("💰" if reward['type'] == 'kpi' else "✨"))
                     with c2:
                         st.write(f"**{reward['msg']}**")
-                        st.caption(f"Loại: `{reward['type'].upper()}` | Giá trị: `{reward['val']}`")
+                        st.caption(f"Loại: `{reward['type']}` | Giá trị: `{reward['val']}`")
                     with c3:
                         st.info(f"Tỷ lệ: {reward['rate']}")
                     with c4:
-                        if st.button("🗑️", key=f"del_chest_{idx}", help="Xóa phần quà này"):
+                        if st.button("🗑️", key=f"del_chest_{idx}"):
                             current_rewards.pop(idx)
                             user_module.save_all_to_sheets(st.session_state.data)
                             st.rerun()
-        else:
-            st.info("Chưa có phần quà nào trong rương.")
 
         st.divider()
         
-        # --- 2. FORM THÊM QUÀ ---
+        # --- 2. FORM THÊM QUÀ (Đã Fix lỗi ID/Name) ---
         st.write("#### ➕ Thêm quà vào Rương")
         
-        # --- LOGIC TỔNG HỢP NGUỒN ITEM ---
+        # --- LOGIC ĐỌC ITEM THÔNG MINH ---
         item_source_map = {} 
-        
-        # Nguồn 1: Từ Shop (Vừa tải ở bước 0)
         raw_shop = st.session_state.get('shop_config', [])
+        
         if raw_shop:
             for item in raw_shop:
-                # Chấp nhận nhiều tên cột khác nhau để tránh lỗi
-                i_id = item.get('id') or item.get('item_id') or item.get('ma_vat_pham')
-                i_name = item.get('name') or item.get('item_name') or item.get('ten_vat_pham') or i_id
+                # 🔥 FIX LỖI Ở ĐÂY: Tìm cả 'ID' (Hoa) và 'id' (Thường)
+                i_id = item.get('ID') or item.get('id') or item.get('Item_ID')
+                i_name = item.get('Name') or item.get('name') or item.get('Item_Name') or i_id
                 
-                # Kiểm tra id có giá trị không mới thêm
                 if i_id:
                     item_source_map[str(i_id).strip()] = f"{i_name} (Shop)"
 
-        # Nguồn 2: Từ Kho Admin (Dự phòng)
+        # Nguồn phụ: Kho Admin
         if 'admin' in st.session_state.data:
-            raw_inv = st.session_state.data['admin'].get('inventory', [])
-            for item in raw_inv:
+            for item in st.session_state.data['admin'].get('inventory', []):
                 if isinstance(item, dict):
-                    i_id = item.get('id')
-                    i_name = item.get('name', i_id)
+                    item_source_map[item.get('id')] = f"{item.get('name')} (Kho Admin)"
                 else:
-                    i_id = str(item)
-                    i_name = str(item)
-                
-                if i_id:
-                    # Nếu chưa có trong map thì thêm vào
-                    if i_id not in item_source_map:
-                        item_source_map[i_id] = f"{i_name} (Kho Admin)"
+                    item_source_map[str(item)] = f"{str(item)} (Kho Admin)"
         
-        # --- GIAO DIỆN NHẬP LIỆU ---
+        # --- GIAO DIỆN ---
         with st.container(border=True):
             col_type, col_val = st.columns(2)
             
-            # A. CHỌN LOẠI
             with col_type:
                 r_type = st.selectbox(
-                    "1. Chọn Loại quà:", 
-                    ["kpi", "exp", "item"],
-                    format_func=lambda x: "💰 KPI" if x == 'kpi' else ("✨ Kinh Nghiệm (EXP)" if x == 'exp' else "📦 Vật Phẩm (Item)")
+                    "1. Chọn Loại quà:", ["kpi", "exp", "item"],
+                    format_func=lambda x: "📦 Vật Phẩm (Item)" if x == 'item' else x.upper()
                 )
 
-            # B. CHỌN GIÁ TRỊ
             with col_val:
                 final_val = 0
-                
                 if r_type in ['kpi', 'exp']:
-                    final_val = st.number_input(f"2. Nhập số lượng {r_type.upper()}:", min_value=1, value=50, step=10)
+                    final_val = st.number_input("2. Số lượng:", min_value=1, value=50)
                     default_msg = f"Bạn nhận được {final_val} {r_type.upper()}!"
-                
-                else: # ITEM
+                else:
+                    # NẾU CÓ ITEM -> HIỆN SELECTBOX
                     if item_source_map:
                         selected_item_id = st.selectbox(
-                            "2. Chọn Vật phẩm:", 
-                            list(item_source_map.keys()),
-                            format_func=lambda x: f"{x} - {item_source_map.get(x, '')}"
+                            "2. Chọn Vật phẩm:", list(item_source_map.keys()),
+                            format_func=lambda x: f"{x} - {item_source_map.get(x)}"
                         )
                         final_val = selected_item_id
-                        
-                        # Tạo tên đẹp cho thông báo
                         raw_name = item_source_map.get(selected_item_id, "").split('(')[0].strip()
                         default_msg = f"Bạn nhận được vật phẩm: {raw_name}!"
                     else:
-                        st.warning("⚠️ Không tìm thấy dữ liệu Item!")
-                        st.caption("Hệ thống đã thử tải tab 'Shop' nhưng không thấy. Bạn có thể nhập ID thủ công:")
-                        final_val = st.text_input("Nhập ID vật phẩm:")
-                        default_msg = "Bạn nhận được vật phẩm hiếm!"
+                        st.warning("⚠️ Không tìm thấy dữ liệu (Kiểm tra lại tên cột ID/Name trong Sheet)")
+                        final_val = st.text_input("Nhập thủ công ID:")
+                        default_msg = "Bạn nhận được quà!"
 
-            # C. CHỌN TỶ LỆ & THÔNG BÁO
+            # Các ô nhập liệu còn lại
             c_rate, c_msg = st.columns([1, 2])
             with c_rate:
-                r_rate = st.number_input("3. Tỷ lệ rơi (Trọng số):", min_value=1, value=10, help="Số càng lớn càng dễ ra")
+                r_rate = st.number_input("3. Tỷ lệ (Trọng số):", min_value=1, value=10)
             with c_msg:
-                r_msg = st.text_input("4. Thông báo hiển thị:", value=default_msg)
+                r_msg = st.text_input("4. Thông báo:", value=default_msg)
 
-            # NÚT LƯU
             st.write("")
             if st.button("💾 Lưu vào Rương", type="primary", use_container_width=True):
                 if r_type == 'item' and not final_val:
-                    st.error("❌ Vui lòng chọn hoặc nhập vật phẩm!")
+                    st.error("❌ Thiếu thông tin vật phẩm!")
                 elif not r_msg:
-                    st.error("❌ Vui lòng nhập thông báo!")
+                    st.error("❌ Thiếu thông báo!")
                 else:
-                    new_reward = {
-                        "type": r_type, 
-                        "val": final_val, 
-                        "rate": int(r_rate), 
-                        "msg": r_msg
-                    }
-                    
-                    sys_config['chest_rewards'].append(new_reward)
+                    sys_config['chest_rewards'].append({
+                        "type": r_type, "val": final_val, 
+                        "rate": int(r_rate), "msg": r_msg
+                    })
                     user_module.save_all_to_sheets(st.session_state.data) 
-                    
-                    st.success(f"✅ Đã thêm thành công!")
-                    time.sleep(1)
+                    st.success("✅ Đã lưu thành công!")
+                    time.sleep(0.5)
                     st.rerun()
-
 def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
     # --- TỰ ĐỘNG BACKUP KHI ADMIN ĐĂNG NHẬP ---
     if thực_hiện_auto_backup():
