@@ -484,32 +484,38 @@ def generate_username(text):
     return text
     
 def hien_thi_pho_ban(user_id, save_data_func):
+    # 1. Đảm bảo config tồn tại (Tránh lỗi NameError)
+    # Giả sử bạn lưu config trong session, hoặc load từ file
+    # Nếu chưa có biến dungeon_config, hãy load nó ở đây:
+    if 'dungeon_config_data' in st.session_state:
+        dungeon_config = st.session_state.dungeon_config_data
+    else:
+        # Fallback: Load mặc định hoặc import từ file data của bạn
+        # from game_data import DUNGEON_DATA as dungeon_config 
+        # Tạm thời để trống nếu bạn đã có biến global, nhưng tốt nhất nên gán:
+        dungeon_config = st.session_state.get('system_config', {}).get('dungeon_data', {}) 
+
     user_info = st.session_state.data[user_id]
     
     # --- PHẦN 1: NẾU ĐANG TRONG TRẬN ĐẤU (VIEW COMBAT) ---
-    if st.session_state.get("dang_danh_dungeon"):
-        # Lấy dữ liệu đã lưu trong session
+    if st.session_state.get("dang_danh_dungeon") is True:
         land_id = st.session_state.get('selected_land')
         p_id = st.session_state.get('selected_phase_id')
         
         # Gọi hàm chiến đấu
-        # Lưu ý: Đảm bảo biến dungeon_config đã được import hoặc có sẵn
         trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_func)
         
-        # Nút thoát khẩn cấp ở sidebar
+        # Nút thoát khẩn cấp
         if st.sidebar.button("🚩 RÚT LUI KHỎI PHÓ BẢN"):
             st.session_state.dang_danh_dungeon = False
-            # Xóa các biến tạm để sạch sẽ
-            if 'selected_land' in st.session_state: del st.session_state.selected_land
-            if 'selected_phase_id' in st.session_state: del st.session_state.selected_phase_id
             st.rerun()
             
-        return # QUAN TRỌNG: Dừng hàm tại đây để không hiện danh sách bên dưới
+        return # 🛑 DỪNG HÀM TẠI ĐÂY - Không cho code chạy xuống dưới
 
     # --- PHẦN 2: GIAO DIỆN CHỌN VÙNG ĐẤT (VIEW MENU) ---
     st.title("🏹 PHIÊU LƯU PHÓ BẢN")
     
-    # Hiển thị chỉ số nhanh
+    # Hiển thị chỉ số
     atk = tinh_atk_tong_hop(user_info)
     col1, col2, col3 = st.columns(3)
     col1.metric("Cấp độ", f"Lv.{user_info.get('level', 1)}")
@@ -528,6 +534,19 @@ def hien_thi_pho_ban(user_id, save_data_func):
         {"id": "sinh", "name": "Vườn Sinh Học", "icon": "🌿", "color": "#27ae60"}
     ]
 
+    # === HÀM CALLBACK: CHẠY NGAY KHI BẤM NÚT ===
+    def vao_tran_callback(r_id):
+        # 1. Set trạng thái Combat
+        st.session_state.dang_danh_dungeon = True
+        st.session_state.selected_land = r_id
+        
+        # 2. Tính toán Phase
+        if 'dungeon_progress' not in user_info: 
+            user_info['dungeon_progress'] = {}
+        prog = user_info['dungeon_progress'].get(r_id, 1)
+        st.session_state.selected_phase_id = f"phase_{prog}"
+    # ============================================
+
     cols = st.columns(3)
     for i, region in enumerate(vung_dat):
         with cols[i % 3]:
@@ -538,24 +557,16 @@ def hien_thi_pho_ban(user_id, save_data_func):
                 </div>
             """, unsafe_allow_html=True)
             
-            # Nút "Vào..."
-            if st.button(f"Vào {region['name']}", key=f"btn_{region['id']}", use_container_width=True):
-                # 1. Lưu ID vùng đất (Đồng bộ tên biến với Phần 1)
-                st.session_state.selected_land = region['id']
-                
-                # 2. Xác định Phase (Tiến trình)
-                # Nếu chưa có tiến trình thì mặc định là 1
-                if 'dungeon_progress' not in user_info: 
-                    user_info['dungeon_progress'] = {}
-                prog = user_info['dungeon_progress'].get(region['id'], 1)
-                
-                st.session_state.selected_phase_id = f"phase_{prog}"
-                
-                # 3. 🔥 QUAN TRỌNG NHẤT: BẬT CÔNG TẮC CHIẾN ĐẤU 🔥
-                st.session_state.dang_danh_dungeon = True 
-                
-                # 4. Load lại trang để lọt vào "PHẦN 1"
-                st.rerun()
+            # 🔥 SỬ DỤNG ON_CLICK ĐỂ GỌI HÀM CALLBACK 🔥
+            # Tham số 'args' truyền ID của vùng đất vào hàm callback
+            st.button(
+                f"Vào {region['name']}", 
+                key=f"btn_{region['id']}", 
+                use_container_width=True,
+                on_click=vao_tran_callback,  # <--- CHÌA KHÓA LÀ Ở ĐÂY
+                args=(region['id'],)         # <--- Truyền tham số
+            )
+
 def hien_thi_sanh_pho_ban_hoc_si(user_id):
     # Bạn cần kiểm tra xem tên trang có phải là trang phó bản không
     current_page = st.session_state.get("page", "")
