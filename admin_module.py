@@ -626,11 +626,46 @@ def admin_quan_ly_boss():
                             st.rerun()
 
     # ==========================================================================
-    # TAB 3: CẤU HÌNH RƯƠNG BÁU (Cài đặt Gacha) - KẾT NỐI SHOP
+    # TAB 3: CẤU HÌNH RƯƠNG BÁU (Cài đặt Gacha) - TỰ ĐỘNG LOAD SHOP
     # ==========================================================================
     with tab_chest:
         st.subheader("🎰 Cài đặt Ruột Rương Báu")
         st.caption("Cấu hình tỷ lệ rơi đồ khi học sinh mở Rương.")
+
+        # --- 0. TỰ ĐỘNG TẢI DỮ LIỆU TỪ TAB 'SHOP' TRÊN GOOGLE SHEET ---
+        # Kiểm tra nếu chưa có dữ liệu Shop thì đi tải ngay lập tức
+        if 'shop_config' not in st.session_state or not st.session_state.shop_config:
+            try:
+                # Kết nối Google Sheets (Sử dụng hàm get_gspread_client từ user_module hoặc code có sẵn)
+                # Giả sử bạn đã có hàm kết nối, nếu không thì dùng code chuẩn:
+                from user_module import get_gspread_client
+                client = get_gspread_client()
+                
+                # Mở file Spreadsheet (Lấy URL hoặc ID từ secrets)
+                # Lưu ý: Thay 'Link_Google_Sheet_Cua_Ban' bằng ID hoặc URL thực tế nếu cần, 
+                # nhưng thường get_gspread_client đã xử lý việc auth.
+                # Ở đây ta lấy sheet đầu tiên hoặc mở theo tên nếu biết
+                
+                # Cách an toàn: Lấy sheet đang hoạt động
+                sh = client.open_by_key(st.secrets["gcp_service_account"]["spreadsheet_id"]) if "spreadsheet_id" in st.secrets.get("gcp_service_account", {}) else client.open_by_url(st.secrets["gcp_service_account"]["spreadsheet_url"])
+                
+                # Tìm tab tên là "Shop" hoặc "Cửa hàng"
+                try:
+                    wks = sh.worksheet("Shop")
+                except:
+                    try: wks = sh.worksheet("Cửa hàng")
+                    except: wks = None
+                
+                if wks:
+                    st.session_state.shop_config = wks.get_all_records()
+                    # st.toast("Đã tải dữ liệu Shop thành công!", icon="✅")
+                else:
+                    st.error("⚠️ Không tìm thấy tab tên 'Shop' hoặc 'Cửa hàng' trên Google Sheet!")
+                    st.session_state.shop_config = []
+                    
+            except Exception as e:
+                # st.warning(f"Không tải được Shop: {e}")
+                st.session_state.shop_config = []
 
         # --- 1. HIỂN THỊ DANH SÁCH HIỆN TẠI ---
         if 'chest_rewards' not in sys_config:
@@ -662,44 +697,41 @@ def admin_quan_ly_boss():
 
         st.divider()
         
-        # --- 2. FORM THÊM QUÀ (GIAO DIỆN ĐỘNG) ---
+        # --- 2. FORM THÊM QUÀ ---
         st.write("#### ➕ Thêm quà vào Rương")
         
-        # ======================================================================
-        # 🔥 LOGIC LẤY DANH SÁCH ITEM TỪ SHOP HOẶC KHO ADMIN 🔥
-        # ======================================================================
-        item_source_map = {} # Dùng để lưu {ID: Tên hiển thị}
+        # --- LOGIC TỔNG HỢP NGUỒN ITEM ---
+        item_source_map = {} 
         
-        # Ưu tiên 1: Lấy từ cấu hình SHOP (Tab Shop trên Gsheet)
-        # Kiểm tra các biến thường dùng để lưu shop
-        raw_shop = st.session_state.get('shop_config', []) or st.session_state.get('shop_data', [])
-        
+        # Nguồn 1: Từ Shop (Vừa tải ở bước 0)
+        raw_shop = st.session_state.get('shop_config', [])
         if raw_shop:
             for item in raw_shop:
-                # Tìm ID và Tên trong cấu trúc data shop (thường là dict)
-                # Chấp nhận nhiều trường hợp key khác nhau để an toàn
+                # Chấp nhận nhiều tên cột khác nhau để tránh lỗi
                 i_id = item.get('id') or item.get('item_id') or item.get('ma_vat_pham')
                 i_name = item.get('name') or item.get('item_name') or item.get('ten_vat_pham') or i_id
                 
+                # Kiểm tra id có giá trị không mới thêm
                 if i_id:
-                    item_source_map[i_id] = f"{i_name} (Shop)"
+                    item_source_map[str(i_id).strip()] = f"{i_name} (Shop)"
 
-        # Ưu tiên 2: Nếu Shop trống hoặc chưa load được, lấy từ KHO ADMIN
-        if not item_source_map and 'admin' in st.session_state.data:
+        # Nguồn 2: Từ Kho Admin (Dự phòng)
+        if 'admin' in st.session_state.data:
             raw_inv = st.session_state.data['admin'].get('inventory', [])
             for item in raw_inv:
                 if isinstance(item, dict):
                     i_id = item.get('id')
                     i_name = item.get('name', i_id)
                 else:
-                    i_id = item # Trường hợp lưu ID dạng chuỗi
-                    i_name = item
+                    i_id = str(item)
+                    i_name = str(item)
                 
                 if i_id:
-                    item_source_map[i_id] = f"{i_name} (Kho Admin)"
-        # ======================================================================
+                    # Nếu chưa có trong map thì thêm vào
+                    if i_id not in item_source_map:
+                        item_source_map[i_id] = f"{i_name} (Kho Admin)"
         
-        # Giao diện thêm quà
+        # --- GIAO DIỆN NHẬP LIỆU ---
         with st.container(border=True):
             col_type, col_val = st.columns(2)
             
@@ -719,9 +751,8 @@ def admin_quan_ly_boss():
                     final_val = st.number_input(f"2. Nhập số lượng {r_type.upper()}:", min_value=1, value=50, step=10)
                     default_msg = f"Bạn nhận được {final_val} {r_type.upper()}!"
                 
-                else: # Nếu là ITEM
+                else: # ITEM
                     if item_source_map:
-                        # Selectbox hiển thị tên item từ map đã tạo ở trên
                         selected_item_id = st.selectbox(
                             "2. Chọn Vật phẩm:", 
                             list(item_source_map.keys()),
@@ -729,13 +760,13 @@ def admin_quan_ly_boss():
                         )
                         final_val = selected_item_id
                         
-                        # Lấy tên sạch (bỏ chữ Shop/Kho Admin) để hiển thị thông báo cho đẹp
+                        # Tạo tên đẹp cho thông báo
                         raw_name = item_source_map.get(selected_item_id, "").split('(')[0].strip()
                         default_msg = f"Bạn nhận được vật phẩm: {raw_name}!"
                     else:
-                        st.warning("⚠️ Không tìm thấy dữ liệu Item từ Shop hoặc Kho Admin.")
-                        st.caption("Hãy đảm bảo bạn đã nhập dữ liệu vào tab 'Shop' trên Google Sheet.")
-                        final_val = st.text_input("Nhập thủ công ID vật phẩm:")
+                        st.warning("⚠️ Không tìm thấy dữ liệu Item!")
+                        st.caption("Hệ thống đã thử tải tab 'Shop' nhưng không thấy. Bạn có thể nhập ID thủ công:")
+                        final_val = st.text_input("Nhập ID vật phẩm:")
                         default_msg = "Bạn nhận được vật phẩm hiếm!"
 
             # C. CHỌN TỶ LỆ & THÔNG BÁO
@@ -763,9 +794,10 @@ def admin_quan_ly_boss():
                     sys_config['chest_rewards'].append(new_reward)
                     user_module.save_all_to_sheets(st.session_state.data) 
                     
-                    st.success(f"✅ Đã thêm '{r_type}' vào rương!")
+                    st.success(f"✅ Đã thêm thành công!")
                     time.sleep(1)
-                    st.rerun()    
+                    st.rerun()
+
 def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
     # --- TỰ ĐỘNG BACKUP KHI ADMIN ĐĂNG NHẬP ---
     if thực_hiện_auto_backup():
