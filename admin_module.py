@@ -512,7 +512,7 @@ def admin_quan_ly_boss():
     tab_boss, tab_item, tab_chest = st.tabs(["👹 BOSS & DROP", "📦 KHO VẬT PHẨM", "🎰 CẤU HÌNH RƯƠNG BÁU"])
 
     # ==========================================================================
-    # TAB 1: QUẢN LÝ BOSS (Giữ nguyên logic cũ của bạn)
+    # TAB 1: QUẢN LÝ BOSS
     # ==========================================================================
     with tab_boss:
         boss_hien_tai = sys_config.get('active_boss')
@@ -521,15 +521,20 @@ def admin_quan_ly_boss():
             st.subheader("🔥 Cấu Hình Boss")
             c1, c2 = st.columns(2)
             
-            # Load default
+            # Load dữ liệu mặc định
             def_name = boss_hien_tai.get('ten', "Giáo Viên Mới") if boss_hien_tai else "Giáo Viên Mới"
             def_hp = boss_hien_tai.get('hp_max', 10000) if boss_hien_tai else 10000
             def_dmg = boss_hien_tai.get('damage', 50) if boss_hien_tai else 50
+            def_img = boss_hien_tai.get('anh', "") if boss_hien_tai else "" # Lấy link ảnh cũ
             
             with c1:
                 ten_boss = st.text_input("Tên Boss:", value=def_name)
                 mon_hoc = st.selectbox("Môn học:", ["toan", "van", "anh", "ly", "hoa", "sinh"])
                 hp_boss = st.number_input("HP (Máu):", min_value=10, value=int(def_hp), step=100)
+                
+                # 👇👇👇 DÒNG BỊ THIẾU ĐÃ ĐƯỢC THÊM LẠI Ở ĐÂY 👇👇👇
+                anh_boss = st.text_input("Link Ảnh Boss (URL Online):", value=def_img, placeholder="https://...")
+                
             with c2:
                 damage_boss = st.number_input("Sát thương:", value=int(def_dmg))
                 kpi_rate = st.number_input("Hệ số KPI:", value=1.0)
@@ -542,15 +547,19 @@ def admin_quan_ly_boss():
 
             if st.form_submit_button("💾 LƯU BOSS & DROP LIST"):
                 clean_drop = xu_ly_du_lieu_drop(raw_drop_data)
+                
                 new_boss = {
                     "ten": ten_boss, "name": ten_boss, "mon": mon_hoc,
                     "hp_max": hp_boss, "hp_current": hp_boss,
                     "damage": damage_boss, "kpi_rate": kpi_rate, "exp_rate": exp_rate,
-                    "anh": boss_hien_tai.get('anh', "") if boss_hien_tai else "",
+                    
+                    "anh": anh_boss, # <--- Cập nhật: Lưu link ảnh từ ô nhập liệu
+                    
                     "status": "active",
                     "drop_table": clean_drop,
                     "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 }
+                
                 sys_config['active_boss'] = new_boss
                 user_module.save_all_to_sheets(st.session_state.data)
                 st.success(f"✅ Đã cập nhật Boss {ten_boss}!")
