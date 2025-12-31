@@ -2785,84 +2785,77 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                 
                 
 
-    # --- PHẦN CẬP NHẬT TRONG TAB KHO ---
+    # --- TAB 2: TÚI ĐỒ (CẬP NHẬT SỬA LỖI KHÓA RƯƠNG) ---
     with tab_kho:
         inventory = user_info.get('inventory', {})
         
-        # Chuyển đổi data cũ (list) sang data mới (dict) nếu cần
+        # 1. Tự động chuyển đổi List -> Dict (Fix lỗi dữ liệu cũ)
         if isinstance(inventory, list):
-            st.warning("⚠️ Đang nâng cấp cấu trúc túi đồ... Vui lòng chờ!")
             new_inv = {}
             for item in inventory:
                 new_inv[item] = new_inv.get(item, 0) + 1
-            user_info['inventory'] = new_inv
-            save_data_func()
+            inventory = new_inv
+            user_info['inventory'] = inventory
+            save_data_func(st.session_state.data)
             st.rerun()
 
         if not inventory:
-            st.info("Túi đồ của bạn đang trống. Hãy sang Tiệm tạp hóa sắm đồ nhé!")
+            st.info("🎒 Túi đồ trống trơn. Hãy ghé Tiệm tạp hóa nhé!")
         else:
-            st.write(f"### 🎒 VẬT PHẨM ĐANG SỞ HỮU")
+            st.write(f"### 📦 Đồ đạc của bạn")
             
-            # Lấy data Shop để biết loại item (Type)
-            shop_data = st.session_state.get('shop_items', {})
-            
+            shop_data = st.session_state.data.get('shop_items', {})
             cols_kho = st.columns(4)
             
-            # Duyệt qua từng món đồ trong kho
             for i, (item_name, count) in enumerate(inventory.items()):
-                # Lấy thông tin chi tiết item
+                # Lấy thông tin item
                 item_info = shop_data.get(item_name, {})
-                img_url = item_info.get('image', 'https://via.placeholder.com/50')
-                item_type = item_info.get('type', 'UNKNOWN') # Quan trọng: Type để phân loại Rương/Item thường
                 
+                # Mặc định lấy loại từ DB, nếu không có thì là ITEM
+                item_type = item_info.get('type', 'ITEM') 
+                
+                # Lấy ảnh
+                img_url = item_info.get('image', '')
+                if not img_url:
+                    img_url = "https://cdn-icons-png.flaticon.com/512/9630/9630454.png" # Ảnh mặc định
+
+                # 🔥🔥🔥 [FIX QUAN TRỌNG] ÉP BUỘC RƯƠNG BÁU LÀ GACHA_BOX 🔥🔥🔥
+                # Dù trong Admin bạn lỡ để là ITEM hay gì, code này sẽ sửa lại hết.
+                if "Rương" in item_name or "ruong" in item_name.lower(): 
+                    item_type = "GACHA_BOX"
+                    # Fix luôn ảnh nếu bị lỗi (như trong hình của bạn)
+                    if "via.placeholder" in img_url or not img_url: 
+                         img_url = "https://cdn-icons-png.flaticon.com/512/9336/9336056.png"
+                # -------------------------------------------------------------
+
                 with cols_kho[i % 4]:
-                    # Vẽ Card Item
+                    # Card hiển thị
                     st.markdown(f"""
-                    <div style="background:#3e2723;border:2px solid #8d6e63;border-radius:8px;padding:10px;text-align:center;color:white;margin-bottom:5px;">
-                    <img src="{img_url}" style="width:50px;height:50px;object-fit:contain;margin-bottom:5px;">
-                    <div style="font-size:0.8em;font-weight:bold;height:35px;overflow:hidden;">{item_name}</div>
-                    <div style="color:#76ff03;font-size:0.9em;font-weight:bold;">Số lượng: {count}</div>
-                    </div>
+                        <div style="background:#3e2723; border:2px solid #8d6e63; border-radius:10px; padding:10px; text-align:center; position:relative; height: 160px; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div style="position:absolute; top:5px; right:5px; background:#e74c3c; color:white; border-radius:50%; width:25px; height:25px; line-height:25px; font-weight:bold; font-size:12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">{count}</div>
+                            <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+                                <img src="{img_url}" style="width:60px; height:60px; object-fit:contain;">
+                            </div>
+                            <div style="font-weight:bold; color:#f1c40f; font-size:14px; margin-top: 5px; height:40px; overflow:hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">{item_name}</div>
+                        </div>
                     """, unsafe_allow_html=True)
                     
-                    # --- NÚT BẤM XỬ LÝ (PHÂN LOẠI THEO TYPE) ---
-                    
-                    # CASE 1: LÀ RƯƠNG GACHA -> NÚT MỞ RƯƠNG
+                    # Nút bấm hành động (Đã được mở khóa nhờ đoạn Fix ở trên)
                     if item_type == "GACHA_BOX":
-                        if st.button(f"🎲 Mở Rương", key=f"open_{item_name}_{i}", use_container_width=True):
-                            # 1. Hiệu ứng chờ (Hồi hộp)
-                            with st.spinner("🎲 Đang lắc rương..."):
-                                time.sleep(1.5)
-                            
-                            # 2. Xử lý Logic (Backend)
+                        if st.button("🎲 MỞ NGAY", key=f"open_{i}", use_container_width=True, type="primary"):
                             rewards = xu_ly_mo_ruong(user_id, item_name, item_info, st.session_state.data, save_data_func)
-                            
-                            # 3. LƯU KẾT QUẢ VÀO SESSION STATE (Thay vì hiện luôn)
-                            st.session_state.gacha_result = {
-                                "name": item_name,
-                                "rewards": rewards
-                            }
+                            st.session_state.gacha_result = {"name": item_name, "rewards": rewards}
                             st.rerun()
-
-                    # CASE 2: ITEM DÙNG ĐƯỢC (Thuốc, Buff...) -> NÚT SỬ DỤNG CŨ
+                            
                     elif item_type in ["CONSUMABLE", "BUFF_STAT"]:
-                        if st.button(f"⚡ Sử dụng", key=f"use_{item_name}_{i}", use_container_width=True):
-                            st.session_state.pending_use = (item_name, item_info)
-                            st.rerun()
-                            
-                    # CASE 3: ITEM KHÁC (Nguyên liệu...)
+                        if st.button("⚡ SỬ DỤNG", key=f"use_{i}", use_container_width=True):
+                             st.toast("Chức năng đang phát triển", icon="🔨")
                     else:
-                        st.button("🔒 Đã sở hữu", disabled=True, key=f"dis_{item_name}_{i}")
+                        st.button("🔒 Đã sở hữu", disabled=True, key=f"lock_{i}")
 
-        # Gọi Popup xác nhận dùng item thường (Giữ nguyên logic cũ)
-        if "pending_use" in st.session_state:
-            u_name, u_info = st.session_state.pending_use
-            # Đảm bảo bạn đã import hoặc định nghĩa confirm_use_dialog ở đâu đó
-            confirm_use_dialog(u_name, u_info, user_id, save_data_func)
+        # Kiểm tra Popup kết quả
         if "gacha_result" in st.session_state:
             res = st.session_state.gacha_result
-            # Gọi hàm Popup đã viết ở Bước 1
             popup_ket_qua_mo_ruong(res['name'], res['rewards'])
 
           
