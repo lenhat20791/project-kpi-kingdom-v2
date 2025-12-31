@@ -626,7 +626,7 @@ def admin_quan_ly_boss():
                             st.rerun()
 
     # ==========================================================================
-    # TAB 3: CẤU HÌNH RƯƠNG BÁU (Đã Fix lỗi chữ Hoa/Thường)
+    # TAB 3: CẤU HÌNH RƯƠNG BÁU (BẢN FINAL: FIX TÌM ĐỒ + GHI THẲNG SHEET)
     # ==========================================================================
     with tab_chest:
         st.subheader("🎰 Cài đặt Ruột Rương Báu")
@@ -669,16 +669,14 @@ def admin_quan_ly_boss():
                     st.session_state.shop_config = []
                     
             except Exception as e:
-                # st.warning(f"Chưa kết nối được Shop: {e}")
                 st.session_state.shop_config = []
 
-        # --- 1. HIỂN THỊ LIST HIỆN TẠI (Giữ nguyên) ---
+        # --- 1. HIỂN THỊ LIST HIỆN TẠI ---
         if 'chest_rewards' not in sys_config:
             sys_config['chest_rewards'] = []
             
         current_rewards = sys_config['chest_rewards']
         if current_rewards:
-            # Code hiển thị list cũ (không thay đổi)
             for idx, reward in enumerate(current_rewards):
                 with st.container(border=True):
                     c1, c2, c3, c4 = st.columns([0.5, 2, 1, 0.5])
@@ -692,21 +690,34 @@ def admin_quan_ly_boss():
                     with c4:
                         if st.button("🗑️", key=f"del_chest_{idx}"):
                             current_rewards.pop(idx)
-                            user_module.save_all_to_sheets(st.session_state.data)
+                            # Lưu nhanh khi xóa
+                            import json
+                            from user_module import get_gspread_client
+                            try:
+                                client = get_gspread_client()
+                                secrets_gcp = st.secrets.get("gcp_service_account", {})
+                                if "spreadsheet_id" in secrets_gcp: sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+                                elif "spreadsheet_url" in secrets_gcp: sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
+                                else: sh = client.openall()[0]
+                                wks_settings = sh.worksheet("Settings")
+                                json_str = json.dumps(current_rewards, ensure_ascii=False)
+                                cell = wks_settings.find("chest_rewards")
+                                if cell: wks_settings.update_cell(cell.row, cell.col + 1, json_str)
+                            except: pass
                             st.rerun()
 
         st.divider()
         
-        # --- 2. FORM THÊM QUÀ (Đã Fix lỗi ID/Name) ---
+        # --- 2. FORM THÊM QUÀ ---
         st.write("#### ➕ Thêm quà vào Rương")
         
-        # --- LOGIC ĐỌC ITEM THÔNG MINH ---
+        # --- LOGIC ĐỌC ITEM THÔNG MINH (Code của bạn) ---
         item_source_map = {} 
         raw_shop = st.session_state.get('shop_config', [])
         
         if raw_shop:
             for item in raw_shop:
-                # 🔥 FIX LỖI Ở ĐÂY: Tìm cả 'ID' (Hoa) và 'id' (Thường)
+                # 🔥 Fix lỗi ID/id tại đây
                 i_id = item.get('ID') or item.get('id') or item.get('Item_ID')
                 i_name = item.get('Name') or item.get('name') or item.get('Item_Name') or i_id
                 
@@ -721,7 +732,7 @@ def admin_quan_ly_boss():
                 else:
                     item_source_map[str(item)] = f"{str(item)} (Kho Admin)"
         
-        # --- GIAO DIỆN ---
+        # --- GIAO DIỆN NHẬP LIỆU ---
         with st.container(border=True):
             col_type, col_val = st.columns(2)
             
@@ -737,7 +748,6 @@ def admin_quan_ly_boss():
                     final_val = st.number_input("2. Số lượng:", min_value=1, value=50)
                     default_msg = f"Bạn nhận được {final_val} {r_type.upper()}!"
                 else:
-                    # NẾU CÓ ITEM -> HIỆN SELECTBOX
                     if item_source_map:
                         selected_item_id = st.selectbox(
                             "2. Chọn Vật phẩm:", list(item_source_map.keys()),
@@ -747,11 +757,10 @@ def admin_quan_ly_boss():
                         raw_name = item_source_map.get(selected_item_id, "").split('(')[0].strip()
                         default_msg = f"Bạn nhận được vật phẩm: {raw_name}!"
                     else:
-                        st.warning("⚠️ Không tìm thấy dữ liệu (Kiểm tra lại tên cột ID/Name trong Sheet)")
+                        st.warning("⚠️ Không tìm thấy dữ liệu Item!")
                         final_val = st.text_input("Nhập thủ công ID:")
                         default_msg = "Bạn nhận được quà!"
 
-            # Các ô nhập liệu còn lại
             c_rate, c_msg = st.columns([1, 2])
             with c_rate:
                 r_rate = st.number_input("3. Tỷ lệ (Trọng số):", min_value=1, value=10)
@@ -759,20 +768,56 @@ def admin_quan_ly_boss():
                 r_msg = st.text_input("4. Thông báo:", value=default_msg)
 
             st.write("")
+            
+            # --- 🔥 NÚT LƯU TRỰC TIẾP (QUAN TRỌNG NHẤT) 🔥 ---
             if st.button("💾 Lưu vào Rương", type="primary", use_container_width=True):
                 if r_type == 'item' and not final_val:
                     st.error("❌ Thiếu thông tin vật phẩm!")
                 elif not r_msg:
                     st.error("❌ Thiếu thông báo!")
                 else:
-                    sys_config['chest_rewards'].append({
+                    # 1. Cập nhật Session State
+                    new_reward = {
                         "type": r_type, "val": final_val, 
                         "rate": int(r_rate), "msg": r_msg
-                    })
-                    user_module.save_all_to_sheets(st.session_state.data) 
-                    st.success("✅ Đã lưu thành công!")
-                    time.sleep(0.5)
-                    st.rerun()
+                    }
+                    sys_config['chest_rewards'].append(new_reward)
+                    
+                    # 2. GHI THẲNG VÀO SHEET (Fix lỗi không lưu)
+                    try:
+                        with st.spinner("Đang ghi dữ liệu lên mây..."):
+                            import json
+                            from user_module import get_gspread_client
+                            
+                            client = get_gspread_client()
+                            # Mở Sheet
+                            secrets_gcp = st.secrets.get("gcp_service_account", {})
+                            if "spreadsheet_id" in secrets_gcp: sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+                            elif "spreadsheet_url" in secrets_gcp: sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
+                            else: sh = client.openall()[0]
+                            
+                            # Vào tab Settings
+                            wks_settings = sh.worksheet("Settings")
+                            json_str = json.dumps(sys_config['chest_rewards'], ensure_ascii=False)
+                            
+                            # Tìm dòng 'chest_rewards' để ghi đè
+                            try:
+                                cell = wks_settings.find("chest_rewards")
+                                if cell:
+                                    wks_settings.update_cell(cell.row, cell.col + 1, json_str)
+                                else:
+                                    wks_settings.append_row(["chest_rewards", json_str])
+                            except:
+                                wks_settings.append_row(["chest_rewards", json_str])
+                                
+                        st.success("✅ Đã lưu thành công vào Google Sheet!")
+                        st.balloons()
+                        time.sleep(1)
+                        st.rerun()
+                        
+                    except Exception as e:
+                        st.error(f"❌ Lỗi ghi Sheet: {e}")
+                        
 def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
     # --- TỰ ĐỘNG BACKUP KHI ADMIN ĐĂNG NHẬP ---
     if thực_hiện_auto_backup():
