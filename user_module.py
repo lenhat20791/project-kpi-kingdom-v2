@@ -682,37 +682,44 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
     if user_id not in st.session_state.data: return
     user_info = st.session_state.data[user_id]
     
-    # Lấy thông tin phase
+    # Lấy thông tin phase an toàn
     try:
         p_data = dungeon_config[land_id]["phases"][phase_id]
     except:
-        return # Tránh lỗi nếu config sai
+        return 
 
-    # 2. Đảm bảo dữ liệu cơ bản tồn tại
+    # 2. Đảm bảo các chỉ số cơ bản tồn tại
     for field in ['exp', 'level', 'kpi', 'inventory', 'hp']:
         if field not in user_info:
             user_info[field] = 0 if field != 'inventory' else []
     
-    # ==========================================================
-    # 🔥 FIX LỖI QUAN TRỌNG: XỬ LÝ TRƯỜNG HỢP best_time BỊ NULL
-    # ==========================================================
-    # Kiểm tra kỹ: Nếu key thiếu HOẶC giá trị là None -> Tạo mới dict rỗng
-    if 'best_time' not in user_info or user_info['best_time'] is None:
-        user_info['best_time'] = {}
-    # ==========================================================
-
     old_lv = user_info.get('level', 1)
     old_atk = tinh_atk_tong_hop(user_info)
     old_hp_max = 100 + (old_lv * 20) 
     user_info['hp_max'] = old_hp_max 
+    
+    # ==========================================================
+    # 🔥 KHẮC PHỤC LỖI Attribute Error (QUAN TRỌNG NHẤT) 🔥
+    # ==========================================================
+    # Bước 1: Lấy dữ liệu ra một biến tạm
+    raw_best_time = user_info.get('best_time')
 
-    # 3. Logic so sánh và lưu kỷ lục thời gian
+    # Bước 2: Kiểm tra kiểu dữ liệu của biến tạm
+    # Nếu nó không phải là Dict (nó là None, hoặc List, hoặc rỗng...) -> Reset ngay
+    if not isinstance(raw_best_time, dict):
+        raw_best_time = {} 
+        user_info['best_time'] = raw_best_time # Lưu ngược lại vào data gốc để sửa lỗi vĩnh viễn
+    
+    # Từ giờ, ta chỉ thao tác với biến 'raw_best_time' (chắc chắn là Dict)
+    # ==========================================================
+
+    # 3. Logic so sánh và lưu kỷ lục
     if duration is not None:
-        # Lấy kỷ lục cũ (Bây giờ chắc chắn user_info['best_time'] là Dict, không thể lỗi NoneType được nữa)
-        old_record = user_info['best_time'].get(land_id, 999)
+        # Dùng raw_best_time thay vì user_info['best_time'] để tránh lỗi
+        old_record = raw_best_time.get(land_id, 999)
         
         if duration < old_record:
-            user_info['best_time'][land_id] = duration
+            raw_best_time[land_id] = duration # Cập nhật vào biến tạm (nó tham chiếu tới data gốc)
             st.toast(f"🔥 KỶ LỤC MỚI: {duration}s!", icon="🏆")
         else:
             st.write(f"⏱️ Thời gian hoàn thành: {duration}s (Kỷ lục hiện tại: {old_record}s)")
@@ -728,14 +735,16 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
     new_hp_max = 100 + (new_lv * 20)
     user_info['hp'] = new_hp_max 
 
-    # 6. Rơi đồ (Loot)
+    # 6. Loot đồ
     loot_msg = "Không có"
     item_id = p_data.get('item_drop_id', "none")
     if item_id not in ["none", "Không rơi đồ"]:
         if random.randint(1, 100) <= p_data.get('drop_rate', 0):
-            if not isinstance(user_info.get('inventory'), list):
-                 user_info['inventory'] = []
-            user_info['inventory'].append(item_id)
+            inv = user_info.get('inventory')
+            if not isinstance(inv, list): 
+                inv = []
+                user_info['inventory'] = inv
+            inv.append(item_id)
             loot_msg = f"📦 {item_id}"
 
     # 7. Hiển thị kết quả
@@ -757,24 +766,24 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
         </div>
         """, unsafe_allow_html=True)
 
-    # 9. Cập nhật tiến trình (Dungeon Progress)
-    try:
-        current_p_num = int(phase_id.split("_")[1]) 
-    except:
-        current_p_num = 1
+    # 9. Cập nhật tiến trình
+    try: current_p_num = int(phase_id.split("_")[1]) 
+    except: current_p_num = 1
     
-    if 'dungeon_progress' not in user_info or user_info['dungeon_progress'] is None:
-        user_info['dungeon_progress'] = {}
+    # Fix luôn lỗi tiềm ẩn cho dungeon_progress
+    raw_prog = user_info.get('dungeon_progress')
+    if not isinstance(raw_prog, dict):
+        raw_prog = {}
+        user_info['dungeon_progress'] = raw_prog
     
-    actual_progress = user_info['dungeon_progress'].get(land_id, 1)
+    actual_progress = raw_prog.get(land_id, 1)
 
     if current_p_num == actual_progress:
         if current_p_num < 4:
-            user_info['dungeon_progress'][land_id] = current_p_num + 1
+            raw_prog[land_id] = current_p_num + 1
 
     # Lưu dữ liệu
     save_data_func(st.session_state.data)
-
 def tinh_atk_tong_hop(user_info):
     """
     ATK = (Level * 5) + (Tổng điểm các bài kiểm tra)
