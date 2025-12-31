@@ -676,7 +676,13 @@ def hien_thi_sanh_pho_ban_hoc_si(user_id):
             st.rerun()
 
 def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save_data_func, duration=None):
+    import random # Đảm bảo có import random
+    
+    # Lấy data người chơi
+    if user_id not in st.session_state.data: return
     user_info = st.session_state.data[user_id]
+    
+    # Lấy thông tin phase
     p_data = dungeon_config[land_id]["phases"][phase_id]
     
     # 0. Đảm bảo dữ liệu tồn tại và lưu chỉ số cũ để so sánh
@@ -688,15 +694,19 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
     old_atk = tinh_atk_tong_hop(user_info)
     # Thống nhất dùng hp_max
     old_hp_max = 100 + (old_lv * 20) 
-    user_info['hp_max'] = old_hp_max # Cập nhật lại vào data 
+    user_info['hp_max'] = old_hp_max 
     
-    # Khởi tạo cấu trúc lưu kỷ lục thời gian nếu chưa có
-    if 'best_time' not in user_info:
+    # ==========================================================
+    # 🔥 FIX LỖI CRASH: Khởi tạo best_time nếu chưa có HOẶC bị None
+    # ==========================================================
+    if 'best_time' not in user_info or user_info['best_time'] is None:
         user_info['best_time'] = {}
+    # ==========================================================
 
     # Logic so sánh và lưu kỷ lục thời gian nhanh nhất
     if duration is not None:
         # Lấy kỷ lục cũ, nếu chưa có mặc định là 999 giây
+        # Bây giờ dòng này an toàn tuyệt đối vì best_time chắc chắn là dict
         old_record = user_info['best_time'].get(land_id, 999)
         
         if duration < old_record:
@@ -723,6 +733,10 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
     item_id = p_data.get('item_drop_id', "none")
     if item_id not in ["none", "Không rơi đồ"]:
         if random.randint(1, 100) <= p_data.get('drop_rate', 0):
+            # Đảm bảo inventory là list
+            if not isinstance(user_info.get('inventory'), list):
+                 user_info['inventory'] = []
+            
             user_info['inventory'].append(item_id)
             loot_msg = f"📦 {item_id}"
 
@@ -760,7 +774,10 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
         """, unsafe_allow_html=True)
 
     # 6. Cập nhật tiến trình vào file (SỬA LẠI ĐỂ TRÁNH NHẢY PHASE)
-    current_p_num = int(phase_id.split("_")[1]) # Ví dụ: "phase_1" -> 1
+    try:
+        current_p_num = int(phase_id.split("_")[1]) # Ví dụ: "phase_1" -> 1
+    except:
+        current_p_num = 1
     
     # Lấy tiến trình hiện tại từ dữ liệu, mặc định là 1 nếu chưa có
     if 'dungeon_progress' not in user_info:
@@ -769,11 +786,12 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
     actual_progress = user_info['dungeon_progress'].get(land_id, 1)
 
     # CHỈ CẬP NHẬT NẾU: Số phase vừa xong đúng bằng tiến trình hiện tại
-    # Điều này ngăn chặn việc hàm bị gọi 2 lần gây nhảy phase
     if current_p_num == actual_progress:
         if current_p_num < 4:
             user_info['dungeon_progress'][land_id] = current_p_num + 1
-            
+
+    # QUAN TRỌNG: Lưu dữ liệu cuối cùng
+    save_data_func(st.session_state.data)           
 
 def tinh_atk_tong_hop(user_info):
     """
