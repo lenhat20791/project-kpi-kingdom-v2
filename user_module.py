@@ -484,89 +484,83 @@ def generate_username(text):
     return text
     
 def hien_thi_pho_ban(user_id, save_data_func):
-    # 1. Đảm bảo config tồn tại (Tránh lỗi NameError)
-    # Giả sử bạn lưu config trong session, hoặc load từ file
-    # Nếu chưa có biến dungeon_config, hãy load nó ở đây:
+    # 1. Load config (Để tránh lỗi thiếu biến)
     if 'dungeon_config_data' in st.session_state:
         dungeon_config = st.session_state.dungeon_config_data
     else:
-        # Fallback: Load mặc định hoặc import từ file data của bạn
-        # from game_data import DUNGEON_DATA as dungeon_config 
-        # Tạm thời để trống nếu bạn đã có biến global, nhưng tốt nhất nên gán:
+        # Load fallback nếu chưa có
         dungeon_config = st.session_state.get('system_config', {}).get('dungeon_data', {}) 
 
     user_info = st.session_state.data[user_id]
     
-    # --- PHẦN 1: NẾU ĐANG TRONG TRẬN ĐẤU (VIEW COMBAT) ---
+    # =========================================================================
+    # 🔥 CẤU TRÚC RẼ NHÁNH: CHỈ HIỂN THỊ 1 TRONG 2 GIAO DIỆN
+    # =========================================================================
+    
+    # TRƯỜNG HỢP 1: ĐANG TRONG TRẬN ĐẤU (COMBAT MODE)
     if st.session_state.get("dang_danh_dungeon") is True:
         land_id = st.session_state.get('selected_land')
         p_id = st.session_state.get('selected_phase_id')
         
-        # Gọi hàm chiến đấu
+        # Gọi hàm hiển thị chiến đấu
         trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_func)
         
-        # Nút thoát khẩn cấp
+        # Nút Rút lui (Nằm ở Sidebar để không che nội dung)
         if st.sidebar.button("🚩 RÚT LUI KHỎI PHÓ BẢN"):
             st.session_state.dang_danh_dungeon = False
             st.rerun()
-            
-        return # 🛑 DỪNG HÀM TẠI ĐÂY - Không cho code chạy xuống dưới
 
-    # --- PHẦN 2: GIAO DIỆN CHỌN VÙNG ĐẤT (VIEW MENU) ---
-    st.title("🏹 PHIÊU LƯU PHÓ BẢN")
-    
-    # Hiển thị chỉ số
-    atk = tinh_atk_tong_hop(user_info)
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Cấp độ", f"Lv.{user_info.get('level', 1)}")
-    col2.metric("Sức mạnh (ATK)", atk)
-    col3.metric("Máu (HP)", f"{user_info.get('hp', 100)}/{user_info.get('hp_max', 100)}")
-
-    st.write("---")
-    st.subheader("🗺️ Chọn Vùng Đất Thử Thách")
-    
-    vung_dat = [
-        {"id": "toan", "name": "Rừng Toán Học", "icon": "📐", "color": "#2ecc71"},
-        {"id": "anh", "name": "Hang Động Ngôn Ngữ", "icon": "🇬🇧", "color": "#3498db"},
-        {"id": "van", "name": "Thung Lũng Văn Chương", "icon": "📖", "color": "#e67e22"},
-        {"id": "ly", "id_file": "ly", "name": "Ngọn Núi Vật Lý", "icon": "⚡", "color": "#9b59b6"},
-        {"id": "hoa", "name": "Hồ Nước Hóa Học", "icon": "🧪", "color": "#1abc9c"},
-        {"id": "sinh", "name": "Vườn Sinh Học", "icon": "🌿", "color": "#27ae60"}
-    ]
-
-    # === HÀM CALLBACK: CHẠY NGAY KHI BẤM NÚT ===
-    def vao_tran_callback(r_id):
-        # 1. Set trạng thái Combat
-        st.session_state.dang_danh_dungeon = True
-        st.session_state.selected_land = r_id
+    # TRƯỜNG HỢP 2: ĐANG Ở SẢNH CHỜ (MENU MODE)
+    else: 
+        # (Toàn bộ code hiển thị danh sách vùng đất nằm trong khối ELSE này)
         
-        # 2. Tính toán Phase
-        if 'dungeon_progress' not in user_info: 
-            user_info['dungeon_progress'] = {}
-        prog = user_info['dungeon_progress'].get(r_id, 1)
-        st.session_state.selected_phase_id = f"phase_{prog}"
-    # ============================================
+        st.title("🏹 PHIÊU LƯU PHÓ BẢN")
+        
+        # Hiển thị chỉ số
+        atk = tinh_atk_tong_hop(user_info)
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Cấp độ", f"Lv.{user_info.get('level', 1)}")
+        col2.metric("Sức mạnh (ATK)", atk)
+        col3.metric("Máu (HP)", f"{user_info.get('hp', 100)}/{user_info.get('hp_max', 100)}")
 
-    cols = st.columns(3)
-    for i, region in enumerate(vung_dat):
-        with cols[i % 3]:
-            st.markdown(f"""
-                <div style="background:{region['color']}; padding:15px; border-radius:10px; text-align:center; color:white; margin-bottom: 10px;">
-                    <h1 style='margin:0;'>{region['icon']}</h1>
-                    <b>{region['name']}</b>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            # 🔥 SỬ DỤNG ON_CLICK ĐỂ GỌI HÀM CALLBACK 🔥
-            # Tham số 'args' truyền ID của vùng đất vào hàm callback
-            st.button(
-                f"Vào {region['name']}", 
-                key=f"btn_{region['id']}", 
-                use_container_width=True,
-                on_click=vao_tran_callback,  # <--- CHÌA KHÓA LÀ Ở ĐÂY
-                args=(region['id'],)         # <--- Truyền tham số
-            )
+        st.write("---")
+        st.subheader("🗺️ Chọn Vùng Đất Thử Thách")
+        
+        vung_dat = [
+            {"id": "toan", "name": "Rừng Toán Học", "icon": "📐", "color": "#2ecc71"},
+            {"id": "anh", "name": "Hang Động Ngôn Ngữ", "icon": "🇬🇧", "color": "#3498db"},
+            {"id": "van", "name": "Thung Lũng Văn Chương", "icon": "📖", "color": "#e67e22"},
+            {"id": "ly", "id_file": "ly", "name": "Ngọn Núi Vật Lý", "icon": "⚡", "color": "#9b59b6"},
+            {"id": "hoa", "name": "Hồ Nước Hóa Học", "icon": "🧪", "color": "#1abc9c"},
+            {"id": "sinh", "name": "Vườn Sinh Học", "icon": "🌿", "color": "#27ae60"}
+        ]
 
+        # Hàm Callback để bấm nút là chuyển cảnh ngay
+        def vao_tran_callback(r_id):
+            st.session_state.dang_danh_dungeon = True
+            st.session_state.selected_land = r_id
+            if 'dungeon_progress' not in user_info: user_info['dungeon_progress'] = {}
+            prog = user_info['dungeon_progress'].get(r_id, 1)
+            st.session_state.selected_phase_id = f"phase_{prog}"
+
+        cols = st.columns(3)
+        for i, region in enumerate(vung_dat):
+            with cols[i % 3]:
+                st.markdown(f"""
+                    <div style="background:{region['color']}; padding:15px; border-radius:10px; text-align:center; color:white; margin-bottom: 10px;">
+                        <h1 style='margin:0;'>{region['icon']}</h1>
+                        <b>{region['name']}</b>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # Nút vào trận
+                st.button(
+                    f"Vào {region['name']}", 
+                    key=f"btn_{region['id']}", 
+                    use_container_width=True,
+                    on_click=vao_tran_callback,
+                    args=(region['id'],)
+                )
 def hien_thi_sanh_pho_ban_hoc_si(user_id):
     # Bạn cần kiểm tra xem tên trang có phải là trang phó bản không
     current_page = st.session_state.get("page", "")
