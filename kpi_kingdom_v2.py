@@ -1797,27 +1797,36 @@ else:
 
         # 3. KHIÊU CHIẾN BOSS HỌC KỲ - PHIÊN BẢN CAM NEON RỰC RỠ
 
-
         def get_base64(bin_file):
             if os.path.exists(bin_file):
                 with open(bin_file, 'rb') as f:
                     return base64.b64encode(f.read()).decode()
             return ""
 
-        # --- BƯỚC 1: LẤY DỮ LIỆU ---
-        path_config = r"data/boss_config.json"
-        boss = {}
-        if os.path.exists(path_config):
-            with open(path_config, "r", encoding="utf-8") as f:
-                boss = json.load(f).get("active_boss", {})
+        # --- [SỬA ĐOẠN NÀY] BƯỚC 1: LẤY DỮ LIỆU TỪ SESSION STATE (GGSHEET) ---
+        # Thay vì đọc file json, ta lấy từ system_config đã tải từ Sheet về
+        sys_config = st.session_state.get('system_config', {})
+        boss = sys_config.get('active_boss', {})
 
+        # Kiểm tra xem có Boss không
         if boss and boss.get("status") == "active":
-            img_b64 = get_base64(boss.get("anh", "assets/teachers/toan.png"))
-            img_src = f"data:image/png;base64,{img_b64}"
             
-            hp_cur = boss.get("hp_current", 0)
-            hp_max = boss.get("hp_max", 10000)
-            percent = (hp_cur / hp_max) * 100
+            # --- XỬ LÝ ẢNH (Hỗ trợ cả Link Online và File Local) ---
+            boss_img_source = boss.get("anh", "assets/teachers/toan.png")
+            
+            # Nếu là link online (http...) thì dùng luôn
+            if str(boss_img_source).startswith("http"):
+                img_src = boss_img_source
+            # Nếu là file local thì convert sang base64
+            else:
+                img_b64 = get_base64(boss_img_source)
+                img_src = f"data:image/png;base64,{img_b64}"
+            
+            # --- LẤY CHỈ SỐ ---
+            hp_cur = int(boss.get("hp_current", 0))
+            hp_max = int(boss.get("hp_max", 10000))
+            # Tránh chia cho 0
+            percent = (hp_cur / hp_max) * 100 if hp_max > 0 else 0
             
             contributions = boss.get("contributions", {})
             top_10 = sorted(contributions.items(), key=lambda x: x[1], reverse=True)[:10]
@@ -1825,7 +1834,10 @@ else:
             # --- BƯỚC 2: DANH SÁCH TOP 10 (22PX) ---
             top_list_html = ""
             for i, (uid, dmg) in enumerate(top_10):
-                name = st.session_state.data.get(uid, {}).get("name", uid)
+                # Lấy tên user từ data (nếu có)
+                user_info = st.session_state.data.get(str(uid), {})
+                name = user_info.get("name", uid) # Fallback về ID nếu không tìm thấy tên
+                
                 color = "#f1c40f" if i < 3 else "#ffffff" 
                 top_list_html += f"""
                 <div style='display:flex; justify-content:space-between; color:{color}; font-size:22px; margin-bottom:12px; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom:5px;'>
@@ -1861,7 +1873,8 @@ else:
                     box-shadow: 0 0 40px rgba(0,0,0,0.6);
                     background: #000;
                 }}
-                .boss-avatar-box img {{ width: 100%; height: 100%; object-fit: contain; background-color: #1a1a1a; }}
+                /* Thêm cover để ảnh không bị méo */
+                .boss-avatar-box img {{ width: 100%; height: 100%; object-fit: cover; background-color: #1a1a1a; }}
 
                 .boss-main-content {{
                     flex: 0 0 50%;
@@ -1915,11 +1928,13 @@ else:
                     width: {percent}%;
                     height: 100%;
                     box-shadow: 0 0 30px #ff4d4d;
+                    transition: width 0.5s ease-in-out; /* Hiệu ứng mượt */
                 }}
                 .hp-mini-text {{
                     position: absolute; width:100%; text-align:center; top:0;
                     font-size: 26px; font-weight: bold; line-height: 55px;
                     text-shadow: 2px 2px 4px #000;
+                    color: white; z-index: 2;
                 }}
 
                 .damage-leaderboard {{
@@ -1937,6 +1952,10 @@ else:
                     padding-bottom: 10px; text-align: center;
                 }}
                 .list-container {{ overflow-y: auto; flex-grow: 1; }}
+                
+                /* Ẩn thanh cuộn cho đẹp */
+                .list-container::-webkit-scrollbar { width: 5px; }
+                .list-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.5); border-radius: 10px; }
             </style>
 
             <div class="boss-card">
@@ -1954,7 +1973,7 @@ else:
                     <div class="damage-leaderboard">
                         <div class="leaderboard-title">🏆 TOP 10 CHIẾN BINH</div>
                         <div class="list-container">
-                            {top_list_html if top_list_html else "<i style='font-size:22px;'>Đang chờ anh hùng xuất trận...</i>"}
+                            {top_list_html if top_list_html else "<div style='text-align:center; margin-top:20px;'><i style='font-size:22px;'>Đang chờ anh hùng xuất trận...</i></div>"}
                         </div>
                     </div>
                 </div>
