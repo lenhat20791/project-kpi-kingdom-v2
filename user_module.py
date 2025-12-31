@@ -3446,12 +3446,25 @@ def save_all_to_sheets(all_data):
                     special_perms = info.get('special_permissions', {}) if isinstance(info.get('special_permissions'), dict) else {}
                     
                     row = [
-                        str(uid), info.get('name', ''), info.get('team', 'Chưa phân tổ'), info.get('role', 'u3'),
-                        str(info.get('password', '123456')), info.get('kpi', 0), info.get('exp', 0), info.get('level', 1),
-                        info.get('hp', 100), info.get('hp_max', 100), special_perms.get('world_chat_count', 0),
+                        str(uid), 
+                        info.get('name', ''), 
+                        info.get('team', 'Chưa phân tổ'), 
+                        info.get('role', 'u3'),
+                        str(info.get('password', '123456')), 
                         
-                        json.dumps(stats_data, ensure_ascii=False), # Chứa reborn_at trong này
+                        # 👇 THAY ĐỔI Ở 2 DÒNG NÀY: Thêm int(...)
+                        int(info.get('kpi', 0)),   # Chuyển 170.1 -> 170 (Chặn lỗi nhân 10)
+                        int(info.get('exp', 0)),   # Chuyển exp lẻ -> chẵn
                         
+                        info.get('level', 1),
+                        
+                        # 👇 THAY ĐỔI Ở DÒNG NÀY: Thêm int(...)
+                        int(info.get('hp', 100)),  
+                        
+                        info.get('hp_max', 100), 
+                        special_perms.get('world_chat_count', 0),
+                        
+                        json.dumps(stats_data, ensure_ascii=False),
                         json.dumps(info.get('inventory', {}), ensure_ascii=False),
                         json.dumps(info.get('dungeon_progress', {}), ensure_ascii=False)
                     ]
