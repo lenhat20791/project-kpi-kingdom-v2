@@ -486,21 +486,27 @@ def generate_username(text):
 def hien_thi_pho_ban(user_id, save_data_func):
     user_info = st.session_state.data[user_id]
     
-    # --- PHẦN 1: NẾU ĐANG TRONG TRẬN ĐẤU ---
+    # --- PHẦN 1: NẾU ĐANG TRONG TRẬN ĐẤU (VIEW COMBAT) ---
     if st.session_state.get("dang_danh_dungeon"):
+        # Lấy dữ liệu đã lưu trong session
         land_id = st.session_state.get('selected_land')
         p_id = st.session_state.get('selected_phase_id')
         
-        # CHỈ HIỂN THỊ DUY NHẤT TRẬN ĐẤU
+        # Gọi hàm chiến đấu
+        # Lưu ý: Đảm bảo biến dungeon_config đã được import hoặc có sẵn
         trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_func)
         
         # Nút thoát khẩn cấp ở sidebar
-        if st.sidebar.button("🚩 RÚT LUI"):
+        if st.sidebar.button("🚩 RÚT LUI KHỎI PHÓ BẢN"):
             st.session_state.dang_danh_dungeon = False
+            # Xóa các biến tạm để sạch sẽ
+            if 'selected_land' in st.session_state: del st.session_state.selected_land
+            if 'selected_phase_id' in st.session_state: del st.session_state.selected_phase_id
             st.rerun()
-        return # Dừng hàm tại đây để không hiện phần dưới
+            
+        return # QUAN TRỌNG: Dừng hàm tại đây để không hiện danh sách bên dưới
 
-    # 2. GIAO DIỆN CHỌN VÙNG ĐẤT (Chỉ hiện khi chưa vào trận)
+    # --- PHẦN 2: GIAO DIỆN CHỌN VÙNG ĐẤT (VIEW MENU) ---
     st.title("🏹 PHIÊU LƯU PHÓ BẢN")
     
     # Hiển thị chỉ số nhanh
@@ -508,7 +514,6 @@ def hien_thi_pho_ban(user_id, save_data_func):
     col1, col2, col3 = st.columns(3)
     col1.metric("Cấp độ", f"Lv.{user_info.get('level', 1)}")
     col2.metric("Sức mạnh (ATK)", atk)
-    # Sử dụng hp_max đồng bộ như đã fix trước đó
     col3.metric("Máu (HP)", f"{user_info.get('hp', 100)}/{user_info.get('hp_max', 100)}")
 
     st.write("---")
@@ -527,27 +532,30 @@ def hien_thi_pho_ban(user_id, save_data_func):
     for i, region in enumerate(vung_dat):
         with cols[i % 3]:
             st.markdown(f"""
-                <div style="background:{region['color']}; padding:15px; border-radius:10px; text-align:center; color:white;">
+                <div style="background:{region['color']}; padding:15px; border-radius:10px; text-align:center; color:white; margin-bottom: 10px;">
                     <h1 style='margin:0;'>{region['icon']}</h1>
                     <b>{region['name']}</b>
                 </div>
             """, unsafe_allow_html=True)
             
-            if st.button(f"Vào {region['name']}", key=f"btn_{region['id']}"):
-                # Thiết lập trạng thái vùng đất để chuẩn bị vào Combat
-                st.session_state.selected_land_id = region['id']
-                # Mặc định chọn Phase hiện tại mà học sinh đã đạt tới (hoặc Phase 1)
-                prog = user_info.get('dungeon_progress', {}).get(region['id'], 1)
+            # Nút "Vào..."
+            if st.button(f"Vào {region['name']}", key=f"btn_{region['id']}", use_container_width=True):
+                # 1. Lưu ID vùng đất (Đồng bộ tên biến với Phần 1)
+                st.session_state.selected_land = region['id']
+                
+                # 2. Xác định Phase (Tiến trình)
+                # Nếu chưa có tiến trình thì mặc định là 1
+                if 'dungeon_progress' not in user_info: 
+                    user_info['dungeon_progress'] = {}
+                prog = user_info['dungeon_progress'].get(region['id'], 1)
+                
                 st.session_state.selected_phase_id = f"phase_{prog}"
                 
-                # Cần lưu lại dungeon_config để hàm combat sử dụng
-                # Ở đây bạn hãy gọi biến chứa dữ liệu config của phó bản
-                # st.session_state.dungeon_config_data = DUNGEON_DATA_GLOBAL 
+                # 3. 🔥 QUAN TRỌNG NHẤT: BẬT CÔNG TẮC CHIẾN ĐẤU 🔥
+                st.session_state.dang_danh_dungeon = True 
                 
-                # Kích hoạt trạng thái chuyển trang bằng cách thiết lập câu hỏi (giả lập để khởi động combat)
-                # Hoặc đơn giản là st.rerun() để hàm chạy lại và rơi vào khối if số 1
+                # 4. Load lại trang để lọt vào "PHẦN 1"
                 st.rerun()
-
 def hien_thi_sanh_pho_ban_hoc_si(user_id):
     # Bạn cần kiểm tra xem tên trang có phải là trang phó bản không
     current_page = st.session_state.get("page", "")
