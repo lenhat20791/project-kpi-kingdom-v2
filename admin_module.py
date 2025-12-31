@@ -626,62 +626,123 @@ def admin_quan_ly_boss():
                             st.rerun()
 
     # ==========================================================================
-    # TAB 3: CẤU HÌNH RƯƠNG BÁU (Cài đặt Gacha) - PHẦN MỚI
+    # TAB 3: CẤU HÌNH RƯƠNG BÁU (Cài đặt Gacha) - PHIÊN BẢN NÂNG CẤP
     # ==========================================================================
     with tab_chest:
         st.subheader("🎰 Cài đặt Ruột Rương Báu")
-        st.caption("Khi học sinh mở 'Rương Báu', hệ thống sẽ random ra một trong các phần quà dưới đây.")
+        st.caption("Cấu hình tỷ lệ rơi đồ khi học sinh mở Rương.")
 
-        current_rewards = sys_config.get('chest_rewards', [])
+        # --- 1. HIỂN THỊ DANH SÁCH HIỆN TẠI ---
+        # Đảm bảo list tồn tại
+        if 'chest_rewards' not in sys_config:
+            sys_config['chest_rewards'] = []
+            
+        current_rewards = sys_config['chest_rewards']
         
-        # 1. Hiển thị danh sách hiện tại
-        for idx, reward in enumerate(current_rewards):
-            with st.container(border=True):
-                c1, c2, c3 = st.columns([3, 1, 1])
-                with c1:
-                    st.write(f"🎁 **{reward['msg']}**")
-                    st.caption(f"Loại: {reward['type']} | Giá trị: {reward['val']}")
-                with c2:
-                    st.write(f"Tỷ lệ: `{reward['rate']}`")
-                with c3:
-                    if st.button("Xóa", key=f"del_chest_{idx}"):
-                        current_rewards.pop(idx)
-                        user_module.save_all_to_sheets(st.session_state.data)
-                        st.rerun()
+        if current_rewards:
+            for idx, reward in enumerate(current_rewards):
+                with st.container(border=True):
+                    c1, c2, c3, c4 = st.columns([0.5, 2, 1, 0.5])
+                    with c1:
+                        # Icon loại
+                        icon = "📦"
+                        if reward['type'] == 'kpi': icon = "💰"
+                        elif reward['type'] == 'exp': icon = "✨"
+                        st.markdown(f"### {icon}")
+                    with c2:
+                        st.write(f"**{reward['msg']}**")
+                        st.caption(f"Loại: `{reward['type'].upper()}` | Giá trị: `{reward['val']}`")
+                    with c3:
+                        st.info(f"Tỷ lệ: {reward['rate']}")
+                    with c4:
+                        if st.button("🗑️", key=f"del_chest_{idx}", help="Xóa phần quà này"):
+                            current_rewards.pop(idx)
+                            user_module.save_all_to_sheets(st.session_state.data)
+                            st.rerun()
+        else:
+            st.info("Chưa có phần quà nào trong rương.")
 
         st.divider()
         
-        # 2. Form thêm quà vào rương
+        # --- 2. FORM THÊM QUÀ (GIAO DIỆN ĐỘNG) ---
         st.write("#### ➕ Thêm quà vào Rương")
-        with st.form("add_chest_reward"):
-            cc1, cc2 = st.columns(2)
-            with cc1:
-                r_type = st.selectbox("Loại quà:", ["kpi", "exp", "item"])
-                r_val_input = st.text_input("Giá trị (Số lượng hoặc Tên Item):", placeholder="VD: 50 hoặc The_Bai_Mien_Tu")
-            with cc2:
-                r_rate = st.number_input("Tỷ lệ xuất hiện (Trọng số):", 1, 1000, 10)
-                r_msg = st.text_input("Thông báo trúng thưởng:", placeholder="VD: 💰 Bạn nhận được 50 KPI!")
+        
+        # Lấy danh sách vật phẩm từ kho của Admin để làm nguồn dữ liệu
+        admin_items = {}
+        if 'admin' in st.session_state.data:
+            raw_inv = st.session_state.data['admin'].get('inventory', [])
+            for item in raw_inv:
+                # Xử lý nếu item lưu dạng dict {id, name} hoặc chỉ là string "id"
+                if isinstance(item, dict):
+                    admin_items[item.get('id')] = item.get('name', item.get('id'))
+                else:
+                    admin_items[item] = item # Tên item giống ID
+        
+        # Sử dụng container thay vì form để giao diện cập nhật tức thì (interactive)
+        with st.container(border=True):
+            col_type, col_val = st.columns(2)
             
-            if st.form_submit_button("Thêm vào Rương"):
-                if r_val_input and r_msg:
-                    # Xử lý giá trị
-                    final_val = r_val_input
-                    if r_type in ['kpi', 'exp']:
-                        try: final_val = int(r_val_input)
-                        except: pass
-                    
+            # A. CHỌN LOẠI ITEM
+            with col_type:
+                r_type = st.selectbox(
+                    "1. Chọn Loại quà:", 
+                    ["kpi", "exp", "item"],
+                    format_func=lambda x: "💰 KPI" if x == 'kpi' else ("✨ Kinh Nghiệm (EXP)" if x == 'exp' else "📦 Vật Phẩm (Item)")
+                )
+
+            # B. CHỌN GIÁ TRỊ (XỬ LÝ ĐỘNG)
+            with col_val:
+                final_val = 0
+                
+                if r_type in ['kpi', 'exp']:
+                    # Nếu là KPI/EXP -> Hiện ô nhập số
+                    final_val = st.number_input(f"2. Nhập số lượng {r_type.upper()}:", min_value=1, value=50, step=10)
+                    default_msg = f"Bạn nhận được {final_val} {r_type.upper()}!"
+                
+                else:
+                    # Nếu là ITEM -> Hiện ô Selectbox chọn từ kho Admin
+                    if admin_items:
+                        selected_item_id = st.selectbox(
+                            "2. Chọn Vật phẩm (từ kho Admin):", 
+                            list(admin_items.keys()),
+                            format_func=lambda x: f"{x} - {admin_items[x]}"
+                        )
+                        final_val = selected_item_id
+                        item_name = admin_items.get(selected_item_id, selected_item_id)
+                        default_msg = f"Bạn nhận được vật phẩm: {item_name}!"
+                    else:
+                        st.warning("⚠️ Kho đồ Admin đang trống. Hãy vào 'Kho Vật Phẩm' tạo đồ trước!")
+                        final_val = None
+                        default_msg = "Bạn nhận được vật phẩm hiếm!"
+
+            # C. CHỌN TỶ LỆ & THÔNG BÁO
+            c_rate, c_msg = st.columns([1, 2])
+            with c_rate:
+                r_rate = st.number_input("3. Tỷ lệ rơi (Trọng số):", min_value=1, value=10, help="Số càng lớn càng dễ ra")
+            with c_msg:
+                r_msg = st.text_input("4. Thông báo hiển thị:", value=default_msg)
+
+            # NÚT LƯU
+            st.write("")
+            if st.button("💾 Lưu vào Rương", type="primary", use_container_width=True):
+                if r_type == 'item' and not final_val:
+                    st.error("❌ Vui lòng chọn vật phẩm hợp lệ!")
+                elif not r_msg:
+                    st.error("❌ Vui lòng nhập thông báo!")
+                else:
                     new_reward = {
-                        "type": r_type, "val": final_val, 
-                        "rate": int(r_rate), "msg": r_msg
+                        "type": r_type, 
+                        "val": final_val, 
+                        "rate": int(r_rate), 
+                        "msg": r_msg
                     }
                     
                     sys_config['chest_rewards'].append(new_reward)
-                    user_module.save_all_to_sheets(st.session_state.data)
-                    st.success("Đã thêm quà vào cấu hình rương!")
+                    user_module.save_all_to_sheets(st.session_state.data) # Lưu data
+                    
+                    st.success("✅ Đã thêm quà thành công!")
                     time.sleep(1)
-                    st.rerun()
-                else:
-                    st.error("Vui lòng nhập đủ thông tin!")        
+                    st.rerun()      
     
 def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
     # --- TỰ ĐỘNG BACKUP KHI ADMIN ĐĂNG NHẬP ---
