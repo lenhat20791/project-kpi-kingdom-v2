@@ -1509,22 +1509,11 @@ elif st.session_state.user_role in ["u1", "u2", "u3"]:
         # F5 lại trang để áp dụng
         st.rerun() 
         
-    # 1. Trang Thám hiểm Phó bản (Xử lý cả Sảnh chờ và Combat bên trong)
+    # 1. Trang Thám hiểm Phó bản
     if st.session_state.page == "🗺️ Thám hiểm Phó bản":
-        # Nếu đang trong trận đấu thì hiện Combat
-        if st.session_state.get("dang_danh_dungeon"):
-            u_id = st.session_state.user_id
-            l_id = st.session_state.get('selected_land', 'toan')
-            d_config = load_dungeon_config()
-            
-            user_progress = st.session_state.data[u_id].get('dungeon_progress', {})
-            p_current_num = user_progress.get(l_id, 1)
-            p_id = f"phase_{p_current_num}"
-            
-            user_module.trien_khai_combat_pho_ban(u_id, l_id, p_id, d_config, save_data)
-        else:
-            # Nếu chưa vào trận thì hiện Sảnh chờ chọn Phase
-            user_module.hien_thi_sanh_pho_ban_hoc_si(st.session_state.user_id)
+        # CHỈ CẦN GỌI ĐÚNG 1 HÀM NÀY (Vì nó đã bao gồm cả Combat và Sảnh chờ bên trong)
+        # Nhớ truyền hàm 'save_data' vào tham số thứ 2
+        user_module.hien_thi_sanh_pho_ban_hoc_si(st.session_state.user_id, save_data)
 
     # 2. Trang Đấu Lôi Đài
     elif st.session_state.page == "🏟️ Đấu Lôi Đài":
