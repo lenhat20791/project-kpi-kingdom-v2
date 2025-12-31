@@ -676,37 +676,39 @@ def hien_thi_sanh_pho_ban_hoc_si(user_id):
             st.rerun()
 
 def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save_data_func, duration=None):
-    import random # Đảm bảo có import random
+    import random
     
-    # Lấy data người chơi
+    # 1. Lấy data người chơi
     if user_id not in st.session_state.data: return
     user_info = st.session_state.data[user_id]
     
     # Lấy thông tin phase
-    p_data = dungeon_config[land_id]["phases"][phase_id]
-    
-    # 0. Đảm bảo dữ liệu tồn tại và lưu chỉ số cũ để so sánh
+    try:
+        p_data = dungeon_config[land_id]["phases"][phase_id]
+    except:
+        return # Tránh lỗi nếu config sai
+
+    # 2. Đảm bảo dữ liệu cơ bản tồn tại
     for field in ['exp', 'level', 'kpi', 'inventory', 'hp']:
         if field not in user_info:
             user_info[field] = 0 if field != 'inventory' else []
     
-    old_lv = user_info.get('level', 1)
-    old_atk = tinh_atk_tong_hop(user_info)
-    # Thống nhất dùng hp_max
-    old_hp_max = 100 + (old_lv * 20) 
-    user_info['hp_max'] = old_hp_max 
-    
     # ==========================================================
-    # 🔥 FIX LỖI CRASH: Khởi tạo best_time nếu chưa có HOẶC bị None
+    # 🔥 FIX LỖI QUAN TRỌNG: XỬ LÝ TRƯỜNG HỢP best_time BỊ NULL
     # ==========================================================
+    # Kiểm tra kỹ: Nếu key thiếu HOẶC giá trị là None -> Tạo mới dict rỗng
     if 'best_time' not in user_info or user_info['best_time'] is None:
         user_info['best_time'] = {}
     # ==========================================================
 
-    # Logic so sánh và lưu kỷ lục thời gian nhanh nhất
+    old_lv = user_info.get('level', 1)
+    old_atk = tinh_atk_tong_hop(user_info)
+    old_hp_max = 100 + (old_lv * 20) 
+    user_info['hp_max'] = old_hp_max 
+
+    # 3. Logic so sánh và lưu kỷ lục thời gian
     if duration is not None:
-        # Lấy kỷ lục cũ, nếu chưa có mặc định là 999 giây
-        # Bây giờ dòng này an toàn tuyệt đối vì best_time chắc chắn là dict
+        # Lấy kỷ lục cũ (Bây giờ chắc chắn user_info['best_time'] là Dict, không thể lỗi NoneType được nữa)
         old_record = user_info['best_time'].get(land_id, 999)
         
         if duration < old_record:
@@ -715,32 +717,28 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
         else:
             st.write(f"⏱️ Thời gian hoàn thành: {duration}s (Kỷ lục hiện tại: {old_record}s)")
     
-    # 1. Trao thưởng từ Phase
+    # 4. Cộng thưởng
     user_info['kpi'] += p_data.get('reward_kpi', 0)
     user_info['exp'] += p_data.get('reward_exp', 0)
     
-    # 2. Tính toán Level mới
+    # 5. Tính Level mới
     new_lv = 1 + (user_info['exp'] // 100)
     user_info['level'] = new_lv
-    
-    # Tính toán chỉ số mới sau khi cộng EXP/Level
     new_atk = tinh_atk_tong_hop(user_info)
     new_hp_max = 100 + (new_lv * 20)
     user_info['hp'] = new_hp_max 
 
-    # 3. Xử lý Rơi đồ (Loot System)
+    # 6. Rơi đồ (Loot)
     loot_msg = "Không có"
     item_id = p_data.get('item_drop_id', "none")
     if item_id not in ["none", "Không rơi đồ"]:
         if random.randint(1, 100) <= p_data.get('drop_rate', 0):
-            # Đảm bảo inventory là list
             if not isinstance(user_info.get('inventory'), list):
                  user_info['inventory'] = []
-            
             user_info['inventory'].append(item_id)
             loot_msg = f"📦 {item_id}"
 
-    # 4. Hiển thị thông báo kết quả Phase
+    # 7. Hiển thị kết quả
     st.write("---")
     st.subheader("🎁 PHẦN THƯỞNG CHIẾN THẮNG")
     c1, c2, c3 = st.columns(3)
@@ -748,50 +746,34 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
     c2.metric("EXP Nhận", f"+{p_data.get('reward_exp', 0)}")
     c3.metric("Vật phẩm", loot_msg)
 
-    # 5. HIỆU ỨNG LEVEL UP (Nếu có lên cấp)
+    # 8. Hiệu ứng Level Up
     if new_lv > old_lv:
         st.balloons()
-        st.toast(f"🎊 LEVEL UP! Bạn đã đạt Cấp {new_lv}", icon="🆙")
-        
-        # Tạo bảng Pop-up thông báo tăng trưởng chỉ số
+        st.toast(f"🎊 LEVEL UP! Cấp {new_lv}", icon="🆙")
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #f1c40f, #f39c12); padding: 20px; border-radius: 15px; border: 3px solid #ffffff; color: white; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
-            <h2 style="margin: 0; font-size: 24px;">🎊 ĐỘT PHÁ CẤP ĐỘ 🎊</h2>
-            <p style="font-size: 18px; font-weight: bold;">Cấp {old_lv} ➔ Cấp {new_lv}</p>
-            <hr style="border: 0.5px solid rgba(255,255,255,0.3);">
-            <div style="display: flex; justify-content: space-around;">
-                <div>
-                    <p style="margin: 0; font-size: 14px;">❤️ SINH MỆNH (HP)</p>
-                    <p style="font-size: 20px; font-weight: bold;">{old_hp_max} ➔ {new_hp_max}</p>
-                </div>
-                <div>
-                    <p style="margin: 0; font-size: 14px;">⚔️ CHIẾN LỰC (ATK)</p>
-                    <p style="font-size: 20px; font-weight: bold;">{old_atk} ➔ {new_atk}</p>
-                </div>
-            </div>
-            <p style="margin-top: 15px; font-style: italic; font-size: 13px;">💪 Sức mạnh của bạn đã tăng lên một tầm cao mới!</p>
+        <div style="background: linear-gradient(135deg, #f1c40f, #f39c12); padding: 15px; border-radius: 10px; color: white; text-align: center;">
+            <h3>🎊 LÊN CẤP {new_lv} 🎊</h3>
+            <p>HP: {old_hp_max} ➔ {new_hp_max} | ATK: {old_atk} ➔ {new_atk}</p>
         </div>
         """, unsafe_allow_html=True)
 
-    # 6. Cập nhật tiến trình vào file (SỬA LẠI ĐỂ TRÁNH NHẢY PHASE)
+    # 9. Cập nhật tiến trình (Dungeon Progress)
     try:
-        current_p_num = int(phase_id.split("_")[1]) # Ví dụ: "phase_1" -> 1
+        current_p_num = int(phase_id.split("_")[1]) 
     except:
         current_p_num = 1
     
-    # Lấy tiến trình hiện tại từ dữ liệu, mặc định là 1 nếu chưa có
-    if 'dungeon_progress' not in user_info:
+    if 'dungeon_progress' not in user_info or user_info['dungeon_progress'] is None:
         user_info['dungeon_progress'] = {}
     
     actual_progress = user_info['dungeon_progress'].get(land_id, 1)
 
-    # CHỈ CẬP NHẬT NẾU: Số phase vừa xong đúng bằng tiến trình hiện tại
     if current_p_num == actual_progress:
         if current_p_num < 4:
             user_info['dungeon_progress'][land_id] = current_p_num + 1
 
-    # QUAN TRỌNG: Lưu dữ liệu cuối cùng
-    save_data_func(st.session_state.data)           
+    # Lưu dữ liệu
+    save_data_func(st.session_state.data)
 
 def tinh_atk_tong_hop(user_info):
     """
