@@ -19,44 +19,37 @@ SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis
 SHEET_NAME = "Data_KPI_Kingdom"
 
 def get_gspread_client():
-    # Sử dụng .get() để không bị lỗi "No secrets found" làm sập app
-    gcp_info = st.secrets.get("gcp_service_account")
-    
-    if gcp_info:
-        # Nếu tìm thấy Secret (trên Streamlit Cloud hoặc trong file .streamlit/secrets.toml)
-        creds_dict = dict(gcp_info)
-        creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
-        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
-        return gspread.authorize(creds)
-    
-    elif os.path.exists("service_account.json"):
-        # Nếu không có Secret nhưng có file json cục bộ
-        creds = Credentials.from_service_account_file("service_account.json", scopes=SCOPE)
-        return gspread.authorize(creds)
-    
-    else:
-        st.warning("⚠️ Đang chạy mà không có kết nối Database (Secret/JSON missing)")
+    try:
+        # Ưu tiên 1: Lấy từ Streamlit Secrets (Online)
+        gcp_info = st.secrets.get("gcp_service_account")
+        if gcp_info:
+            creds_dict = dict(gcp_info)
+            # Fix lỗi xuống dòng trong private key
+            if "private_key" in creds_dict:
+                creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+            
+            creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
+            client = gspread.authorize(creds)
+            print("✅ Đã kết nối Google Sheets (Online Mode)")
+            return client
+
+        # Ưu tiên 2: Lấy từ file JSON (Offline/Local)
+        elif os.path.exists("service_account.json"):
+            creds = Credentials.from_service_account_file("service_account.json", scopes=SCOPE)
+            client = gspread.authorize(creds)
+            print("✅ Đã kết nối Google Sheets (Local JSON)")
+            return client
+
+        else:
+            st.warning("⚠️ Không tìm thấy cấu hình kết nối (Secret hoặc JSON missing)")
+            return None
+
+    except Exception as e:
+        st.error(f"⚠️ Lỗi kết nối: {e}")
         return None
 
-try:
-    # Ưu tiên 1: Kiểm tra xem có cấu hình trong Streamlit Secrets không (Khi chạy Online)
-    if "gcp_service_account" in st.secrets:
-        creds_info = st.secrets["gcp_service_account"]
-        CREDS = Credentials.from_service_account_info(creds_info, scopes=SCOPE)
-        CLIENT = gspread.authorize(CREDS)
-        print("✅ Đã kết nối Google Sheets qua Secrets (Online Mode)")
-    
-    # Ưu tiên 2: Nếu không có Secrets, tìm file local (Khi chạy ở máy nhà để test)
-    elif os.path.exists("service_account.json"):
-        CREDS = Credentials.from_service_account_file("service_account.json", scopes=SCOPE)
-        CLIENT = gspread.authorize(CREDS)
-        print("✅ Đã kết nối Google Sheets qua file JSON (Local Test Mode)")
-    
-    else:
-        print("💡 Chế độ Offline: Không tìm thấy phương thức kết nối Google Sheets.")
-
-except Exception as e:
-    print(f"⚠️ Chưa kết nối được Google Sheets: {e}")
+# 2. Gọi hàm để lấy biến CLIENT (Chạy 1 lần duy nhất ở đây)
+CLIENT = get_gspread_client()
 
 
 # --- HÀM POPUP KẾT QUẢ MỞ RƯƠNG (DIALOG) ---
@@ -2170,39 +2163,36 @@ def hien_thi_giao_dien_hoc_si(user_id, save_data_func):
 # --- GIAO DIỆN CHỈ SỐ HỌC SĨ LUNG LINH ---
 def hien_thi_chi_so_chi_tiet(user_id):
     user_info = st.session_state.data[user_id]
-    # === 🟢 BƯỚC 0: CHÈN LOGIC DỊCH CẤP BẬC TẠI ĐÂY ===
+    
+    # === 🟢 BƯỚC 0: CHÈN LOGIC DỊCH CẤP BẬC ===
     role_map = {
         "u1": "Tổ trưởng",
         "u2": "Tổ phó", 
         "u3": "Tổ viên",
         "admin": "Quản trị viên"
     }
-    # Lấy mã role (ví dụ: 'u1'), chuyển về chữ thường cho chắc ăn
     raw_role = str(user_info.get('role', 'u3')).lower()
-    # Dịch ra tiếng Việt (Lưu vào biến role_name)
     role_name = role_map.get(raw_role, "Học sĩ")
-    # ===================================================
+    # ==========================================
     
     # --- 1. LOGIC TÍNH TOÁN CẤP ĐỘ VÀ TIẾN TRÌNH ---
-    
-    # --- A. XỬ LÝ AN TOÀN CHO EXP ---
+    # A. EXP
     raw_exp = user_info.get('exp', 0)
     try:
         current_exp = float(raw_exp)
-        if current_exp != current_exp: current_exp = 0 # Check NaN
+        if current_exp != current_exp: current_exp = 0 
     except:
         current_exp = 0
     
-    # --- B. TÍNH LEVEL TỪ EXP (ĐOẠN BẠN THIẾU) ---
-    # Giả sử cứ 100 EXP là lên 1 cấp
+    # B. LEVEL
     current_level = int(current_exp // 100) 
-    if current_level < 1: current_level = 1 # Level thấp nhất là 1
+    if current_level < 1: current_level = 1 
     
-    # Tính phần lẻ để hiện thanh tiến trình
+    # C. PROGRESS BAR
     exp_in_level = current_exp % 100
     progress_pct = exp_in_level / 100
     
-    # --- C. XỬ LÝ AN TOÀN CHO KPI (Tránh lỗi Crash tương tự EXP) ---
+    # D. KPI (Dùng cho tính toán máu và hiển thị)
     raw_kpi = user_info.get('kpi', 0)
     try:
         base_kpi = float(raw_kpi)
@@ -2210,43 +2200,31 @@ def hien_thi_chi_so_chi_tiet(user_id):
     except:
         base_kpi = 0
 
-    # --- D. TÍNH CÁC CHỈ SỐ CÒN LẠI ---
+    # E. ATK & HP
     atk = tinh_atk_tong_hop(user_info)
-    
-    # Bây giờ biến current_level đã được định nghĩa ở bước B, công thức này mới chạy được:
     hp_current = base_kpi + (current_level * 20)
 
     # --- 2. GIAO DIỆN HIỂN THỊ CHÍNH ---
     col_img, col_info = st.columns([1, 2])
     
     with col_img:
-        # Hiển thị Avatar (Dùng link ảnh gif/png của bạn)
         st.image("https://i.ibb.co/mVjzG7MQ/giphy-preview.gif", use_container_width=True)
-        
 
     with col_info:
-        # --- 1. Hiển thị Tên Học Sĩ ---
+        # Tên & Tổ đội
         st.markdown(f"<h1 style='margin-bottom:0px;'>⚔️ {user_info.get('name', 'HỌC SĨ').upper()}</h1>", unsafe_allow_html=True)
-        
-        # --- 2. Hiển thị Tổ đội ---
         st.markdown(f"<p style='color:#f39c12; font-size:1.2em; font-weight:bold; margin-top:0px;'>🚩 Tổ đội: {user_info.get('team', 'Chưa phân tổ')}</p>", unsafe_allow_html=True)
 
-        # --- 3. Hiển thị Cấp bậc (MỚI THÊM VÀO) ---
-        # Logic dịch tên (để đây cho tiện nếu chưa khai báo ở trên)
-        role_map = {"u1": "Tổ trưởng", "u2": "Tổ phó", "u3": "Tổ viên", "admin": "Quản trị viên"}
-        raw_role = str(user_info.get('role', 'u3')).lower()
-        role_name = role_map.get(raw_role, "Học sĩ")
-        
-        # Dòng lệnh in ra màn hình (Style chữ đậm cho đẹp)
+        # Cấp bậc
         st.markdown(f"<p style='font-size:1.1em; font-weight:bold; margin-top:5px;'>🔰 Cấp bậc: <span style='color:#3498db'>{role_name}</span></p>", unsafe_allow_html=True)
         
-        # Hiển thị HP và ATK dạng text thuần cho sạch sẽ
+        # HP & ATK
         st.markdown(f"❤️ **SINH MỆNH (HP):** <span style='color:#ff4b4b; font-size:1.2em; font-weight:bold;'>{hp_current}</span>", unsafe_allow_html=True)
         st.markdown(f"⚔️ **CHIẾN LỰC (ATK):** <span style='color:#f1c40f; font-size:1.2em; font-weight:bold;'>{atk}</span>", unsafe_allow_html=True)
         
-        st.write("") # Tạo khoảng cách
+        st.write("") 
 
-        # --- THANH KINH NGHIỆM (EXP BAR) - THIẾT KẾ BỰ VÀ NỔI BẬT ---
+        # EXP Bar
         st.markdown(f"✨ **CẤP ĐỘ: {current_level}** <span style='float:right; color:#3498db; font-weight:bold;'>{exp_in_level} / 100 EXP</span>", unsafe_allow_html=True)
         st.markdown(f"""
             <div style="width: 100%; background-color: #dfe6e9; border-radius: 15px; padding: 4px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);">
@@ -2260,41 +2238,33 @@ def hien_thi_chi_so_chi_tiet(user_id):
             </div>
         """, unsafe_allow_html=True)
         st.caption("🔥 Hãy tích cực thám hiểm phó bản để thăng cấp sức mạnh!")
-    # --- CHÈN MỚI: HIỂN THỊ KỶ LỤC THÁM HIỂM ---
+        
+        # Kỷ lục (Best Time)
         st.markdown("<p style='margin-bottom:5px; font-weight:bold; color:#f1c40f;'>🏆 KỶ LỤC THỜI GIAN NHANH NHẤT</p>", unsafe_allow_html=True)
-        
         best_times = user_info.get('best_time', {})
-        
         if not best_times:
             st.markdown("<small style='color:#888;'><i>Chưa có kỷ lục nào được ghi nhận.</i></small>", unsafe_allow_html=True)
         else:
-            # Tạo lưới 3 cột để hiển thị các môn học
             record_cols = st.columns(3)
-            # Bản đồ tên môn học có icon
-            mapping_names = {
-                "toan": "📐 Toán", "van": "📖 Văn", "anh": "🇬🇧 Anh",
-                "ly": "⚡ Lý", "hoa": "🧪 Hóa", "sinh": "🌿 Sinh"
-            }
-            
-            # Duyệt qua các kỷ lục và hiển thị vào các cột
+            mapping_names = {"toan": "📐 Toán", "van": "📖 Văn", "anh": "🇬🇧 Anh", "ly": "⚡ Lý", "hoa": "🧪 Hóa", "sinh": "🌿 Sinh"}
             for idx, (l_id, time_val) in enumerate(best_times.items()):
                 with record_cols[idx % 3]:
                     st.markdown(f"""
-                        <div style="background: rgba(241, 196, 15, 0.1); 
-                                    border: 1px solid #f1c40f; 
-                                    border-radius: 8px; 
-                                    padding: 5px; 
-                                    text-align: center;
-                                    margin-bottom: 5px;">
+                        <div style="background: rgba(241, 196, 15, 0.1); border: 1px solid #f1c40f; border-radius: 8px; padding: 5px; text-align: center; margin-bottom: 5px;">
                             <div style="font-size: 11px; color: #aaa;">{mapping_names.get(l_id, l_id.upper())}</div>
                             <div style="font-size: 16px; font-weight: bold; color: #f1c40f;">{time_val}s</div>
                         </div>
                     """, unsafe_allow_html=True)
-        # --------------------------------------------
-    # --- 3. BẢNG THÔNG SỐ PHỤ DẠNG CARD (Dòng dưới cùng) ---
+
+    # --- 3. BẢNG THÔNG SỐ PHỤ DẠNG CARD (ĐÃ THÊM KPI) ---
     st.write("---")
-    cols = st.columns(4)
+    
+    # [CẬP NHẬT] Đổi thành 5 cột để đủ chỗ cho KPI
+    cols = st.columns(5)
+    
+    # Danh sách thẻ bài (Thêm KPI vào vị trí đầu tiên hoặc thứ 2)
     badges = [
+        ("🏆 KPI Tổng", base_kpi, "#e74c3c"),       # <-- THÊM MỚI Ở ĐÂY
         ("📚 Tri Thức", user_info.get('Tri_Thuc', 0), "#3498db"),
         ("🛡️ Chiến Tích", user_info.get('Chien_Tich', 0), "#e67e22"),
         ("🎖️ Vinh Dự", user_info.get('Vinh_Du', 0), "#2ecc71"),
@@ -2304,12 +2274,11 @@ def hien_thi_chi_so_chi_tiet(user_id):
     for i, (label, val, color) in enumerate(badges):
         with cols[i]:
             st.markdown(f"""
-                <div style="text-align: center; border: 2px solid {color}; border-radius: 15px; padding: 10px; background: white;">
-                    <p style="font-size: 0.85em; color: #636e72; margin-bottom: 5px; font-weight: bold;">{label}</p>
-                    <h2 style="margin: 0; color: {color};">{val}</h2>
+                <div style="text-align: center; border: 2px solid {color}; border-radius: 15px; padding: 10px; background: white; min-height: 100px; display: flex; flex-direction: column; justify-content: center;">
+                    <p style="font-size: 0.85em; color: #636e72; margin-bottom: 5px; font-weight: bold; white-space: nowrap;">{label}</p>
+                    <h2 style="margin: 0; color: {color}; font-size: 1.8em;">{val}</h2>
                 </div>
             """, unsafe_allow_html=True)
-
 # --- 1. QUẢN LÝ NHÂN SỰ (ONLY U1) ---
 def hien_thi_nhan_su_to(user_id, my_team, save_data_func):
     st.subheader(f"👥 QUẢN TRỊ NỘI BỘ: {my_team}")
