@@ -1267,10 +1267,23 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
     
     with col1:
         b_name = boss.get('ten', boss.get('name', 'Boss Ẩn Danh'))
-        b_img = boss.get("anh", "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
+        b_img = boss.get("anh", "")
         b_dmg = boss.get('damage', 10)
         
-        st.image(b_img, caption=f"👿 Boss: {b_name}")
+        # --- CƠ CHẾ HIỂN THỊ ẢNH AN TOÀN (ANTI-CRASH) ---
+        if b_img: # Nếu Admin có điền link
+            try:
+                # Cố gắng hiển thị ảnh
+                st.image(b_img, caption=f"👿 Boss: {b_name}")
+            except Exception:
+                # Nếu lỗi (bất cứ lỗi gì: link hỏng, file local...) -> Chỉ hiện thông báo
+                st.warning(f"⚠️ Link ảnh lỗi: {b_name}")
+                # Không hiển thị ảnh mặc định, để trống theo yêu cầu.
+        else:
+            # Nếu Admin bỏ trống link -> Chỉ hiện tên
+            st.info(f"👿 Boss: {b_name}")
+        # -------------------------------------------------
+
         st.error(f"💀 Sức tấn công: {b_dmg}") 
 
     with col2:
