@@ -569,7 +569,7 @@ def admin_quan_ly_boss():
     # ==========================================================================
     # TAB 2: QUẢN LÝ KHO ITEM (Thêm Rương, Sửa item...)
     # ==========================================================================
-    with tab_item:
+    with tab_item: 
         st.subheader("🛠️ Chế tác Vật phẩm mới")
         with st.expander("Mở công cụ chế tác", expanded=False):
             c1, c2 = st.columns(2)
