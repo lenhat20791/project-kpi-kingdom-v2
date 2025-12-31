@@ -1738,32 +1738,7 @@ else:
                 # Nếu Sheets là "Nguyen Van A" thì key phải là "nguyenvana"
            
         st.divider()
-        with st.expander("🕵️‍♂️ KÍNH CHIẾU YÊU (Debug Data)", expanded=True):
-            st.warning("Đây là dữ liệu thực tế hệ thống đang đọc:")
-            
-            # 1. In ra danh sách tất cả tài khoản đang có trong RAM
-            # Kiểm tra xem st.session_state.data có tồn tại không trước khi gọi
-            if 'data' in st.session_state:
-                all_keys = list(st.session_state.data.keys())
-                st.write(f"🔑 Danh sách ID tài khoản ({len(all_keys)}):", all_keys)
-                
-                # 2. Soi chi tiết tài khoản Admin
-                if "admin" in st.session_state.data:
-                    real_admin_pass = st.session_state.data["admin"].get("password")
-                    st.code(f"Mật khẩu Admin trong RAM là: '{real_admin_pass}'")
-                    st.write(f"Kiểu dữ liệu: {type(real_admin_pass)}")
-                else:
-                    st.error("❌ KHÔNG TÌM THẤY key 'admin' trong dữ liệu!")
-            else:
-                st.error("⚠️ Biến st.session_state.data chưa được khởi tạo!")
 
-            # 3. Nút ép tải lại dữ liệu mới nhất từ Cloud
-            if st.button("🔄 ÉP TẢI LẠI DỮ LIỆU TỪ CLOUD (Hard Reset)", type="primary"):
-                st.cache_data.clear() # Xóa cache của Streamlit
-                # Đảm bảo bạn đã import load_data ở đầu file
-                st.session_state.data = load_data() 
-                st.success("Đã tải lại! Hãy thử đăng nhập lại ngay.")
-                st.rerun() 
         
         # 👇👇👇 [MỚI] CHÈN BẢNG VÀNG VÀO ĐÂY (Vẫn nằm trong with col_sidebar) 👇👇👇
         st.write("") # Tạo khoảng trống cho thoáng       
