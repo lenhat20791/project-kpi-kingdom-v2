@@ -3586,12 +3586,23 @@ def load_data_from_sheets():
     """
     try:
         print("☁️ Đang kết nối tới Google Sheets...")
-        spreadsheet = CLIENT.open(SHEET_NAME)
+        from user_module import get_gspread_client
+        client = get_gspread_client()
         
-        # Biến chứa toàn bộ dữ liệu trả về (Đây chính là RAM)
+        # Mở file Sheet
+        secrets_gcp = st.secrets.get("gcp_service_account", {})
+        if "spreadsheet_id" in secrets_gcp: 
+            spreadsheet = client.open_by_key(secrets_gcp["spreadsheet_id"])
+        elif "spreadsheet_url" in secrets_gcp: 
+            spreadsheet = client.open_by_url(secrets_gcp["spreadsheet_url"])
+        else: 
+            spreadsheet = client.openall()[0]
+        
+        # Biến chứa toàn bộ dữ liệu trả về (RAM)
         loaded_data = {
-            "system_config": {}, # Chứa Settings (Boss, Rank...)
-            "shop_items": {}     # Chứa dữ liệu Shop
+            "system_config": {}, 
+            "shop_items": {},
+            "rank_settings": [] # Khởi tạo sẵn để tránh lỗi
         }
 
         # --- BẢNG MÃ KHỬ DẤU TIẾNG VIỆT ---
@@ -3609,15 +3620,12 @@ def load_data_from_sheets():
         # 1. TẢI DỮ LIỆU HỌC SĨ (Tab Players)
         # =========================================================
         try:
-            try:
-                sh_players = spreadsheet.worksheet("Players")
-            except:
-                sh_players = spreadsheet.sheet1
+            try: sh_players = spreadsheet.worksheet("Players")
+            except: sh_players = spreadsheet.sheet1
                 
             player_records = sh_players.get_all_records()
             
             for r in player_records:
-                # Lấy ID thô
                 raw_uid = str(r.get('user_id') or r.get('u_id') or r.get('name', '')).strip().lower()
                 if not raw_uid: continue
 
@@ -3630,60 +3638,48 @@ def load_data_from_sheets():
                         temp_uid = temp_uid.replace(char, replacement)
                     uid = temp_uid
                 
-                # Parse JSON an toàn
+                # Parse JSON
                 try: stats = json.loads(str(r.get('stats_json', '{}')))
                 except: stats = {}
-                
                 try: inventory = json.loads(str(r.get('inventory_json', '[]')))
                 except: inventory = {}
-                
                 try: progress = json.loads(str(r.get('progress_json', '{}')))
                 except: progress = {}
 
-                # [THÊM ĐOẠN NÀY] Hàm làm sạch số: Chuyển "308.1" hoặc "308,1" về số nguyên 308
+                # Hàm làm sạch số
                 def clean_int(val):
-                    try:
-                        # Logic: Chuyển về chuỗi -> Thay dấu phẩy thành chấm -> Ép kiểu float -> Ép kiểu int
-                        return int(float(str(val).replace(',', '.')))
-                    except:
-                        return 0
+                    try: return int(float(str(val).replace(',', '.')))
+                    except: return 0
 
-                # [SỬA ĐOẠN NÀY] Build User Object
+                # Build User Object
                 user_info = {
                     "name": r.get('name', ''),
                     "team": r.get('team', 'Chưa phân tổ'),
                     "password": str(r.get('password', '123456')).strip().replace(".0", ""),
                     "role": str(r.get('role', 'player')).strip().lower(),
-                    
-                    # 🔥 ÁP DỤNG HÀM CLEAN_INT Ở ĐÂY 🔥
                     "kpi": clean_int(r.get('kpi', 0)),
                     "exp": clean_int(r.get('exp', 0)),
-                    
                     "level": r.get('level', 1),
-                    "hp": r.get('hp', 100),
+                    "hp": clean_int(r.get('hp', 100)),
                     "hp_max": r.get('hp_max', 100),
                     "inventory": inventory,
                     "dungeon_progress": progress
                 }
-                # 3. 🔥 LỚP BẢO VỆ 2: CHẶN GHI ĐÈ TỪ STATS_JSON
-                # (Thay thế cho dòng user_info.update(stats) đơn thuần)
                 
-                # Danh sách cấm: Không cho stats_json được phép sửa các chỉ số này
+                # Bảo vệ chỉ số gốc khỏi bị stats_json ghi đè
                 forbidden_keys = ["kpi", "exp", "level", "hp", "hp_max", "name", "role", "user_id"]
-                
                 if isinstance(stats, dict):
                     for k, v in stats.items():
                         if k not in forbidden_keys:
                             user_info[k] = v
                 
-                # Lưu vào biến tạm (RAM)
                 loaded_data[uid] = user_info
 
         except Exception as e:
             print(f"⚠️ Lỗi đọc tab Players: {e}")
 
         # =========================================================
-        # 2. TẢI CẤU HÌNH (Tab Settings) - BOSS & RANK
+        # 2. TẢI CẤU HÌNH (Tab Settings) - BOSS & RANK (ĐÃ SỬA)
         # =========================================================
         try:
             try:
@@ -3697,25 +3693,23 @@ def load_data_from_sheets():
                     
                     if key and raw_value:
                         try:
-                            # Clean Smart Quotes
                             clean_value = raw_value.replace("“", '"').replace("”", '"').replace("’", "'")
                             decoded_val = json.loads(clean_value)
                             
-                            # --- [ĐÂY LÀ ĐOẠN QUAN TRỌNG ĐÃ SỬA] ---
-                            # Thay vì ghi ra file, ta lưu thẳng vào loaded_data
-                            
                             if key == "active_boss":
-                                # Nếu dữ liệu trên Sheet là {"active_boss": {...}} thì lấy ruột bên trong
                                 if isinstance(decoded_val, dict) and "active_boss" in decoded_val:
                                      loaded_data['system_config']['active_boss'] = decoded_val["active_boss"]
                                 else:
-                                     # Nếu dữ liệu trên Sheet là thẳng object Boss
                                      loaded_data['system_config']['active_boss'] = decoded_val
-                                     
-                                print("✅ Đã tải Boss từ Sheets vào RAM.")
                             else:
-                                # Các setting khác (rank_settings...)
+                                # 1. Lưu vào system_config (Chuẩn mới)
                                 loaded_data['system_config'][key] = decoded_val
+                                
+                                # 2. 🔥 QUAN TRỌNG: Nếu là rank_settings, đưa ra ngoài ROOT (Chuẩn cũ)
+                                # Để chức năng Quản lý danh hiệu tìm thấy được
+                                if key == 'rank_settings':
+                                    loaded_data['rank_settings'] = decoded_val
+                                    print("✅ Đã tải Cấu hình Danh hiệu (rank_settings)")
 
                         except Exception as json_error:
                             print(f"❌ Lỗi JSON Settings '{key}': {json_error}")
@@ -3738,42 +3732,38 @@ def load_data_from_sheets():
                 item_id = str(r.get('ID', '') or r.get('Item_ID', '')).strip()
                 if not item_id: continue
                 
-                # Ưu tiên lấy cột 'Full_Data_JSON' chứa đầy đủ thông tin (cả Rương Gacha)
                 raw_json = str(r.get('Full_Data_JSON') or r.get('Effect_JSON') or '{}')
-                
                 try:
                     clean_json = raw_json.replace("“", '"').replace("”", '"').replace("’", "'")
                     full_item_data = json.loads(clean_json)
-                    
-                    # Nếu JSON rỗng (item cũ), fallback lấy từ các cột rời
-                    if not full_item_data:
-                         full_item_data = {
-                            "id": item_id,
-                            "name": r.get('Name', '') or r.get('Item_Name', ''),
-                            "price": r.get('Price', 0),
-                            "type": r.get('Type', 'COMMON'),
-                            "currency_buy": r.get('Currency', 'kpi'),
-                         }
-                    
+                    if not full_item_data: raise Exception("Empty JSON")
                     full_item_data['id'] = item_id
                     shop_dict[item_id] = full_item_data
-                    
                 except:
-                    shop_dict[item_id] = {"id": item_id, "name": "Item Lỗi", "price": 9999, "type": "ERROR"}
+                     shop_dict[item_id] = {
+                         "id": item_id, 
+                         "name": r.get('Name', '') or r.get('Item_Name', ''), 
+                         "price": r.get('Price', 0), 
+                         "type": r.get('Type', 'COMMON'),
+                         "currency_buy": r.get('Currency', 'kpi')
+                     }
 
             loaded_data['shop_items'] = shop_dict
             print(f"🏪 Đã tải {len(shop_dict)} vật phẩm Shop.")
 
         except Exception as e:
-            print(f"ℹ️ Lỗi tải Shop (Có thể do chưa tạo tab Shop): {e}")
+            print(f"ℹ️ Lỗi tải Shop: {e}")
 
         # --- KẾT THÚC ---
-        if not loaded_data:
-            return None
+        if not loaded_data: return None
 
         # Cập nhật trực tiếp vào session_state để chắc chắn
         if 'shop_items' not in st.session_state: st.session_state.shop_items = {}
         st.session_state.shop_items = loaded_data['shop_items']
+        
+        # 🔥 Cập nhật cả system_config vào session_state
+        if 'system_config' not in st.session_state: st.session_state.system_config = {}
+        st.session_state.system_config = loaded_data['system_config']
         
         return loaded_data
 
