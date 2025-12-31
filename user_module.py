@@ -51,6 +51,51 @@ def get_gspread_client():
 # 2. Gọi hàm để lấy biến CLIENT (Chạy 1 lần duy nhất ở đây)
 CLIENT = get_gspread_client()
 
+def ghi_log_he_thong(user_id, action, detail, note=""):
+    """
+    Hàm ghi log tương thích với file Sheet hiện tại (3 cột: time, user_id, action)
+    """
+    from datetime import datetime
+    import streamlit as st
+    
+    # 1. Lấy thời gian
+    now = datetime.now().strftime("%d/%m/%Y %H:%M") # Định dạng giống trong ảnh bạn gửi
+    
+    # 2. Gom nội dung lại thành 1 chuỗi để nhét vào cột 'action'
+    # Kết quả sẽ kiểu: "WIN_BOSS | KPI: 100->150 | CHECK NGAY!"
+    full_content = f"{action} | {detail}"
+    if note:
+        full_content += f" | ⚠️ {note}"
+    
+    print(f"📝 [LOG] {user_id} : {full_content}")
+
+    try:
+        # 3. Kết nối Google Sheet
+        from user_module import get_gspread_client
+        client = get_gspread_client()
+        
+        # Mở Sheet (Code lấy ID/URL chuẩn của bạn)
+        secrets_gcp = st.secrets.get("gcp_service_account", {})
+        if "spreadsheet_id" in secrets_gcp: 
+            sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+        elif "spreadsheet_url" in secrets_gcp: 
+            sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
+        else: 
+            sh = client.openall()[0]
+            
+        # 4. Ghi vào tab "Logs"
+        # Lưu ý: Tab tên là "Logs" (có s) như trong ảnh bạn gửi
+        try:
+            wks_log = sh.worksheet("Logs")
+        except:
+            # Phòng hờ nếu tên tab trong code khác tên tab thực tế
+            wks_log = sh.worksheet("Log") 
+        
+        # Ghi 3 cột: [Thời gian, UserID, Nội dung gom chung]
+        wks_log.append_row([now, str(user_id), full_content])
+        
+    except Exception as e:
+        print(f"❌ Lỗi ghi log: {e}")
 
 # --- HÀM POPUP KẾT QUẢ MỞ RƯƠNG (DIALOG) ---
 @st.dialog("✨ KẾT QUẢ MỞ RƯƠNG ✨")
@@ -827,7 +872,25 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
     if current_p_num == actual_progress:
         if current_p_num < 4:
             raw_prog[land_id] = current_p_num + 1
+    # ======================================================
+    # 🕵️‍♂️ ĐẶT MÁY GHI ÂM TẠI ĐÂY (LOGGING)
+    # ======================================================
+    kpi_sau = user_info.get('kpi', 0)
+    bonus_sau = user_info.get('Bonus', 0)
+    
+    log_detail = f"KPI: {kpi_truoc}->{kpi_sau} (+{kpi_nhan}) | EXP: +{exp_nhan} | Item: {loot_msg}"
+    log_note = ""
+    
+    # BẮT QUẢ TANG NẾU BONUS TĂNG
+    if bonus_sau > bonus_truoc:
+        log_detail += f" | ⚠️ BONUS TĂNG BẤT THƯỜNG: {bonus_truoc}->{bonus_sau}"
+        log_note = "CHECK NGAY! Có code lạ cộng Bonus."
+    else:
+        log_detail += f" | Bonus giữ nguyên: {bonus_sau}"
 
+    # Ghi log
+    ghi_log_he_thong(user_id, f"WIN_PHASE_{land_id}", log_detail, log_note)
+    # ======================================================
     # Lưu dữ liệu
     save_data_func(st.session_state.data)
 
