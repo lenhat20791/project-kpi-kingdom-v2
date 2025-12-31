@@ -3622,21 +3622,41 @@ def load_data_from_sheets():
                 try: progress = json.loads(str(r.get('progress_json', '{}')))
                 except: progress = {}
 
-                # Build User Object
+                # [THÊM ĐOẠN NÀY] Hàm làm sạch số: Chuyển "308.1" hoặc "308,1" về số nguyên 308
+                def clean_int(val):
+                    try:
+                        # Logic: Chuyển về chuỗi -> Thay dấu phẩy thành chấm -> Ép kiểu float -> Ép kiểu int
+                        return int(float(str(val).replace(',', '.')))
+                    except:
+                        return 0
+
+                # [SỬA ĐOẠN NÀY] Build User Object
                 user_info = {
                     "name": r.get('name', ''),
                     "team": r.get('team', 'Chưa phân tổ'),
                     "password": str(r.get('password', '123456')).strip().replace(".0", ""),
                     "role": str(r.get('role', 'player')).strip().lower(),
-                    "kpi": r.get('kpi', 0),
-                    "exp": r.get('exp', 0),
+                    
+                    # 🔥 ÁP DỤNG HÀM CLEAN_INT Ở ĐÂY 🔥
+                    "kpi": clean_int(r.get('kpi', 0)),
+                    "exp": clean_int(r.get('exp', 0)),
+                    
                     "level": r.get('level', 1),
                     "hp": r.get('hp', 100),
                     "hp_max": r.get('hp_max', 100),
                     "inventory": inventory,
                     "dungeon_progress": progress
                 }
-                user_info.update(stats)
+                # 3. 🔥 LỚP BẢO VỆ 2: CHẶN GHI ĐÈ TỪ STATS_JSON
+                # (Thay thế cho dòng user_info.update(stats) đơn thuần)
+                
+                # Danh sách cấm: Không cho stats_json được phép sửa các chỉ số này
+                forbidden_keys = ["kpi", "exp", "level", "hp", "hp_max", "name", "role", "user_id"]
+                
+                if isinstance(stats, dict):
+                    for k, v in stats.items():
+                        if k not in forbidden_keys:
+                            user_info[k] = v
                 
                 # Lưu vào biến tạm (RAM)
                 loaded_data[uid] = user_info
