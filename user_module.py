@@ -930,6 +930,7 @@ def hien_thi_popup_chien_thang():
         if "boss_victory_data" in st.session_state:
             del st.session_state.boss_victory_data
         st.rerun()
+
 def tinh_va_tra_thuong_global(killer_id, all_data):
     """
     Tính thưởng Boss.
@@ -1041,119 +1042,140 @@ def tinh_va_tra_thuong_global(killer_id, all_data):
 
     sys_conf['active_boss'] = None 
     return killer_rewards_display, killer_total_dmg
-@st.dialog("🎁 KHO BÁU CHIẾN THẮNG")
-def hien_thi_ruong_bau(user_id, total_dmg, rewards_from_boss):
-    # --- GIAO DIỆN CHÚC MỪNG ---
-    st.markdown("""
-        <div style="text-align: center;">
-            <img src="https://i.ibb.co/6N788P8/chest-gold.gif" width="200">
-            <h2 style="color: #f1c40f; text-shadow: 2px 2px 4px #000;">CHÚC MỪNG CHIẾN BINH!</h2>
-            <p style="font-size: 1.2em;">Bạn đã xuất sắc góp <b>{total_dmg} sát thương</b> vào chiến thắng!</p>
+
+# ==============================================================================
+# 1. POPUP KẾT QUẢ MỞ RƯƠNG (Giao diện của bạn + Logic mới)
+# ==============================================================================
+@st.dialog("🎁 KHO BÁU VẬT PHẨM")
+def popup_ket_qua_mo_ruong(chest_name, rewards):
+    """
+    Hiển thị kết quả mở rương.
+    """
+    # Header đẹp mắt
+    st.markdown(f"""
+        <div style="text-align: center; padding-bottom: 20px;">
+            <img src="https://cdn-icons-png.flaticon.com/512/9336/9336056.png" width="120">
+            <h2 style="color: #f1c40f; margin: 10px 0;">CHÚC MỪNG!</h2>
+            <p style="font-size: 1.1em; color: #bdc3c7;">Bạn đã mở <b>{chest_name}</b> thành công!</p>
         </div>
-    """.format(total_dmg=total_dmg), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
     st.divider()
-    st.write("### 💎 Vật phẩm nhận được:")
+    st.write("### 💎 Phần thưởng nhận được:")
 
-    # --- LOGIC TRUY XUẤT HÌNH ẢNH TỪ KHO ---
-    kho_item_dict = {}
-    if os.path.exists('data/item_inventory.json'):
-        with open('data/item_inventory.json', 'r', encoding='utf-8') as f:
-            # Chuyển list thành dict để tìm kiếm nhanh theo ID (Tên vật phẩm)
-            kho_data = json.load(f)
-            kho_item_dict = {item['id']: item for item in kho_data}
+    # Lấy thông tin shop để map ảnh (nếu có)
+    shop_data = st.session_state.data.get('shop_items', {})
 
-    # --- HIỂN THỊ DANH SÁCH QUÀ ---
-    for r in rewards_from_boss:
-        item_name = r['id']
-        amount = r['amount']
-        
-        # Kiểm tra xem đây là tiền tệ có icon sẵn hay vật phẩm trong kho
-        item_info = kho_item_dict.get(item_name)
-        
-        # Xác định Link ảnh: Ưu tiên ảnh từ kho, nếu không thấy thì dùng icon mặc định
-        if item_info:
-            icon_url = item_info['image']
-            label_color = "#f1c40f" # Màu vàng cho vật phẩm
-        else:
-            # Nếu là tiền tệ (có icon 🔵, 📚...), dùng icon mặc định hoặc link ảnh chung
-            icon_url = "https://cdn-icons-png.flaticon.com/512/272/272525.png"
-            label_color = "#00d2ff" if "KPI" in item_name else "#bdc3c7"
+    if not rewards:
+        st.warning("💨 Rương trống rỗng... Chúc may mắn lần sau!")
+    else:
+        for r in rewards:
+            # Xử lý thông tin hiển thị
+            msg = r['msg']
+            r_type = r['type']
+            r_val = r['val']
+            
+            # Mặc định icon
+            icon_url = "https://cdn-icons-png.flaticon.com/512/1170/1170456.png"
+            label_color = "#f1c40f" # Vàng
 
-        # Giao diện từng dòng vật phẩm
-        st.markdown(f"""
-            <div style="display: flex; align-items: center; background: rgba(255,255,255,0.1); 
-                        padding: 10px; border-radius: 15px; margin-bottom: 10px; border-left: 5px solid {label_color};">
-                <img src="{icon_url}" width="50" style="margin-right: 15px; border-radius: 8px;">
-                <div>
-                    <b style="font-size: 1.1em; color: white;">{item_name}</b><br>
-                    <span style="color: #bdc3c7;">Số lượng: x{amount}</span>
+            # Nếu là tiền tệ
+            if r_type in ['kpi', 'exp']:
+                if r_type == 'kpi': 
+                    icon_url = "https://cdn-icons-png.flaticon.com/512/272/272525.png"
+                    label_color = "#00d2ff" # Xanh
+                else:
+                    icon_url = "https://cdn-icons-png.flaticon.com/512/616/616490.png"
+                    label_color = "#9b59b6" # Tím
+            
+            # Nếu là Item -> Lấy ảnh từ Shop Data
+            elif r_type == 'item':
+                if str(r_val) in shop_data:
+                    icon_url = shop_data[str(r_val)].get('image', icon_url)
+                label_color = "#e67e22" # Cam
+
+            # Render Card
+            st.markdown(f"""
+                <div style="display: flex; align-items: center; background: rgba(255,255,255,0.05); 
+                            padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid {label_color};">
+                    <img src="{icon_url}" width="45" style="margin-right: 15px; border-radius: 8px; object-fit: contain;">
+                    <div>
+                        <b style="font-size: 1.1em; color: {label_color};">{msg}</b><br>
+                        <span style="color: #95a5a6; font-size: 0.9em;">Đã thêm vào túi đồ</span>
+                    </div>
                 </div>
-            </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-    # --- NÚT XÁC NHẬN ---
-    if st.button("🧧 XÁC NHẬN NHẬN QUÀ & RỜI KHỎI", use_container_width=True):
-        # Lưu ý: Ở đây bạn cần thêm logic gọi hàm cộng tiền/đồ vào users.json trước khi rerun
+    st.divider()
+    if st.button("🧧 NHẬN QUÀ & ĐÓNG", use_container_width=True, type="primary"):
+        if "gacha_result" in st.session_state:
+            del st.session_state.gacha_result
         st.rerun()
 
-def xu_ly_mo_ruong(user_id, item_id, item_data, all_users, save_data_func):
+# ==============================================================================
+# 2. LOGIC MỞ RƯƠNG (Backend - Dùng Admin Config)
+# ==============================================================================
+def xu_ly_mo_ruong(user_id, item_name, item_info, all_data, save_func):
     """
-    Hàm xử lý logic mở rương theo tỷ lệ rơi độc lập:
-    Duyệt qua từng món trong Loot Table -> Tung xúc xắc -> Cộng tất cả món trúng.
+    Xử lý mở rương: Trừ kho -> Random quà từ System Config -> Cộng quà -> Lưu.
     """
-    player = all_users[user_id]
+    user_info = all_data[user_id]
+    sys_config = all_data.get('system_config', {})
     
-    # 1. Trừ 1 rương trong kho
-    if item_id in player.get('inventory', {}):
-        player['inventory'][item_id] -= 1
-        if player['inventory'][item_id] <= 0:
-            del player['inventory'][item_id]
+    # 1. Trừ 1 rương khỏi kho (Hỗ trợ cả List và Dict)
+    inventory = user_info.get('inventory', {})
     
-    # 2. Lấy danh sách phần thưởng (Loot Table)
-    props = item_data.get('properties', {})
-    loot_table = props.get('loot_table', [])
-    
-    rewards_received = [] # Chứa các tin nhắn thông báo
-    items_to_display = [] # Chứa data để hiển thị icon (nếu cần dùng cho hàm hien_thi_ruong_bau)
-
-    if not loot_table:
-        return []
-
-    # 3. THUẬT TOÁN DROP ĐỘC LẬP (Independent Drop Rate)
-    for gift in loot_table:
-        rate = float(gift.get('rate', 0))
-        # Tung xúc xắc ngẫu nhiên từ 0.0 đến 100.0
-        roll = random.uniform(0, 100)
+    # Chuyển List -> Dict nếu cần (Backward compatibility)
+    if isinstance(inventory, list):
+        temp = {}
+        for i in inventory: temp[i] = temp.get(i, 0) + 1
+        inventory = temp
         
-        # Nếu trúng tỷ lệ
-        if roll <= rate:
-            gift_type = gift.get('type')
-            target_id = gift.get('id')
-            amount = gift.get('amount', 1)
-
-            if gift_type == 'currency':
-                # Cộng tiền/tài nguyên
-                player[target_id] = player.get(target_id, 0) + amount
-                name_map = {"kpi": "KPI", "Tri_Thuc": "Tri Thức", "Chien_Tich": "Chiến Tích"}
-                display_name = name_map.get(target_id, target_id)
-                rewards_received.append({"type": "currency", "msg": f"💰 +{amount} {display_name}"})
-                
-            elif gift_type == 'item':
-                # Cộng vật phẩm vào kho
-                if 'inventory' not in player: player['inventory'] = {}
-                player['inventory'][target_id] = player['inventory'].get(target_id, 0) + amount
-                rewards_received.append({"type": "item", "msg": f"📦 Nhận: {target_id} (x{amount})"})
-
-    # 4. Lưu dữ liệu ngay lập tức
-    save_data_func(all_users)
+    # Trừ rương
+    if inventory.get(item_name, 0) > 0:
+        inventory[item_name] -= 1
+        if inventory[item_name] <= 0:
+            del inventory[item_name]
     
-    # Nếu vòng lặp xong mà không trúng món nào
-    if not rewards_received:
-        rewards_received.append({"type": "miss", "msg": "💨 Rương trống rỗng... Chúc may mắn lần sau!"})
+    # Lưu lại inventory dạng Dict chuẩn
+    user_info['inventory'] = inventory
     
-    return rewards_received
-
+    # 2. Lấy cấu hình quà (Loot Table) từ Admin
+    rewards_pool = sys_config.get('chest_rewards', [])
+    
+    # Fallback nếu chưa có cấu hình
+    if not rewards_pool:
+        rewards_pool = [
+            {"type": "kpi", "val": 10, "rate": 50, "msg": "💰 10 KPI"},
+            {"type": "exp", "val": 50, "rate": 50, "msg": "✨ 50 EXP"}
+        ]
+    
+    # 3. Quay thưởng (Weighted Random - Chọn 1 món)
+    # Nếu bạn muốn Rương mở ra nhiều món, có thể dùng logic loop như code cũ của bạn.
+    # Ở đây tôi dùng logic "Chọn 1 món theo trọng số" (Gacha chuẩn).
+    weights = [int(r.get('rate', 1)) for r in rewards_pool]
+    
+    # Chọn ngẫu nhiên 1 phần thưởng dựa trên tỷ lệ
+    chosen = random.choices(rewards_pool, weights=weights, k=1)[0]
+    
+    # 4. Cộng quà
+    r_type = chosen['type']
+    r_val = chosen['val']
+    
+    if r_type == 'kpi':
+        user_info['kpi'] = user_info.get('kpi', 0) + int(r_val)
+    elif r_type == 'exp':
+        user_info['exp'] = user_info.get('exp', 0) + int(r_val)
+    elif r_type == 'item':
+        # Cộng item vào túi
+        iname = str(r_val)
+        inventory[iname] = inventory.get(iname, 0) + 1
+        
+    # 5. Lưu dữ liệu
+    save_func(all_data)
+    
+    # Trả về list chứa món quà đã nhận để hiển thị
+    return [chosen]
 import streamlit as st
 from datetime import datetime, timedelta
 # Các hàm load_data, tinh_chi_so_chien_dau, trien_khai_tran_dau... giả định đã import từ module khác
