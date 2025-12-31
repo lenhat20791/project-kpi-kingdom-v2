@@ -626,14 +626,13 @@ def admin_quan_ly_boss():
                             st.rerun()
 
     # ==========================================================================
-    # TAB 3: CẤU HÌNH RƯƠNG BÁU (Cài đặt Gacha) - PHIÊN BẢN NÂNG CẤP
+    # TAB 3: CẤU HÌNH RƯƠNG BÁU (Cài đặt Gacha) - KẾT NỐI SHOP
     # ==========================================================================
     with tab_chest:
         st.subheader("🎰 Cài đặt Ruột Rương Báu")
         st.caption("Cấu hình tỷ lệ rơi đồ khi học sinh mở Rương.")
 
         # --- 1. HIỂN THỊ DANH SÁCH HIỆN TẠI ---
-        # Đảm bảo list tồn tại
         if 'chest_rewards' not in sys_config:
             sys_config['chest_rewards'] = []
             
@@ -644,7 +643,6 @@ def admin_quan_ly_boss():
                 with st.container(border=True):
                     c1, c2, c3, c4 = st.columns([0.5, 2, 1, 0.5])
                     with c1:
-                        # Icon loại
                         icon = "📦"
                         if reward['type'] == 'kpi': icon = "💰"
                         elif reward['type'] == 'exp': icon = "✨"
@@ -667,22 +665,45 @@ def admin_quan_ly_boss():
         # --- 2. FORM THÊM QUÀ (GIAO DIỆN ĐỘNG) ---
         st.write("#### ➕ Thêm quà vào Rương")
         
-        # Lấy danh sách vật phẩm từ kho của Admin để làm nguồn dữ liệu
-        admin_items = {}
-        if 'admin' in st.session_state.data:
+        # ======================================================================
+        # 🔥 LOGIC LẤY DANH SÁCH ITEM TỪ SHOP HOẶC KHO ADMIN 🔥
+        # ======================================================================
+        item_source_map = {} # Dùng để lưu {ID: Tên hiển thị}
+        
+        # Ưu tiên 1: Lấy từ cấu hình SHOP (Tab Shop trên Gsheet)
+        # Kiểm tra các biến thường dùng để lưu shop
+        raw_shop = st.session_state.get('shop_config', []) or st.session_state.get('shop_data', [])
+        
+        if raw_shop:
+            for item in raw_shop:
+                # Tìm ID và Tên trong cấu trúc data shop (thường là dict)
+                # Chấp nhận nhiều trường hợp key khác nhau để an toàn
+                i_id = item.get('id') or item.get('item_id') or item.get('ma_vat_pham')
+                i_name = item.get('name') or item.get('item_name') or item.get('ten_vat_pham') or i_id
+                
+                if i_id:
+                    item_source_map[i_id] = f"{i_name} (Shop)"
+
+        # Ưu tiên 2: Nếu Shop trống hoặc chưa load được, lấy từ KHO ADMIN
+        if not item_source_map and 'admin' in st.session_state.data:
             raw_inv = st.session_state.data['admin'].get('inventory', [])
             for item in raw_inv:
-                # Xử lý nếu item lưu dạng dict {id, name} hoặc chỉ là string "id"
                 if isinstance(item, dict):
-                    admin_items[item.get('id')] = item.get('name', item.get('id'))
+                    i_id = item.get('id')
+                    i_name = item.get('name', i_id)
                 else:
-                    admin_items[item] = item # Tên item giống ID
+                    i_id = item # Trường hợp lưu ID dạng chuỗi
+                    i_name = item
+                
+                if i_id:
+                    item_source_map[i_id] = f"{i_name} (Kho Admin)"
+        # ======================================================================
         
-        # Sử dụng container thay vì form để giao diện cập nhật tức thì (interactive)
+        # Giao diện thêm quà
         with st.container(border=True):
             col_type, col_val = st.columns(2)
             
-            # A. CHỌN LOẠI ITEM
+            # A. CHỌN LOẠI
             with col_type:
                 r_type = st.selectbox(
                     "1. Chọn Loại quà:", 
@@ -690,29 +711,31 @@ def admin_quan_ly_boss():
                     format_func=lambda x: "💰 KPI" if x == 'kpi' else ("✨ Kinh Nghiệm (EXP)" if x == 'exp' else "📦 Vật Phẩm (Item)")
                 )
 
-            # B. CHỌN GIÁ TRỊ (XỬ LÝ ĐỘNG)
+            # B. CHỌN GIÁ TRỊ
             with col_val:
                 final_val = 0
                 
                 if r_type in ['kpi', 'exp']:
-                    # Nếu là KPI/EXP -> Hiện ô nhập số
                     final_val = st.number_input(f"2. Nhập số lượng {r_type.upper()}:", min_value=1, value=50, step=10)
                     default_msg = f"Bạn nhận được {final_val} {r_type.upper()}!"
                 
-                else:
-                    # Nếu là ITEM -> Hiện ô Selectbox chọn từ kho Admin
-                    if admin_items:
+                else: # Nếu là ITEM
+                    if item_source_map:
+                        # Selectbox hiển thị tên item từ map đã tạo ở trên
                         selected_item_id = st.selectbox(
-                            "2. Chọn Vật phẩm (từ kho Admin):", 
-                            list(admin_items.keys()),
-                            format_func=lambda x: f"{x} - {admin_items[x]}"
+                            "2. Chọn Vật phẩm:", 
+                            list(item_source_map.keys()),
+                            format_func=lambda x: f"{x} - {item_source_map.get(x, '')}"
                         )
                         final_val = selected_item_id
-                        item_name = admin_items.get(selected_item_id, selected_item_id)
-                        default_msg = f"Bạn nhận được vật phẩm: {item_name}!"
+                        
+                        # Lấy tên sạch (bỏ chữ Shop/Kho Admin) để hiển thị thông báo cho đẹp
+                        raw_name = item_source_map.get(selected_item_id, "").split('(')[0].strip()
+                        default_msg = f"Bạn nhận được vật phẩm: {raw_name}!"
                     else:
-                        st.warning("⚠️ Kho đồ Admin đang trống. Hãy vào 'Kho Vật Phẩm' tạo đồ trước!")
-                        final_val = None
+                        st.warning("⚠️ Không tìm thấy dữ liệu Item từ Shop hoặc Kho Admin.")
+                        st.caption("Hãy đảm bảo bạn đã nhập dữ liệu vào tab 'Shop' trên Google Sheet.")
+                        final_val = st.text_input("Nhập thủ công ID vật phẩm:")
                         default_msg = "Bạn nhận được vật phẩm hiếm!"
 
             # C. CHỌN TỶ LỆ & THÔNG BÁO
@@ -726,7 +749,7 @@ def admin_quan_ly_boss():
             st.write("")
             if st.button("💾 Lưu vào Rương", type="primary", use_container_width=True):
                 if r_type == 'item' and not final_val:
-                    st.error("❌ Vui lòng chọn vật phẩm hợp lệ!")
+                    st.error("❌ Vui lòng chọn hoặc nhập vật phẩm!")
                 elif not r_msg:
                     st.error("❌ Vui lòng nhập thông báo!")
                 else:
@@ -738,12 +761,11 @@ def admin_quan_ly_boss():
                     }
                     
                     sys_config['chest_rewards'].append(new_reward)
-                    user_module.save_all_to_sheets(st.session_state.data) # Lưu data
+                    user_module.save_all_to_sheets(st.session_state.data) 
                     
-                    st.success("✅ Đã thêm quà thành công!")
+                    st.success(f"✅ Đã thêm '{r_type}' vào rương!")
                     time.sleep(1)
-                    st.rerun()      
-    
+                    st.rerun()    
 def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
     # --- TỰ ĐỘNG BACKUP KHI ADMIN ĐĂNG NHẬP ---
     if thực_hiện_auto_backup():
