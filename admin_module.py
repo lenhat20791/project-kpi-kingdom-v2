@@ -194,15 +194,19 @@ def get_reward_options_list():
         
     return sorted(options)
 
-# --- HÀM BỔ TRỢ DỮ LIỆU PHÓ BẢN ---
-@st.cache_data
+import json
+import streamlit as st
+from user_module import get_gspread_client, SHEET_NAME
+
+# --- HÀM BỔ TRỢ DỮ LIỆU PHÓ BẢN (PHIÊN BẢN GGSHEET) ---
+@st.cache_data(ttl=60) # Cache 60s để đỡ gọi API liên tục
 def load_dungeon_config():
-    path = "data/dungeon_config.json"
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    # Nếu chưa có file, tạo cấu trúc mặc định cho 6 vùng đất
+    """
+    Tải cấu hình phó bản từ Tab 'Dungeon' trên Google Sheet.
+    Nếu chưa có, trả về cấu hình mặc định.
+    """
     default_config = {}
+    # Tạo cấu trúc mặc định (Dùng khi Sheet lỗi hoặc chưa có dữ liệu)
     lands = ["toan", "van", "anh", "ly", "hoa", "sinh"]
     for land in lands:
         default_config[land] = {
@@ -222,14 +226,107 @@ def load_dungeon_config():
                 "item_drop_id": "none",
                 "drop_rate": 0
             }
-    return default_config
+
+    try:
+        client = get_gspread_client()
+        sh = client.open(SHEET_NAME)
+        
+        try:
+            wks = sh.worksheet("Dungeon")
+            records = wks.get_all_records()
+            
+            # Nếu Sheet trống, trả về mặc định
+            if not records:
+                return default_config
+            
+            # Parse dữ liệu từ Sheet vào Dict
+            loaded_config = {}
+            for row in records:
+                land_id = str(row.get('Land_ID', '')).strip()
+                phase_id = str(row.get('Phase_ID', '')).strip()
+                raw_json = str(row.get('Config_JSON', '{}'))
+                
+                if not land_id: continue
+                
+                # Khởi tạo vùng đất nếu chưa có
+                if land_id not in loaded_config:
+                    loaded_config[land_id] = {
+                        "name": land_id.upper(),
+                        "phases": {}
+                    }
+                
+                # Parse JSON chi tiết phase
+                try:
+                    # Fix lỗi dấu ngoặc kép thông minh nếu copy paste
+                    clean_json = raw_json.replace("“", '"').replace("”", '"').replace("’", "'")
+                    phase_data = json.loads(clean_json)
+                    loaded_config[land_id]["phases"][phase_id] = phase_data
+                except:
+                    # Nếu JSON lỗi, lấy từ default
+                    if land_id in default_config and phase_id in default_config[land_id]['phases']:
+                         loaded_config[land_id]["phases"][phase_id] = default_config[land_id]['phases'][phase_id]
+
+            # Merge với default để đảm bảo không thiếu land nào (nếu sheet xóa bớt)
+            final_config = default_config.copy()
+            for l_id, l_data in loaded_config.items():
+                if l_id in final_config:
+                    final_config[l_id]['phases'].update(l_data['phases'])
+            
+            return final_config
+
+        except Exception:
+            # Nếu chưa có tab Dungeon thì trả về mặc định luôn
+            return default_config
+
+    except Exception as e:
+        st.error(f"⚠️ Lỗi tải cấu hình Phó bản: {e}")
+        return default_config
+
 
 def save_dungeon_config(config):
-    if not os.path.exists("data"):
-        os.makedirs("data")
-    with open("data/dungeon_config.json", "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=4, ensure_ascii=False)
-
+    """
+    Lưu cấu hình phó bản lên Tab 'Dungeon' trên Google Sheet.
+    Tự động tạo Tab và Cột nếu chưa có.
+    """
+    try:
+        client = get_gspread_client()
+        sh = client.open(SHEET_NAME)
+        
+        # 1. Tìm hoặc Tạo tab Dungeon
+        try:
+            wks = sh.worksheet("Dungeon")
+        except:
+            wks = sh.add_worksheet(title="Dungeon", rows=100, cols=10)
+            
+        # 2. Chuẩn bị dữ liệu để lưu (Làm phẳng Dictionary)
+        # Header chuẩn
+        headers = ["Land_ID", "Phase_ID", "Phase_Name", "Config_JSON"]
+        rows_to_write = [headers]
+        
+        for land_id, land_data in config.items():
+            phases = land_data.get("phases", {})
+            for phase_id, phase_data in phases.items():
+                row = [
+                    str(land_id),
+                    str(phase_id),
+                    str(phase_data.get('title', phase_id)),
+                    json.dumps(phase_data, ensure_ascii=False) # Gom hết thuộc tính vào JSON
+                ]
+                rows_to_write.append(row)
+        
+        # 3. Ghi đè lên Sheet
+        wks.clear()
+        wks.update('A1', rows_to_write)
+        
+        # 4. Xóa Cache để lần tải sau thấy dữ liệu mới ngay
+        st.cache_data.clear()
+        
+    except Exception as e:
+        st.error(f"❌ Lỗi lưu cấu hình Phó bản: {e}")
+        # Fallback: Lưu tạm xuống file local phòng hờ mất mạng
+        if not os.path.exists("data"): os.makedirs("data")
+        with open("data/dungeon_config.json", "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=4, ensure_ascii=False)
 def hien_thi_tao_item_pho_ban(save_shop_func):
     with st.expander("🎁 CHẾ TẠO VẬT PHẨM RIÊNG CHO PHÓ BẢN", expanded=False):
         st.info("Tạo nhanh các vật phẩm rơi từ Phó bản (Rìu, Khiên, Thuốc...).")
