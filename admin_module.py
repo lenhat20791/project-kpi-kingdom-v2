@@ -1759,148 +1759,148 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
 
 
     elif page == "⚠️ Xóa dữ liệu":
-    st.subheader("♻️ KHU VỰC TỐI NGUY HIỂM: RESET NĂM HỌC")
-    st.warning("⚠️ CHÚ Ý: Hành động này sẽ xóa sạch dữ liệu học sinh và lịch sử đấu PVP.\n\n🛡️ Cấu hình (Boss, Rank), Shop, Market và Logs sẽ được GIỮ NGUYÊN.")
+        st.subheader("♻️ KHU VỰC TỐI NGUY HIỂM: RESET NĂM HỌC")
+        st.warning("⚠️ CHÚ Ý: Hành động này sẽ xóa sạch dữ liệu học sinh và lịch sử đấu PVP.\n\n🛡️ Cấu hình (Boss, Rank), Shop, Market và Logs sẽ được GIỮ NGUYÊN.")
 
-    with st.expander("👉 NHẤN VÀO ĐÂY ĐỂ THỰC HIỆN"):
-        confirm_text = st.text_input("Nhập chữ 'RESET' để xác nhận:", key="reset_confirm_input")
-        
-        if st.button("🔥 THỰC HIỆN RESET (CHỈ PLAYERS & PVP)"):
-            if confirm_text == "RESET":
-                import time
-                import json
-                import user_module # Import module chứa hàm kết nối GSheet
-                
-                status_placeholder = st.empty()
-                status_placeholder.info("⏳ Đang khởi động quy trình reset an toàn...")
-
-                # 1. Kết nối Google Sheet
-                try:
-                    client = user_module.get_gspread_client()
-                    sh = client.open(user_module.SHEET_NAME)
-                except Exception as e:
-                    st.error(f"❌ Lỗi kết nối Google Sheet: {e}")
-                    st.stop()
-
-                # =========================================================
-                # 🛠️ XỬ LÝ TAB "Players" (Chuẩn hóa theo ảnh image_e64f63.png)
-                # =========================================================
-                try:
-                    status_placeholder.info("🧹 Đang dọn dẹp tab Players...")
+        with st.expander("👉 NHẤN VÀO ĐÂY ĐỂ THỰC HIỆN"):
+            confirm_text = st.text_input("Nhập chữ 'RESET' để xác nhận:", key="reset_confirm_input")
+            
+            if st.button("🔥 THỰC HIỆN RESET (CHỈ PLAYERS & PVP)"):
+                if confirm_text == "RESET":
+                    import time
+                    import json
+                    import user_module # Import module chứa hàm kết nối GSheet
                     
-                    # 1.1. Xác định đúng tên tab (Phân biệt hoa thường)
-                    try: 
-                        wks_players = sh.worksheet("Players")
-                    except: 
-                        st.error("❌ Không tìm thấy tab 'Players'. Hãy kiểm tra lại tên tab trên Google Sheet!")
+                    status_placeholder = st.empty()
+                    status_placeholder.info("⏳ Đang khởi động quy trình reset an toàn...")
+
+                    # 1. Kết nối Google Sheet
+                    try:
+                        client = user_module.get_gspread_client()
+                        sh = client.open(user_module.SHEET_NAME)
+                    except Exception as e:
+                        st.error(f"❌ Lỗi kết nối Google Sheet: {e}")
                         st.stop()
-                    
-                    # 1.2. Lấy dữ liệu cũ để tìm Admin
-                    # Chúng ta sẽ giữ lại dòng Admin nguyên bản thay vì tạo mới để tránh mất mật khẩu/setup cũ
-                    all_values = wks_players.get_all_values()
-                    
-                    admin_row_data = []
-                    
-                    # Tìm dòng chứa id là 'admin' (Bỏ qua dòng đầu tiên là header)
-                    if len(all_values) > 1:
-                        for row in all_values[1:]: 
-                            # Cột A là user_id (index 0)
-                            if str(row[0]).strip().lower() == 'admin':
-                                admin_row_data = row
-                                break
-                    
-                    # Nếu không tìm thấy trên Sheet, lấy tạm từ Session hiện tại
-                    if not admin_row_data:
-                        adm = st.session_state.data.get('admin', {})
-                        # Tạo dòng admin tạm (Fallback)
-                        admin_row_data = [
-                            "admin", adm.get("name", "Administrator"), "Quản trị", "admin", adm.get("password", "123"),
-                            "0", "0", "99", "100", "100", "0", "{}", "{}", "{}"
+
+                    # =========================================================
+                    # 🛠️ XỬ LÝ TAB "Players" (Chuẩn hóa theo ảnh image_e64f63.png)
+                    # =========================================================
+                    try:
+                        status_placeholder.info("🧹 Đang dọn dẹp tab Players...")
+                        
+                        # 1.1. Xác định đúng tên tab (Phân biệt hoa thường)
+                        try: 
+                            wks_players = sh.worksheet("Players")
+                        except: 
+                            st.error("❌ Không tìm thấy tab 'Players'. Hãy kiểm tra lại tên tab trên Google Sheet!")
+                            st.stop()
+                        
+                        # 1.2. Lấy dữ liệu cũ để tìm Admin
+                        # Chúng ta sẽ giữ lại dòng Admin nguyên bản thay vì tạo mới để tránh mất mật khẩu/setup cũ
+                        all_values = wks_players.get_all_values()
+                        
+                        admin_row_data = []
+                        
+                        # Tìm dòng chứa id là 'admin' (Bỏ qua dòng đầu tiên là header)
+                        if len(all_values) > 1:
+                            for row in all_values[1:]: 
+                                # Cột A là user_id (index 0)
+                                if str(row[0]).strip().lower() == 'admin':
+                                    admin_row_data = row
+                                    break
+                        
+                        # Nếu không tìm thấy trên Sheet, lấy tạm từ Session hiện tại
+                        if not admin_row_data:
+                            adm = st.session_state.data.get('admin', {})
+                            # Tạo dòng admin tạm (Fallback)
+                            admin_row_data = [
+                                "admin", adm.get("name", "Administrator"), "Quản trị", "admin", adm.get("password", "123"),
+                                "0", "0", "99", "100", "100", "0", "{}", "{}", "{}"
+                            ]
+
+                        # 1.3. Định nghĩa Header CHUẨN (Khớp với ảnh + bổ sung JSON ẩn)
+                        # Theo ảnh: user_id, name, team, role, password, kpi, exp, level, hp, hp_max, world_chat_count, stats_json
+                        # Bổ sung: inventory_json, progress_json (để tránh lỗi code save về sau)
+                        players_header = [
+                            "user_id", "name", "team", "role", "password", 
+                            "kpi", "exp", "level", "hp", "hp_max", 
+                            "world_chat_count", "stats_json", "inventory_json", "progress_json"
                         ]
-
-                    # 1.3. Định nghĩa Header CHUẨN (Khớp với ảnh + bổ sung JSON ẩn)
-                    # Theo ảnh: user_id, name, team, role, password, kpi, exp, level, hp, hp_max, world_chat_count, stats_json
-                    # Bổ sung: inventory_json, progress_json (để tránh lỗi code save về sau)
-                    players_header = [
-                        "user_id", "name", "team", "role", "password", 
-                        "kpi", "exp", "level", "hp", "hp_max", 
-                        "world_chat_count", "stats_json", "inventory_json", "progress_json"
-                    ]
-                    
-                    # 1.4. Ghi đè dữ liệu mới
-                    wks_players.clear()
-                    
-                    # Dữ liệu ghi xuống: [Header] + [Admin]
-                    data_to_write = [players_header, admin_row_data]
-                    
-                    wks_players.update(range_name="A1", values=data_to_write)
-                    
-                    st.toast("✅ Đã reset tab Players (Giữ nguyên Admin & Cột)!", icon="user")
-
-                except Exception as e:
-                    st.error(f"❌ Lỗi xử lý tab Players: {e}")
-
-                # =========================================================
-                # 🛠️ XỬ LÝ TAB "PVP" (Chuẩn hóa theo ảnh image_e6535b.png)
-                # =========================================================
-                try:
-                    status_placeholder.info("⚔️ Đang dọn dẹp tab PVP...")
-                    
-                    # 2.1. Xác định đúng tên tab
-                    try: 
-                        wks_pvp = sh.worksheet("PVP") # Tên trong ảnh là PVP viết hoa
-                    except:
-                        # Thử tên khác phòng hờ
-                        try: wks_pvp = sh.worksheet("Loi_Dai")
-                        except: wks_pvp = None
-                    
-                    if wks_pvp:
-                        wks_pvp.clear()
                         
-                        # 2.2. Định nghĩa Header CHUẨN THEO ẢNH image_e6535b.png
-                        # Ảnh có: Match_ID, Full_JSON_Data, Status, Created_At
-                        pvp_header = ["Match_ID", "Full_JSON_Data", "Status", "Created_At"]
+                        # 1.4. Ghi đè dữ liệu mới
+                        wks_players.clear()
                         
-                        wks_pvp.append_row(pvp_header)
-                        st.toast("✅ Đã reset tab PVP (Header chuẩn)!", icon="⚔️")
-                    else:
-                        st.warning("⚠️ Không tìm thấy tab PVP để reset.")
+                        # Dữ liệu ghi xuống: [Header] + [Admin]
+                        data_to_write = [players_header, admin_row_data]
+                        
+                        wks_players.update(range_name="A1", values=data_to_write)
+                        
+                        st.toast("✅ Đã reset tab Players (Giữ nguyên Admin & Cột)!", icon="user")
 
-                except Exception as e:
-                    st.error(f"❌ Lỗi xử lý tab PVP: {e}")
+                    except Exception as e:
+                        st.error(f"❌ Lỗi xử lý tab Players: {e}")
 
-                # =========================================================
-                # 🔄 CẬP NHẬT SESSION STATE (RAM)
-                # =========================================================
-                status_placeholder.info("🔄 Đang cập nhật bộ nhớ hệ thống...")
-                
-                # Giữ lại cấu hình quan trọng
-                saved_admin = st.session_state.data.get('admin', {})
-                saved_rank = st.session_state.data.get('rank_settings', [])
-                saved_sys = st.session_state.get('system_config', {})
-                saved_shop = st.session_state.get('shop_items', {})
+                    # =========================================================
+                    # 🛠️ XỬ LÝ TAB "PVP" (Chuẩn hóa theo ảnh image_e6535b.png)
+                    # =========================================================
+                    try:
+                        status_placeholder.info("⚔️ Đang dọn dẹp tab PVP...")
+                        
+                        # 2.1. Xác định đúng tên tab
+                        try: 
+                            wks_pvp = sh.worksheet("PVP") # Tên trong ảnh là PVP viết hoa
+                        except:
+                            # Thử tên khác phòng hờ
+                            try: wks_pvp = sh.worksheet("Loi_Dai")
+                            except: wks_pvp = None
+                        
+                        if wks_pvp:
+                            wks_pvp.clear()
+                            
+                            # 2.2. Định nghĩa Header CHUẨN THEO ẢNH image_e6535b.png
+                            # Ảnh có: Match_ID, Full_JSON_Data, Status, Created_At
+                            pvp_header = ["Match_ID", "Full_JSON_Data", "Status", "Created_At"]
+                            
+                            wks_pvp.append_row(pvp_header)
+                            st.toast("✅ Đã reset tab PVP (Header chuẩn)!", icon="⚔️")
+                        else:
+                            st.warning("⚠️ Không tìm thấy tab PVP để reset.")
 
-                # Reset data trong RAM
-                st.session_state.data = {
-                    'admin': saved_admin,
-                    'players': [], # Xóa hết học sinh
-                    'rank_settings': saved_rank
-                }
-                
-                # Khôi phục config
-                st.session_state.system_config = saved_sys
-                st.session_state.shop_items = saved_shop
-                
-                # Xóa biến tạm combat
-                keys_to_del = ["dang_danh_dungeon", "current_q_idx", "match_result_notified"]
-                for k in keys_to_del:
-                    if k in st.session_state: del st.session_state[k]
+                    except Exception as e:
+                        st.error(f"❌ Lỗi xử lý tab PVP: {e}")
 
-                status_placeholder.success("🎉 RESET HOÀN TẤT! Dữ liệu đã sạch sẽ và an toàn.")
-                time.sleep(2)
-                st.rerun()
-            else:
-                st.error("Vui lòng nhập đúng chữ 'RESET' để xác nhận.")
+                    # =========================================================
+                    # 🔄 CẬP NHẬT SESSION STATE (RAM)
+                    # =========================================================
+                    status_placeholder.info("🔄 Đang cập nhật bộ nhớ hệ thống...")
+                    
+                    # Giữ lại cấu hình quan trọng
+                    saved_admin = st.session_state.data.get('admin', {})
+                    saved_rank = st.session_state.data.get('rank_settings', [])
+                    saved_sys = st.session_state.get('system_config', {})
+                    saved_shop = st.session_state.get('shop_items', {})
+
+                    # Reset data trong RAM
+                    st.session_state.data = {
+                        'admin': saved_admin,
+                        'players': [], # Xóa hết học sinh
+                        'rank_settings': saved_rank
+                    }
+                    
+                    # Khôi phục config
+                    st.session_state.system_config = saved_sys
+                    st.session_state.shop_items = saved_shop
+                    
+                    # Xóa biến tạm combat
+                    keys_to_del = ["dang_danh_dungeon", "current_q_idx", "match_result_notified"]
+                    for k in keys_to_del:
+                        if k in st.session_state: del st.session_state[k]
+
+                    status_placeholder.success("🎉 RESET HOÀN TẤT! Dữ liệu đã sạch sẽ và an toàn.")
+                    time.sleep(2)
+                    st.rerun()
+                else:
+                    st.error("Vui lòng nhập đúng chữ 'RESET' để xác nhận.")
 
     elif page == "📥 Sao lưu dữ liệu":
         st.subheader("🛡️ HỆ THỐNG SAO LƯU DỮ LIỆU")
