@@ -3586,7 +3586,11 @@ def load_data_from_sheets():
     """
     try:
         print("☁️ Đang kết nối tới Google Sheets...")
+        # Import thư viện cần thiết bên trong để tránh lỗi scope
+        import json
+        import streamlit as st
         from user_module import get_gspread_client
+        
         client = get_gspread_client()
         
         # Mở file Sheet
@@ -3646,7 +3650,7 @@ def load_data_from_sheets():
                 try: progress = json.loads(str(r.get('progress_json', '{}')))
                 except: progress = {}
 
-                # Hàm làm sạch số
+                # Hàm làm sạch số (Fix lỗi 170.1 -> 1701)
                 def clean_int(val):
                     try: return int(float(str(val).replace(',', '.')))
                     except: return 0
@@ -3682,43 +3686,39 @@ def load_data_from_sheets():
         # 2. TẢI CẤU HÌNH (Tab Settings) - BOSS & RANK (ĐÃ SỬA)
         # =========================================================
         try:
-            try:
-                sh_settings = spreadsheet.worksheet("Settings")
-                settings_records = sh_settings.get_all_records()
-                print(f"⚙️ Đang quét {len(settings_records)} dòng cấu hình...")
+            sh_settings = spreadsheet.worksheet("Settings")
+            settings_records = sh_settings.get_all_records()
+            print(f"⚙️ Đang quét {len(settings_records)} dòng cấu hình...")
 
-                for row in settings_records:
-                    key = str(row.get('Config_Key', '')).strip()
-                    raw_value = str(row.get('Value', ''))
-                    
-                    if key and raw_value:
-                        try:
-                            clean_value = raw_value.replace("“", '"').replace("”", '"').replace("’", "'")
-                            decoded_val = json.loads(clean_value)
-                            
-                            if key == "active_boss":
-                                if isinstance(decoded_val, dict) and "active_boss" in decoded_val:
-                                     loaded_data['system_config']['active_boss'] = decoded_val["active_boss"]
-                                else:
-                                     loaded_data['system_config']['active_boss'] = decoded_val
-                            else:
-                                # 1. Lưu vào system_config (Chuẩn mới)
-                                loaded_data['system_config'][key] = decoded_val
-                                
-                                # 2. 🔥 QUAN TRỌNG: Nếu là rank_settings, đưa ra ngoài ROOT (Chuẩn cũ)
-                                # Để chức năng Quản lý danh hiệu tìm thấy được
-                                if key == 'rank_settings':
-                                    loaded_data['rank_settings'] = decoded_val
-                                    print("✅ Đã tải Cấu hình Danh hiệu (rank_settings)")
-
-                        except Exception as json_error:
-                            print(f"❌ Lỗi JSON Settings '{key}': {json_error}")
-
-            except:
-                print("⚠️ Tab 'Settings' chưa có dữ liệu hoặc không tồn tại.")
+            for row in settings_records:
+                key = str(row.get('Config_Key', '')).strip()
+                raw_value = str(row.get('Value', ''))
                 
+                if key and raw_value:
+                    try:
+                        clean_value = raw_value.replace("“", '"').replace("”", '"').replace("’", "'")
+                        decoded_val = json.loads(clean_value)
+                        
+                        if key == "active_boss":
+                            if isinstance(decoded_val, dict) and "active_boss" in decoded_val:
+                                    loaded_data['system_config']['active_boss'] = decoded_val["active_boss"]
+                            else:
+                                    loaded_data['system_config']['active_boss'] = decoded_val
+                        else:
+                            # 1. Lưu vào system_config (để tương thích các phần khác)
+                            loaded_data['system_config'][key] = decoded_val
+                            
+                            # 2. 🔥 NẾU LÀ RANK SETTINGS -> LƯU RIÊNG VÀO BIẾN loaded_data
+                            # Đây là bước quan trọng để UI tìm thấy danh hiệu
+                            if key == 'rank_settings':
+                                loaded_data['rank_settings'] = decoded_val
+                                print(f"🏆 Đã tìm thấy cấu hình danh hiệu ({len(decoded_val)} mốc)")
+
+                    except Exception as json_error:
+                        print(f"❌ Lỗi JSON Settings '{key}': {json_error}")
+
         except Exception as e:
-            print(f"ℹ️ Lỗi chung Settings: {e}")
+            print(f"⚠️ Lỗi tab Settings: {e}")
 
         # =========================================================
         # 3. TẢI TIỆM TẠP HÓA (Tab Shop)
@@ -3757,13 +3757,19 @@ def load_data_from_sheets():
         # --- KẾT THÚC ---
         if not loaded_data: return None
 
-        # Cập nhật trực tiếp vào session_state để chắc chắn
+        # 4. 🔥 CẬP NHẬT SESSION STATE (BƯỚC QUYẾT ĐỊNH) 🔥
+        
+        # Shop
         if 'shop_items' not in st.session_state: st.session_state.shop_items = {}
         st.session_state.shop_items = loaded_data['shop_items']
         
-        # 🔥 Cập nhật cả system_config vào session_state
+        # System Config
         if 'system_config' not in st.session_state: st.session_state.system_config = {}
         st.session_state.system_config = loaded_data['system_config']
+        
+        # 🔥 QUAN TRỌNG: CẬP NHẬT RANK SETTINGS
+        # Đây là dòng mà code cũ của bạn bị thiếu, khiến UI không tìm thấy dữ liệu
+        st.session_state.rank_settings = loaded_data['rank_settings']
         
         return loaded_data
 
