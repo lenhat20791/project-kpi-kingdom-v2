@@ -1471,7 +1471,7 @@ if current_role == "admin":
         admin_module.admin_quan_ly_boss()
     
     elif current_page == "🛡️ Quản lý Phó bản":
-        admin_module.hien_thi_giao_dien_admin(save_data, save_shop_data)
+        admin_module.hien_thi_admin_control_dungeon(save_shop_data)
     
     elif current_page == "📢 Thông báo Server":
         admin_module.giao_dien_thong_bao_admin()
