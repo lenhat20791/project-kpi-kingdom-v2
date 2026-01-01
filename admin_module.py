@@ -1759,146 +1759,148 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
 
 
     elif page == "⚠️ Xóa dữ liệu":
-        st.subheader("♻️ KHU VỰC TỐI NGUY HIỂM: RESET NĂM HỌC")
+    st.subheader("♻️ KHU VỰC TỐI NGUY HIỂM: RESET NĂM HỌC")
+    st.warning("⚠️ CHÚ Ý: Hành động này sẽ xóa sạch dữ liệu học sinh và lịch sử đấu PVP.\n\n🛡️ Cấu hình (Boss, Rank), Shop, Market và Logs sẽ được GIỮ NGUYÊN.")
+
+    with st.expander("👉 NHẤN VÀO ĐÂY ĐỂ THỰC HIỆN"):
+        confirm_text = st.text_input("Nhập chữ 'RESET' để xác nhận:", key="reset_confirm_input")
         
-        with st.expander("👉 NHẤN VÀO ĐÂY ĐỂ THỰC HIỆN"):
-            confirm_text = st.text_input("Nhập chữ 'RESET' để xác nhận:", key="reset_confirm_input")
-            
-            if st.button("🔥 THỰC HIỆN RESET TOÀN BỘ"):
-                if confirm_text == "RESET":
-                    import os
-                    import time
-                    import json
+        if st.button("🔥 THỰC HIỆN RESET (CHỈ PLAYERS & PVP)"):
+            if confirm_text == "RESET":
+                import time
+                import json
+                import user_module # Import module chứa hàm kết nối GSheet
+                
+                status_placeholder = st.empty()
+                status_placeholder.info("⏳ Đang khởi động quy trình reset an toàn...")
 
-                    # 1. Thực hiện dọn dẹp backup cũ
-                    try:
-                        dọn_dẹp_backup_reset_năm_học()
-                        st.info("🧹 Đã dọn dẹp kho lưu trữ sao lưu cũ.")
-                    except:
-                        pass
+                # 1. Kết nối Google Sheet
+                try:
+                    client = user_module.get_gspread_client()
+                    sh = client.open(user_module.SHEET_NAME)
+                except Exception as e:
+                    st.error(f"❌ Lỗi kết nối Google Sheet: {e}")
+                    st.stop()
 
-                    # 2. [QUAN TRỌNG] SAO LƯU CẤU HÌNH CẦN GIỮ (RANK SETTINGS)
-                    # Thử lấy từ Session State trước
-                    saved_rank_settings = st.session_state.data.get('rank_settings', [])
+                # =========================================================
+                # 🛠️ XỬ LÝ TAB "Players" (Chuẩn hóa theo ảnh image_e64f63.png)
+                # =========================================================
+                try:
+                    status_placeholder.info("🧹 Đang dọn dẹp tab Players...")
                     
-                    # Nếu Session trống, thử đọc lại từ file data.json gốc để chắc ăn
-                    if not saved_rank_settings:
-                        try:
-                            with open(DATA_FILE_PATH, 'r', encoding='utf-8') as f:
-                                temp_data = json.load(f)
-                                saved_rank_settings = temp_data.get('rank_settings', [])
-                        except:
-                            saved_rank_settings = []
+                    # 1.1. Xác định đúng tên tab (Phân biệt hoa thường)
+                    try: 
+                        wks_players = sh.worksheet("Players")
+                    except: 
+                        st.error("❌ Không tìm thấy tab 'Players'. Hãy kiểm tra lại tên tab trên Google Sheet!")
+                        st.stop()
                     
-                    # Debug: In ra để kiểm tra (Xóa sau khi chạy xong)
-                    # st.write(f"DEBUG: Số lượng danh hiệu giữ lại: {len(saved_rank_settings)}")
-
-                    current_admin_pass = st.session_state.data.get('admin', {}).get('password', 'admin')
-
-                    # 3. TẠO DỮ LIỆU MỚI (Vẫn giữ Rank Settings)
-                    new_data = {
-                        'admin': {
-                            "name": "Administrator",
-                            "password": current_admin_pass,
-                            "role": "admin",
-                            "grade": "Hệ thống",
-                            "team": "Quản trị",
-                            "kpi": 0.0,
-                            "level": 99,
-                            "exp": 0
-                        },
-                        # Reset danh sách học sinh về rỗng
-                        'players': [], 
-                        
-                        # [QUAN TRỌNG] Gán lại Rank Settings đã sao lưu
-                        # Nếu vẫn rỗng, thử tạo một list mặc định để không bị lỗi code sau này
-                        'rank_settings': saved_rank_settings if saved_rank_settings else [] 
-                    }
+                    # 1.2. Lấy dữ liệu cũ để tìm Admin
+                    # Chúng ta sẽ giữ lại dòng Admin nguyên bản thay vì tạo mới để tránh mất mật khẩu/setup cũ
+                    all_values = wks_players.get_all_values()
                     
-                    # Nếu rank_settings vẫn rỗng (trường hợp file gốc cũng mất), ta có thể
-                    # (Tùy chọn) Khởi tạo danh hiệu mặc định cơ bản
-                    if not new_data['rank_settings']:
-                         new_data['rank_settings'] = [
-                             {"name": "Tân Thủ", "min_kpi": 0, "color": "#808080"},
-                             {"name": "Học Giả", "min_kpi": 50, "color": "#00FF00"}
-                         ]
-
-                    # 4. Reset file Lôi đài an toàn (Giữ nguyên code của bạn)
-                    path_loi_dai = "loi_dai.json" 
-                    default_structure = {"matches": {}, "rankings": {}}
-                    try:
-                        with open(path_loi_dai, 'w', encoding='utf-8') as f:
-                            json.dump(default_structure, f, ensure_ascii=False, indent=4)
-                            f.flush()
-                            os.fsync(f.fileno())
-                        st.info("📊 Đã tái tạo nhật ký Lôi đài sạch sẽ.")
-                    except Exception as e:
-                        st.error(f"⚠️ Lỗi reset lôi đài: {e}")
-
-                    # 5. Cập nhật và lưu dữ liệu chính
-                    # Cập nhật vào RAM ngay lập tức
-                    st.session_state.data = new_data
+                    admin_row_data = []
                     
-                    # Lưu xuống file vật lý
-                    save_data_func(st.session_state.data)
+                    # Tìm dòng chứa id là 'admin' (Bỏ qua dòng đầu tiên là header)
+                    if len(all_values) > 1:
+                        for row in all_values[1:]: 
+                            # Cột A là user_id (index 0)
+                            if str(row[0]).strip().lower() == 'admin':
+                                admin_row_data = row
+                                break
                     
-                    # ==========================================================
-                    # 🔥 CODE FIX: DÙNG APPEND_ROW ĐỂ TẠO TIÊU ĐỀ CHẮC CHẮN HƠN
-                    # ==========================================================
-                    try:
-                        import user_module
-                        client = user_module.get_gspread_client()
-                        
-                        if client:
-                            sh = client.open(user_module.SHEET_NAME)
-                            
-                            # 1. Chọn Tab (Ưu tiên 'Players')
-                            try:
-                                wks = sh.worksheet("Players") 
-                            except:
-                                wks = sh.sheet1 
+                    # Nếu không tìm thấy trên Sheet, lấy tạm từ Session hiện tại
+                    if not admin_row_data:
+                        adm = st.session_state.data.get('admin', {})
+                        # Tạo dòng admin tạm (Fallback)
+                        admin_row_data = [
+                            "admin", adm.get("name", "Administrator"), "Quản trị", "admin", adm.get("password", "123"),
+                            "0", "0", "99", "100", "100", "0", "{}", "{}", "{}"
+                        ]
 
-                            st.write(f"🛠️ Đang tái cấu trúc tab: {wks.title}...")
-                            
-                            # 2. Xóa sạch dữ liệu cũ
-                            wks.clear() 
-                            
-                            # 3. DANH SÁCH CỘT CHUẨN (Đã tách user_id và name)
-                            # Lưu ý: "user_idname" bạn gửi có vẻ bị dính chữ, tôi đã tách ra thành 2 cột chuẩn.
-                            headers = [
-                                "user_id", "name", "role", "world_chat_count", "team", "password", 
-                                "kpi", "exp", "level", 
-                                "hp", "hp_max", "stats_json"
-                            ]
-                            
-                            # 4. QUAN TRỌNG: Dùng append_row thay vì update
-                            # Hàm này sẽ tự động đặt dòng này vào vị trí đầu tiên nếu bảng trống
-                            wks.append_row(headers)
-                            
-                            st.toast(f"✅ Đã tạo lại {len(headers)} cột thành công!", icon="🏗️")
-
-                        else:
-                            st.error("⚠️ Mất kết nối Google Sheets.")
-                            
-                    except Exception as e:
-                        st.error(f"❌ Lỗi tái tạo bảng: {e}")
-                    # ==========================================================
-                    
-                    # 6. Dọn dẹp session để tránh xung đột
-                    combat_keys = [
-                        "dang_danh_dungeon", "dungeon_questions", "current_q_idx", 
-                        "correct_count", "victory_processed", 
-                        "match_result_notified", "arena_log", "last_match_result",
-                        "match_id_active", "pending_match_join"
+                    # 1.3. Định nghĩa Header CHUẨN (Khớp với ảnh + bổ sung JSON ẩn)
+                    # Theo ảnh: user_id, name, team, role, password, kpi, exp, level, hp, hp_max, world_chat_count, stats_json
+                    # Bổ sung: inventory_json, progress_json (để tránh lỗi code save về sau)
+                    players_header = [
+                        "user_id", "name", "team", "role", "password", 
+                        "kpi", "exp", "level", "hp", "hp_max", 
+                        "world_chat_count", "stats_json", "inventory_json", "progress_json"
                     ]
-                    for k in combat_keys:
-                        if k in st.session_state:
-                            del st.session_state[k]
+                    
+                    # 1.4. Ghi đè dữ liệu mới
+                    wks_players.clear()
+                    
+                    # Dữ liệu ghi xuống: [Header] + [Admin]
+                    data_to_write = [players_header, admin_row_data]
+                    
+                    wks_players.update(range_name="A1", values=data_to_write)
+                    
+                    st.toast("✅ Đã reset tab Players (Giữ nguyên Admin & Cột)!", icon="user")
 
-                    st.success("💥 Reset thành công! Toàn bộ dữ liệu cũ đã được làm sạch.")
-                    time.sleep(2)
-                    st.cache_data.clear()
-                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Lỗi xử lý tab Players: {e}")
+
+                # =========================================================
+                # 🛠️ XỬ LÝ TAB "PVP" (Chuẩn hóa theo ảnh image_e6535b.png)
+                # =========================================================
+                try:
+                    status_placeholder.info("⚔️ Đang dọn dẹp tab PVP...")
+                    
+                    # 2.1. Xác định đúng tên tab
+                    try: 
+                        wks_pvp = sh.worksheet("PVP") # Tên trong ảnh là PVP viết hoa
+                    except:
+                        # Thử tên khác phòng hờ
+                        try: wks_pvp = sh.worksheet("Loi_Dai")
+                        except: wks_pvp = None
+                    
+                    if wks_pvp:
+                        wks_pvp.clear()
+                        
+                        # 2.2. Định nghĩa Header CHUẨN THEO ẢNH image_e6535b.png
+                        # Ảnh có: Match_ID, Full_JSON_Data, Status, Created_At
+                        pvp_header = ["Match_ID", "Full_JSON_Data", "Status", "Created_At"]
+                        
+                        wks_pvp.append_row(pvp_header)
+                        st.toast("✅ Đã reset tab PVP (Header chuẩn)!", icon="⚔️")
+                    else:
+                        st.warning("⚠️ Không tìm thấy tab PVP để reset.")
+
+                except Exception as e:
+                    st.error(f"❌ Lỗi xử lý tab PVP: {e}")
+
+                # =========================================================
+                # 🔄 CẬP NHẬT SESSION STATE (RAM)
+                # =========================================================
+                status_placeholder.info("🔄 Đang cập nhật bộ nhớ hệ thống...")
+                
+                # Giữ lại cấu hình quan trọng
+                saved_admin = st.session_state.data.get('admin', {})
+                saved_rank = st.session_state.data.get('rank_settings', [])
+                saved_sys = st.session_state.get('system_config', {})
+                saved_shop = st.session_state.get('shop_items', {})
+
+                # Reset data trong RAM
+                st.session_state.data = {
+                    'admin': saved_admin,
+                    'players': [], # Xóa hết học sinh
+                    'rank_settings': saved_rank
+                }
+                
+                # Khôi phục config
+                st.session_state.system_config = saved_sys
+                st.session_state.shop_items = saved_shop
+                
+                # Xóa biến tạm combat
+                keys_to_del = ["dang_danh_dungeon", "current_q_idx", "match_result_notified"]
+                for k in keys_to_del:
+                    if k in st.session_state: del st.session_state[k]
+
+                status_placeholder.success("🎉 RESET HOÀN TẤT! Dữ liệu đã sạch sẽ và an toàn.")
+                time.sleep(2)
+                st.rerun()
+            else:
+                st.error("Vui lòng nhập đúng chữ 'RESET' để xác nhận.")
 
     elif page == "📥 Sao lưu dữ liệu":
         st.subheader("🛡️ HỆ THỐNG SAO LƯU DỮ LIỆU")
