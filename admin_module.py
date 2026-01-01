@@ -1783,12 +1783,12 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         st.stop()
 
                     # =========================================================
-                    # 🛠️ XỬ LÝ TAB "Players" (Chuẩn hóa theo ảnh image_e64f63.png)
+                    # 🛠️ XỬ LÝ TAB "Players" (Chuẩn hóa)
                     # =========================================================
                     try:
                         status_placeholder.info("🧹 Đang dọn dẹp tab Players...")
                         
-                        # 1.1. Xác định đúng tên tab (Phân biệt hoa thường)
+                        # 1.1. Xác định đúng tên tab
                         try: 
                             wks_players = sh.worksheet("Players")
                         except: 
@@ -1796,31 +1796,27 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             st.stop()
                         
                         # 1.2. Lấy dữ liệu cũ để tìm Admin
-                        # Chúng ta sẽ giữ lại dòng Admin nguyên bản thay vì tạo mới để tránh mất mật khẩu/setup cũ
                         all_values = wks_players.get_all_values()
                         
                         admin_row_data = []
                         
-                        # Tìm dòng chứa id là 'admin' (Bỏ qua dòng đầu tiên là header)
+                        # Tìm dòng chứa id là 'admin'
                         if len(all_values) > 1:
                             for row in all_values[1:]: 
-                                # Cột A là user_id (index 0)
+                                # Kiểm tra cột đầu tiên (user_id)
                                 if str(row[0]).strip().lower() == 'admin':
                                     admin_row_data = row
                                     break
                         
-                        # Nếu không tìm thấy trên Sheet, lấy tạm từ Session hiện tại
+                        # Nếu không tìm thấy, tạo Admin mặc định
                         if not admin_row_data:
                             adm = st.session_state.data.get('admin', {})
-                            # Tạo dòng admin tạm (Fallback)
                             admin_row_data = [
                                 "admin", adm.get("name", "Administrator"), "Quản trị", "admin", adm.get("password", "123"),
                                 "0", "0", "99", "100", "100", "0", "{}", "{}", "{}"
                             ]
 
-                        # 1.3. Định nghĩa Header CHUẨN (Khớp với ảnh + bổ sung JSON ẩn)
-                        # Theo ảnh: user_id, name, team, role, password, kpi, exp, level, hp, hp_max, world_chat_count, stats_json
-                        # Bổ sung: inventory_json, progress_json (để tránh lỗi code save về sau)
+                        # 1.3. Định nghĩa Header CHUẨN
                         players_header = [
                             "user_id", "name", "team", "role", "password", 
                             "kpi", "exp", "level", "hp", "hp_max", 
@@ -1829,39 +1825,32 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         
                         # 1.4. Ghi đè dữ liệu mới
                         wks_players.clear()
-                        
-                        # Dữ liệu ghi xuống: [Header] + [Admin]
                         data_to_write = [players_header, admin_row_data]
-                        
                         wks_players.update(range_name="A1", values=data_to_write)
                         
-                        st.toast("✅ Đã reset tab Players (Giữ nguyên Admin & Cột)!", icon="user")
+                        # 🔥 [ĐÃ SỬA] Thay icon="user" thành emoji "👤"
+                        st.toast("✅ Đã reset tab Players (Giữ nguyên Admin & Cột)!", icon="👤")
 
                     except Exception as e:
                         st.error(f"❌ Lỗi xử lý tab Players: {e}")
 
                     # =========================================================
-                    # 🛠️ XỬ LÝ TAB "PVP" (Chuẩn hóa theo ảnh image_e6535b.png)
+                    # 🛠️ XỬ LÝ TAB "PVP" (Chuẩn hóa)
                     # =========================================================
                     try:
                         status_placeholder.info("⚔️ Đang dọn dẹp tab PVP...")
-                        
-                        # 2.1. Xác định đúng tên tab
                         try: 
-                            wks_pvp = sh.worksheet("PVP") # Tên trong ảnh là PVP viết hoa
+                            wks_pvp = sh.worksheet("PVP")
                         except:
-                            # Thử tên khác phòng hờ
                             try: wks_pvp = sh.worksheet("Loi_Dai")
                             except: wks_pvp = None
                         
                         if wks_pvp:
                             wks_pvp.clear()
-                            
-                            # 2.2. Định nghĩa Header CHUẨN THEO ẢNH image_e6535b.png
-                            # Ảnh có: Match_ID, Full_JSON_Data, Status, Created_At
+                            # Header chuẩn PVP
                             pvp_header = ["Match_ID", "Full_JSON_Data", "Status", "Created_At"]
-                            
                             wks_pvp.append_row(pvp_header)
+                            
                             st.toast("✅ Đã reset tab PVP (Header chuẩn)!", icon="⚔️")
                         else:
                             st.warning("⚠️ Không tìm thấy tab PVP để reset.")
@@ -1883,7 +1872,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     # Reset data trong RAM
                     st.session_state.data = {
                         'admin': saved_admin,
-                        'players': [], # Xóa hết học sinh
+                        'players': [], 
                         'rank_settings': saved_rank
                     }
                     
@@ -1891,7 +1880,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     st.session_state.system_config = saved_sys
                     st.session_state.shop_items = saved_shop
                     
-                    # Xóa biến tạm combat
+                    # Xóa biến tạm
                     keys_to_del = ["dang_danh_dungeon", "current_q_idx", "match_result_notified"]
                     for k in keys_to_del:
                         if k in st.session_state: del st.session_state[k]
@@ -1901,7 +1890,6 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     st.rerun()
                 else:
                     st.error("Vui lòng nhập đúng chữ 'RESET' để xác nhận.")
-
     elif page == "📥 Sao lưu dữ liệu":
         st.subheader("🛡️ HỆ THỐNG SAO LƯU DỮ LIỆU")
         import io, zipfile, os
