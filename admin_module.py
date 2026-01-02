@@ -709,17 +709,51 @@ def admin_quan_ly_boss():
         if not shop_items:
             st.info("Kho trống.")
         else:
+            # Lấy danh sách từ session_state cho chắc ăn
+            shop_items = st.session_state.get('shop_items', {})
+            
             for iid, idata in list(shop_items.items()):
                 with st.container(border=True):
                     c1, c2, c3 = st.columns([1, 4, 1])
-                    with c1: st.image(idata.get('image', ''), width=40)
+                    
+                    # --- Cột 1: Hiển thị Ảnh (Đã sửa chuẩn) ---
+                    with c1:
+                        img_src = idata.get('image', '')
+                        # Logic kiểm tra ảnh an toàn
+                        if img_src and "http" in str(img_src):
+                            try:
+                                st.image(img_src, width=40)
+                            except:
+                                st.write("📦") # Icon thay thế khi link lỗi
+                        else:
+                            st.write("📦") # Icon thay thế khi không có link
+                    
+                    # --- Cột 2: Thông tin ---
                     with c2: 
-                        st.write(f"**{idata.get('name')}**")
-                        st.caption(f"ID: `{iid}` | Loại: `{idata.get('type')}`")
+                        st.write(f"**{idata.get('name', 'Không tên')}**")
+                        st.caption(f"ID: `{iid}` | Loại: `{idata.get('type', 'Unknown')}`")
+                    
+                    # --- Cột 3: Nút Xóa ---
                     with c3:
                         if st.button("🗑️", key=f"del_it_{iid}"):
-                            del st.session_state.data['shop_items'][iid]
-                            user_module.save_all_to_sheets(st.session_state.data)
+                            # 1. Xóa trong bộ nhớ RAM (Session State)
+                            if iid in st.session_state.shop_items:
+                                del st.session_state.shop_items[iid]
+                            
+                            # 2. Lưu lại vào Google Sheet
+                            # Lưu ý: Đảm bảo hàm save_all_to_sheets của bạn có xử lý việc lưu Shop
+                            # Hoặc nếu bạn có hàm save_shop_data riêng thì dùng nó:
+                            # admin_module.save_shop_data(st.session_state.shop_items) 
+                            
+                            import user_module
+                            # Nếu hàm save_all_to_sheets của bạn lưu cả Shop thì dùng dòng này:
+                            user_module.save_all_to_sheets({
+                                "players": st.session_state.data.get('players', []), # Giả định cấu trúc
+                                "shop_items": st.session_state.shop_items,
+                                "system_config": st.session_state.get('system_config', {})
+                            })
+                            
+                            st.toast("Đã xóa vật phẩm!", icon="🗑️")
                             st.rerun()
 
     # ==========================================================================
