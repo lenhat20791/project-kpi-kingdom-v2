@@ -1581,7 +1581,8 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
         if user_choice:
             # So sánh ký tự đầu (A, B, C, D)
             user_key = str(user_choice).strip()[0].upper()
-            ans_key = str(q['answer']).strip()[0].upper()
+            raw_ans = q.get('answer', q.get('correct_answer', ''))
+            ans_key = str(raw_ans).strip()[0].upper()
             
             # ĐÚNG
             if user_key == ans_key:
@@ -1607,23 +1608,33 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                     time.sleep(1)
                     st.rerun()
 
-            # SAI
+            # --- SAI ---
             else:
                 st.session_state.combo = 0
                 dmg_boss = boss.get('damage', 10)
                 player['hp'] = max(0, player.get('hp', 100) - dmg_boss)
                 
                 save_data_func(st.session_state.data)
-                st.error(f"❌ Sai rồi! Đáp án: {q['answer']}")
+                
+                # [FIX] Lấy nội dung đáp án đúng an toàn (chấp nhận cả 'answer' và 'correct_answer')
+                chuan_bi_dap_an = q.get('answer', q.get('correct_answer', 'Không xác định'))
+                st.error(f"❌ Sai rồi! Đáp án đúng là: {chuan_bi_dap_an}")
+                
+                # (Tùy chọn) Nếu trong JSON có giải thích thì hiện luôn cho xịn
+                if 'explanation' in q:
+                    st.info(f"💡 Giải thích: {q['explanation']}")
+
                 st.warning(f"🛡️ Boss đánh trả: -{dmg_boss} HP")
                 
+                # Check Player Chết
                 if player['hp'] <= 0:
-                    del st.session_state.cau_hoi_active
+                    # Xóa trạng thái câu hỏi trước khi chuyển màn hình thua
+                    if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
                     xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data)
                 else:
-                    del st.session_state.cau_hoi_active
-                    del st.session_state.thoi_gian_bat_dau
-                    time.sleep(1.5)
+                    if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
+                    if "thoi_gian_bat_dau" in st.session_state: del st.session_state.thoi_gian_bat_dau
+                    time.sleep(2.0) # Tăng thời gian chờ lên chút để học sinh kịp đọc đáp án đúng
                     st.rerun()
 
 # --- HÀM PHỤ TRỢ (Để code gọn hơn) ---
@@ -1753,7 +1764,7 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
     limit_map = {"easy": 15, "medium": 20, "hard": 25, "extreme": 30}
     time_limit = limit_map.get(level, 15)
 
-    # --- 4. GIAO DIỆN LÀM BÀI ---
+    # --- 4. GIAO DIỆN LÀM BÀI (ĐÃ FIX) ---
     q_idx = st.session_state.current_q
     if q_idx < len(questions):
         q = questions[q_idx]
@@ -1765,24 +1776,51 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         elapsed = time.time() - st.session_state.start_time
         remaining = max(0, time_limit - int(elapsed))
         
+        # Thêm biến 'force_submit' để xử lý khi hết giờ tự động nộp
+        force_submit = False
+        if remaining <= 0:
+            force_submit = True
+        
         color = "#e74c3c" if remaining < 5 else "#2ecc71"
+        # Dùng container rỗng để update thời gian mượt hơn (nếu cần)
         st.markdown(f"<h2 style='text-align: center; color: {color};'>⏳ {remaining}s</h2>", unsafe_allow_html=True)
 
+        # Form câu hỏi
         with st.form(key=f"quiz_form_{q_idx}_{current_user_id}"):
             ans = st.radio("Chọn đáp án:", q['options'], index=None)
             submitted = st.form_submit_button("XÁC NHẬN")
 
-        # XỬ LÝ NỘP BÀI HOẶC HẾT GIỜ
-        if submitted or remaining <= 0:
-            if ans == q['answer']:
-                st.session_state.user_score += 1
+        # --- XỬ LÝ LOGIC KIỂM TRA ---
+        if submitted or force_submit:
+            # 1. Chuẩn bị đáp án đúng (Hỗ trợ cả 'answer' và 'correct_answer')
+            raw_correct_ans = q.get('answer', q.get('correct_answer', ''))
             
+            # 2. Xử lý logic so sánh (Lấy ký tự đầu A, B, C, D)
+            user_key = str(ans).strip()[0].upper() if ans else ""
+            ans_key = str(raw_correct_ans).strip()[0].upper()
+            
+            # 3. Thông báo kết quả
+            if force_submit and not ans:
+                st.error(f"⏰ HẾT GIỜ! Đáp án đúng là: {raw_correct_ans}")
+            elif user_key == ans_key:
+                st.balloons() # Hoặc st.toast cho nhẹ
+                st.success("🎉 CHÍNH XÁC!")
+                st.session_state.user_score += 1
+            else:
+                st.error(f"❌ SAI RỒI! Đáp án đúng là: {raw_correct_ans}")
+            
+            # 4. Tạm dừng một chút để người chơi đọc kết quả rồi mới qua câu
+            time.sleep(2) 
+            
+            # 5. Chuyển câu
             st.session_state.current_q += 1
-            st.session_state.start_time = time.time() # Reset giờ cho câu sau
+            st.session_state.start_time = time.time() # Reset giờ
             st.rerun()
         
-        time.sleep(1)
-        st.rerun()
+        # Refresh để chạy đồng hồ (chỉ chạy khi chưa nộp bài)
+        if remaining > 0:
+            time.sleep(1)
+            st.rerun()
         
     else:
         # --- 5. KẾT THÚC BÀI THI ---
@@ -3105,7 +3143,7 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
         difficulty_map = {1: "easy", 2: "medium", 3: "hard", 4: "extreme"}
         target_diff = p_data.get('quiz_level', difficulty_map.get(p_num, "easy"))
         
-        # [FIX] ĐỌC FILE AN TOÀN TRỰC TIẾP (Không phụ thuộc load_data)
+        # [FIX] ĐỌC FILE AN TOÀN TRỰC TIẾP
         path_quiz = f"quiz_data/grade_6/{land_id}.json"
         all_quizzes = {}
         
@@ -3116,19 +3154,27 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
             except Exception as e:
                 st.error(f"Lỗi đọc file câu hỏi {land_id}: {e}")
         else:
-            # Nếu không tìm thấy file, thử tìm file không dấu (phòng hờ)
-            # Ví dụ: land_id="Toán" -> tìm "toan.json"
-            # (Logic này tùy bạn có cần hay không, nhưng thêm vào cho chắc)
+            # Fallback logic (nếu cần)
             pass
 
         pool = all_quizzes.get(target_diff, [])
+        
         # Nếu mức độ khó này hết câu hỏi, lấy mức độ khác bù vào
         if not pool:
             for alt in ["extreme", "hard", "medium", "easy"]:
                 pool = all_quizzes.get(alt, [])
                 if pool: break
         
-        # Nếu vẫn không có câu hỏi -> Dùng câu hỏi mẫu để tránh crash
+        # 🔥 [UPDATE QUAN TRỌNG] CHUẨN HÓA DỮ LIỆU (NORMALIZE)
+        # Duyệt qua pool để đảm bảo mọi câu hỏi đều có key 'answer'
+        # Giúp logic phía sau không bị lỗi dù file json cũ hay mới
+        if pool:
+            for q in pool:
+                # Nếu thiếu 'answer' nhưng có 'correct_answer' -> Copy sang
+                if "answer" not in q and "correct_answer" in q:
+                    q["answer"] = q["correct_answer"]
+
+        # Nếu vẫn không có câu hỏi -> Dùng câu hỏi mẫu
         if not pool:
              pool = [{"question": "1+1=?", "options": ["2","3"], "answer": "2"}]
 
@@ -3154,11 +3200,21 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
         
         # 1. Tính toán thời gian
         time_limit = p_data.get('time_limit', 15)
-        if f"start_time_{idx}" not in st.session_state:
-            st.session_state[f"start_time_{idx}"] = time.time()
+        # Key thời gian độc nhất cho mỗi câu hỏi để tránh conflict
+        time_key = f"start_time_{land_id}_{p_id}_{idx}"
         
-        elapsed = time.time() - st.session_state[f"start_time_{idx}"]
+        if time_key not in st.session_state:
+            st.session_state[time_key] = time.time()
+        
+        elapsed = time.time() - st.session_state[time_key]
         remaining = max(0, time_limit - int(elapsed))
+
+        # Xử lý hết giờ (Timeout)
+        if remaining == 0:
+            st.toast(f"⏰ HẾT GIỜ! Đáp án là: {q.get('answer', 'Unknown')}", icon="⚠️")
+            st.session_state.current_q_idx += 1
+            time.sleep(1)
+            st.rerun()
 
         # 2. Giao diện làm bài
         combat_placeholder = st.empty()
@@ -3170,6 +3226,7 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
             t_col1, t_col2 = st.columns([1, 4])
             with t_col1:
                 color = "red" if remaining < 5 else "black"
+                # Thêm key để force rerender thời gian
                 st.markdown(f"<h3 style='color:{color}'>⏳ {remaining}s</h3>", unsafe_allow_html=True)
 
             st.markdown("""
@@ -3191,12 +3248,22 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                     cols_ans = st.columns(2)
                     for i, option in enumerate(q['options']):
                         with cols_ans[i % 2]:
-                            if st.button(option, key=f"btn_ans_{idx}_{i}", use_container_width=True):
-                                if str(option).strip().lower() == str(q['answer']).strip().lower():
+                            # Thêm 'remaining' vào key để tránh lỗi Duplicate Widget ID khi Rerun
+                            if st.button(option, key=f"btn_ans_{idx}_{i}_{remaining}", use_container_width=True):
+                                
+                                # --- [FIX] LOGIC SO SÁNH ĐÁP ÁN THÔNG MINH ---
+                                # Lấy chữ cái đầu (A, B, C, D) để so sánh cho chắc chắn
+                                user_key = str(option).strip()[0].upper()
+                                # Vì đã normalize ở trên, ta an tâm dùng q['answer']
+                                ans_key = str(q['answer']).strip()[0].upper()
+                                
+                                if user_key == ans_key:
                                     st.session_state.correct_count += 1
                                     st.toast("🎯 CHÍNH XÁC!", icon="✅")
                                 else:
-                                    st.toast(f"❌ SAI RỒI! Đáp án là: {q['answer']}", icon="⚠️")
+                                    # Lấy full đáp án đúng để hiển thị thông báo
+                                    full_ans = q['answer']
+                                    st.toast(f"❌ SAI RỒI! Đáp án là: {full_ans}", icon="⚠️")
                                 
                                 st.session_state.current_q_idx += 1
                                 time.sleep(0.5)
