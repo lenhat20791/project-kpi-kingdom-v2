@@ -608,7 +608,7 @@ def admin_quan_ly_boss():
     # TẠO 3 TAB QUẢN LÝ
     tab_boss, tab_item, tab_chest = st.tabs(["👹 BOSS & DROP", "📦 KHO VẬT PHẨM", "🎰 CẤU HÌNH RƯƠNG BÁU"])
 
-    # ==========================================================================
+# ==========================================================================
     # TAB 1: QUẢN LÝ BOSS
     # ==========================================================================
     with tab_boss:
@@ -620,16 +620,18 @@ def admin_quan_ly_boss():
             
             # Load dữ liệu mặc định
             def_name = boss_hien_tai.get('ten', "Giáo Viên Mới") if boss_hien_tai else "Giáo Viên Mới"
-            def_hp = boss_hien_tai.get('hp_max', 10000) if boss_hien_tai else 10000
-            def_dmg = boss_hien_tai.get('damage', 50) if boss_hien_tai else 50
-            def_img = boss_hien_tai.get('anh', "") if boss_hien_tai else "" # Lấy link ảnh cũ
+            def_hp = boss_hien_tai.get('hp_max', 1000) if boss_hien_tai else 1000
+            def_dmg = boss_hien_tai.get('damage', 30) if boss_hien_tai else 30
+            def_img = boss_hien_tai.get('anh', "") if boss_hien_tai else 
             
             with c1:
                 ten_boss = st.text_input("Tên Boss:", value=def_name)
-                mon_hoc = st.selectbox("Môn học:", ["toan", "van", "anh", "ly", "hoa", "sinh"])
-                hp_boss = st.number_input("HP (Máu):", min_value=10, value=int(def_hp), step=100)
                 
-                # 👇👇👇 DÒNG BỊ THIẾU ĐÃ ĐƯỢC THÊM LẠI Ở ĐÂY 👇👇👇
+                # 👇👇👇 ĐÃ CẬP NHẬT LẠI DANH SÁCH MÔN HỌC TẠI ĐÂY 👇👇👇
+                # Gộp Lý, Hóa, Sinh thành KHTN
+                mon_hoc = st.selectbox("Môn học:", ["Toán", "Văn", "Anh", "KHTN"]) 
+                
+                hp_boss = st.number_input("HP (Máu):", min_value=10, value=int(def_hp), step=100)
                 anh_boss = st.text_input("Link Ảnh Boss (URL Online):", value=def_img, placeholder="https://...")
                 
             with c2:
@@ -650,7 +652,7 @@ def admin_quan_ly_boss():
                     "hp_max": hp_boss, "hp_current": hp_boss,
                     "damage": damage_boss, "kpi_rate": kpi_rate, "exp_rate": exp_rate,
                     
-                    "anh": anh_boss, # <--- Cập nhật: Lưu link ảnh từ ô nhập liệu
+                    "anh": anh_boss, 
                     
                     "status": "active",
                     "drop_table": clean_drop,
@@ -659,7 +661,7 @@ def admin_quan_ly_boss():
                 
                 sys_config['active_boss'] = new_boss
                 user_module.save_all_to_sheets(st.session_state.data)
-                st.success(f"✅ Đã cập nhật Boss {ten_boss}!")
+                st.success(f"✅ Đã cập nhật Boss {ten_boss} (Môn: {mon_hoc})!")
                 time.sleep(1)
                 st.rerun()
 

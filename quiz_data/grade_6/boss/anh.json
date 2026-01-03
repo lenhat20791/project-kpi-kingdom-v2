@@ -1,0 +1,962 @@
+[
+  {
+    "id": 1,
+    "question": "Choose the word whose underlined part is pronounced differently: 'cl<u>e</u>ver', 'ch<u>e</u>ck', 'pr<u>e</u>pare', 'sh<u>e</u>lf'.",
+    "options": [
+      "A. clever",
+      "B. check",
+      "C. prepare",
+      "D. shelf"
+    ],
+    "correct_answer": "C",
+    "explanation": "Trong 'prepare', âm 'e' được phát âm là /ɪ/ hoặc /ə/ tùy giọng, trong khi 3 từ còn lại phát âm là /e/."
+  },
+  {
+    "id": 2,
+    "question": "Which sentence is grammatically correct regarding the position of adverbs of frequency?",
+    "options": [
+      "A. My brother is rarely late for school, but he forgets his homework often.",
+      "B. Rarely my brother is late for school, but he often forgets his homework.",
+      "C. My brother rarely is late for school, but he often forgets his homework.",
+      "D. My brother is rarely late for school, but he often forgets his homework."
+    ],
+    "correct_answer": "D",
+    "explanation": "Trạng từ chỉ tần suất đứng sau động từ 'to be' (is rarely) và đứng trước động từ thường (often forgets)."
+  },
+  {
+    "id": 3,
+    "question": "Listen! Someone ____ at the door. I ____ anyone is coming at this hour.",
+    "options": [
+      "A. knocks / don't think",
+      "B. is knocking / am not thinking",
+      "C. is knocking / don't think",
+      "D. knocks / am not thinking"
+    ],
+    "correct_answer": "C",
+    "explanation": "'Is knocking' dùng cho hành động đang xảy ra (Listen!). 'Think' (nghĩ rằng) là động từ trạng thái nên không dùng thì tiếp diễn trong ngữ cảnh này."
+  },
+  {
+    "id": 4,
+    "question": "My new friend is very ____. She always thinks about other people's feelings.",
+    "options": [
+      "A. confident",
+      "B. thoughtful",
+      "C. independent",
+      "D. talkative"
+    ],
+    "correct_answer": "B",
+    "explanation": "'Thoughtful' (chu đáo, hay nghĩ cho người khác) phù hợp nhất với vế sau 'thinks about other people's feelings'."
+  },
+  {
+    "id": 5,
+    "question": "Find the mistake: 'There are (A) some (B) beautiful old (C) furnitures (D) in my grandmother's house.'",
+    "options": [
+      "A. There are",
+      "B. some",
+      "C. beautiful old",
+      "D. furnitures"
+    ],
+    "correct_answer": "D",
+    "explanation": "'Furniture' là danh từ không đếm được, không bao giờ có dạng số nhiều 'furnitures'. Câu đúng phải là 'There is some beautiful old furniture'."
+  },
+  {
+    "id": 6,
+    "question": "Choose the most natural response: 'Would you like to go to the cinema with me tonight?' - '____'",
+    "options": [
+      "A. Yes, I do.",
+      "B. I'd love to, but I have too much homework.",
+      "C. Yes, I like it very much.",
+      "D. No, I don't like cinema."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đây là cách từ chối lịch sự một lời mời. 'Yes, I do' sai vì câu hỏi bắt đầu bằng 'Would'."
+  },
+  {
+    "id": 7,
+    "question": "The air in the city is ____ than the air in the countryside because of the traffic.",
+    "options": [
+      "A. much more polluted",
+      "B. more polluter",
+      "C. the most polluted",
+      "D. as polluted"
+    ],
+    "correct_answer": "A",
+    "explanation": "Cấu trúc so sánh hơn với tính từ dài 'polluted' là 'more + adj + than'. 'Much' được dùng để nhấn mạnh mức độ."
+  },
+  {
+    "id": 8,
+    "question": "Choose the word with a different stress pattern: 'boarding', 'compass', 'surround', 'pencil'.",
+    "options": [
+      "A. boarding",
+      "B. compass",
+      "C. surround",
+      "D. pencil"
+    ],
+    "correct_answer": "C",
+    "explanation": "'Surround' nhấn trọng âm vào âm tiết thứ 2 /səˈraʊnd/. Ba từ còn lại nhấn âm tiết thứ nhất."
+  },
+  {
+    "id": 9,
+    "question": "Which of the following is an example of a 'stative verb' that is rarely used in the continuous form?",
+    "options": [
+      "A. Study",
+      "B. Believe",
+      "C. Watch",
+      "D. Listen"
+    ],
+    "correct_answer": "B",
+    "explanation": "'Believe' (tin tưởng) thuộc nhóm động từ chỉ trạng thái tinh thần, thường không dùng ở thì tiếp diễn."
+  },
+  {
+    "id": 10,
+    "question": "I need to buy ____ sugar and ____ oranges to make some juice.",
+    "options": [
+      "A. many / some",
+      "B. some / a few",
+      "C. a little / many",
+      "D. some / some"
+    ],
+    "correct_answer": "D",
+    "explanation": "'Some' có thể đi với cả danh từ không đếm được (sugar) và danh từ số nhiều (oranges) trong câu khẳng định."
+  },
+  {
+    "id": 11,
+    "question": "In the kitchen, the microwave is ____ the fridge and the cupboard.",
+    "options": [
+      "A. among",
+      "B. between",
+      "C. next",
+      "D. in middle"
+    ],
+    "correct_answer": "B",
+    "explanation": "'Between... and...' được dùng khi chỉ vị trí ở giữa hai đối tượng cụ thể."
+  },
+  {
+    "id": 12,
+    "question": "What is the correct order of adjectives in this phrase: 'a ____ bag'?",
+    "options": [
+      "A. small blue school",
+      "B. school small blue",
+      "C. blue small school",
+      "D. small school blue"
+    ],
+    "correct_answer": "A",
+    "explanation": "Trật tự tính từ: Size (small) + Color (blue) + Purpose/Noun (school bag)."
+  },
+  {
+    "id": 13,
+    "question": "Identify the word that has the underlined part pronounced as /z/: 'book<u>s</u>', 'cat<u>s</u>', 'pencil<u>s</u>', 'map<u>s</u>'.",
+    "options": [
+      "A. books",
+      "B. cats",
+      "C. pencils",
+      "D. maps"
+    ],
+    "correct_answer": "C",
+    "explanation": "'Pencils' kết thúc bằng âm hữu thanh /l/ nên 's' phát âm là /z/. Các từ còn lại kết thúc bằng âm vô thanh (/k/, /t/, /p/) nên 's' phát âm là /s/."
+  },
+  {
+    "id": 14,
+    "question": "Which of these household chores does NOT usually involve water?",
+    "options": [
+      "A. Doing the washing-up",
+      "B. Watering the plants",
+      "C. Dusting the furniture",
+      "D. Mopping the floor"
+    ],
+    "correct_answer": "C",
+    "explanation": "'Dusting' (quét bụi) thường dùng khăn khô hoặc chổi lông gà, không nhất thiết dùng nước như các việc khác."
+  },
+  {
+    "id": 15,
+    "question": "Choose the correct modal verb: 'You ____ eat too much salt; it is not good for your heart.'",
+    "options": [
+      "A. mustn't",
+      "B. shouldn't",
+      "C. don't have to",
+      "D. can't"
+    ],
+    "correct_answer": "B",
+    "explanation": "'Shouldn't' dùng để đưa ra lời khuyên (không nên). 'Mustn't' là cấm đoán, hơi quá mạnh trong ngữ cảnh lời khuyên sức khỏe thông thường."
+  },
+  {
+    "id": 16,
+    "question": "My neighborhood is very ____. There are many shops, restaurants, and people everywhere.",
+    "options": [
+      "A. peaceful",
+      "B. boring",
+      "C. convenient",
+      "D. quiet"
+    ],
+    "correct_answer": "C",
+    "explanation": "Dựa vào dữ kiện 'nhiều cửa hàng, nhà hàng', từ 'convenient' (tiện lợi) là mô tả chính xác nhất."
+  },
+  {
+    "id": 17,
+    "question": "How many syllables are there in the word 'extraordinary'?",
+    "options": [
+      "A. 4",
+      "B. 5",
+      "C. 6",
+      "D. 3"
+    ],
+    "correct_answer": "B",
+    "explanation": "Ex-tra-or-di-na-ry (5 âm tiết). Đây là từ khó thường xuất hiện trong các bài đọc về kỳ quan thiên nhiên."
+  },
+  {
+    "id": 18,
+    "question": "The Great Wall of China is ____ man-made structure in the world.",
+    "options": [
+      "A. the longest",
+      "B. longest",
+      "C. the most long",
+      "D. longer"
+    ],
+    "correct_answer": "A",
+    "explanation": "So sánh nhất của tính từ ngắn 'long' là 'the longest'."
+  },
+  {
+    "id": 19,
+    "question": "We ____ go to the pagodas to pray for good luck during Tet.",
+    "options": [
+      "A. sometimes",
+      "B. never",
+      "C. are often",
+      "D. usually"
+    ],
+    "correct_answer": "D",
+    "explanation": "'Usually' (thường xuyên) là thói quen phổ biến nhất vào dịp Tết. 'Are often' sai cấu trúc vì 'go' là động từ thường."
+  },
+  {
+    "id": 20,
+    "question": "Choose the odd one out: 'mountain', 'waterfall', 'forest', 'stadium'.",
+    "options": [
+      "A. mountain",
+      "B. waterfall",
+      "C. forest",
+      "D. stadium"
+    ],
+    "correct_answer": "D",
+    "explanation": "'Stadium' là công trình nhân tạo, 3 từ còn lại là kỳ quan/địa danh thiên nhiên."
+  },
+  {
+    "id": 21,
+    "question": "Choose the word whose underlined part is pronounced differently: 'i<u>s</u>land', 'cui<u>s</u>ine', '<u>s</u>cissors', '<u>s</u>pecial'.",
+    "options": [
+      "A. island",
+      "B. cuisine",
+      "C. scissors",
+      "D. special"
+    ],
+    "correct_answer": "A",
+    "explanation": "Trong từ 'island', âm 's' là âm câm (/ˈaɪ.lənd/). Các từ còn lại 's' được phát âm (/z/ trong cuisine, /z/ trong scissors, /s/ trong special)."
+  },
+  {
+    "id": 22,
+    "question": "Choose the correct sentence regarding the use of 'some' and 'any'.",
+    "options": [
+      "A. Would you like any apple juice?",
+      "B. Do you have some bananas?",
+      "C. I don't need some help.",
+      "D. Would you like some coffee?"
+    ],
+    "correct_answer": "D",
+    "explanation": "Theo quy tắc chung, 'some' dùng cho câu khẳng định, 'any' dùng cho phủ định/nghi vấn. Tuy nhiên, khi là LỜI MỜI hoặc ĐỀ NGHỊ (Would you like...), ta dùng 'some'."
+  },
+  {
+    "id": 23,
+    "question": "Tra Co Beach is ____ beach in Vietnam.",
+    "options": [
+      "A. the long",
+      "B. the most long",
+      "C. the longest",
+      "D. longer"
+    ],
+    "correct_answer": "C",
+    "explanation": "So sánh nhất của tính từ ngắn 'long' là 'the longest'. Đây là bãi biển dài nhất Việt Nam (thuộc bài học về Natural Wonders)."
+  },
+  {
+    "id": 24,
+    "question": "Find the mistake: 'My father (A) is (B) watching TV (C) at the moment. He (D) watches usually TV in the evening.'",
+    "options": [
+      "A. is",
+      "B. watching",
+      "C. at the moment",
+      "D. watches usually"
+    ],
+    "correct_answer": "D",
+    "explanation": "Lỗi sai về vị trí trạng từ tần suất. Phải là 'usually watches'. Trạng từ tần suất đứng trước động từ thường."
+  },
+  {
+    "id": 25,
+    "question": "Da Nang is famous ____ its beautiful beaches and bridges.",
+    "options": [
+      "A. with",
+      "B. for",
+      "C. about",
+      "D. by"
+    ],
+    "correct_answer": "B",
+    "explanation": "Cấu trúc cố định: 'famous for something' (nổi tiếng về cái gì)."
+  },
+  {
+    "id": 26,
+    "question": "Which sentence expresses a 'prediction' rather than a 'plan'?",
+    "options": [
+      "A. I am visiting my grandma this weekend.",
+      "B. Look at the clouds! It is going to rain.",
+      "C. We are having a party tonight.",
+      "D. I am going to buy a new bike."
+    ],
+    "correct_answer": "B",
+    "explanation": "'Is going to rain' dựa trên bằng chứng hiện tại (clouds) là một dự đoán. Các câu còn lại dùng thì hiện tại tiếp diễn hoặc tương lai gần để chỉ kế hoạch/dự định."
+  },
+  {
+    "id": 27,
+    "question": "Choose the word with the different stress pattern: 'historic', 'exciting', 'polluted', 'modern'.",
+    "options": [
+      "A. historic",
+      "B. exciting",
+      "C. polluted",
+      "D. modern"
+    ],
+    "correct_answer": "D",
+    "explanation": "'Modern' nhấn âm 1 (/ˈmɒd.ən/). Các từ còn lại nhấn âm 2 (his-TOR-ic, ex-CIT-ing, pol-LUT-ed)."
+  },
+  {
+    "id": 28,
+    "question": "We usually ____ our house before Tet to clear away bad luck.",
+    "options": [
+      "A. decorate",
+      "B. repaint",
+      "C. clean",
+      "D. build"
+    ],
+    "correct_answer": "C",
+    "explanation": "Mặc dù 'decorate' và 'repaint' cũng đúng về ngữ pháp, nhưng về mặt văn hóa (Cultural Tip), hành động 'clean' (dọn dẹp) mới gắn liền với ý nghĩa 'clear away bad luck' (xua đuổi vận xui)."
+  },
+  {
+    "id": 29,
+    "question": "Choose the correct possessive form: 'This is ____ room. They share it.'",
+    "options": [
+      "A. Nick and Son's",
+      "B. Nick's and Son's",
+      "C. Nick's and Son",
+      "D. Nick and Son"
+    ],
+    "correct_answer": "A",
+    "explanation": "Khi hai người sở hữu chung một vật (share it), ta chỉ thêm 's vào sau tên người thứ hai."
+  },
+  {
+    "id": 30,
+    "question": "Identify the word pronounced differently ending in '-ed': 'want<u>ed</u>', 'need<u>ed</u>', 'visit<u>ed</u>', 'watch<u>ed</u>'.",
+    "options": [
+      "A. wanted",
+      "B. needed",
+      "C. visited",
+      "D. watched"
+    ],
+    "correct_answer": "D",
+    "explanation": "'Watched' phát âm đuôi là /t/ vì kết thúc bằng âm vô thanh /tʃ/. Ba từ còn lại phát âm là /id/ vì kết thúc bằng /t/ hoặc /d/."
+  },
+  {
+    "id": 31,
+    "question": "You ____ take photos in the museum. It's against the rules.",
+    "options": [
+      "A. don't have to",
+      "B. shouldn't",
+      "C. mustn't",
+      "D. can"
+    ],
+    "correct_answer": "C",
+    "explanation": "Khi nói về luật lệ (rules) và sự cấm đoán, ta dùng 'mustn't'. 'Shouldn't' chỉ là lời khuyên."
+  },
+  {
+    "id": 32,
+    "question": "The film was so ____ that I fell asleep.",
+    "options": [
+      "A. bored",
+      "B. boring",
+      "C. bore",
+      "D. bores"
+    ],
+    "correct_answer": "B",
+    "explanation": "Tính từ đuôi -ing (boring) dùng để chỉ tính chất của sự vật/sự việc (bộ phim tẻ nhạt). Tính từ đuôi -ed (bored) chỉ cảm xúc con người."
+  },
+  {
+    "id": 33,
+    "question": "Which question asks about 'frequency'?",
+    "options": [
+      "A. How long do you play football?",
+      "B. How often do you go swimming?",
+      "C. When do you go to school?",
+      "D. What time do you get up?"
+    ],
+    "correct_answer": "B",
+    "explanation": "'How often' dùng để hỏi mức độ thường xuyên (Always, usually, once a week...). 'How long' hỏi về khoảng thời gian."
+  },
+  {
+    "id": 34,
+    "question": "Complete the analogy: 'Big -> Small' is like 'Noisy -> ____'.",
+    "options": [
+      "A. Crowded",
+      "B. Quiet",
+      "C. Exciting",
+      "D. Modern"
+    ],
+    "correct_answer": "B",
+    "explanation": "Đây là câu hỏi tìm từ trái nghĩa (Antonyms). Trái nghĩa với 'Noisy' là 'Quiet'."
+  },
+  {
+    "id": 35,
+    "question": "To go to the Art Gallery, go straight ____, then take the second turning ____ your right.",
+    "options": [
+      "A. on / in",
+      "B. ahead / at",
+      "C. on / on",
+      "D. ahead / in"
+    ],
+    "correct_answer": "C",
+    "explanation": "Cụm từ chỉ đường: 'Go straight on' (đi thẳng) và 'on your right/left' (bên phải/trái của bạn)."
+  },
+  {
+    "id": 36,
+    "question": "Choose the odd one out regarding 'Tet food': 'Banh chung', 'Spring rolls', 'Lucky money', 'Sticky rice'.",
+    "options": [
+      "A. Banh chung",
+      "B. Spring rolls",
+      "C. Lucky money",
+      "D. Sticky rice"
+    ],
+    "correct_answer": "C",
+    "explanation": "'Lucky money' (lì xì) không phải là đồ ăn, ba từ còn lại là tên các món ăn ngày Tết."
+  },
+  {
+    "id": 37,
+    "question": "Mount Everest is the highest mountain ____ the world.",
+    "options": [
+      "A. on",
+      "B. in",
+      "C. of",
+      "D. at"
+    ],
+    "correct_answer": "B",
+    "explanation": "Dùng giới từ 'in' khi nói về địa điểm lớn nhất 'trên thế giới' (in the world), không dùng 'on'."
+  },
+  {
+    "id": 38,
+    "question": "I have ____ homework to do tonight, so I can't go out.",
+    "options": [
+      "A. a",
+      "B. many",
+      "C. a lot of",
+      "D. any"
+    ],
+    "correct_answer": "C",
+    "explanation": "'Homework' là danh từ không đếm được, không dùng 'a' hoặc 'many'. Câu khẳng định nên dùng 'a lot of', không dùng 'any'."
+  },
+  {
+    "id": 39,
+    "question": "What does 'first footer' mean in Vietnamese culture?",
+    "options": [
+      "A. The person who cleans the house first.",
+      "B. The first person to enter the house on New Year's Day.",
+      "C. The person who buys the peach blossom.",
+      "D. The first person to wake up in the morning."
+    ],
+    "correct_answer": "B",
+    "explanation": "'First footer' là người xông đất - người đầu tiên bước vào nhà sau giao thừa."
+  },
+  {
+    "id": 40,
+    "question": "Choose the correct sentence structure for advice.",
+    "options": [
+      "A. You should to bring a compass.",
+      "B. You should bringing a compass.",
+      "C. You should brings a compass.",
+      "D. You should bring a compass."
+    ],
+    "correct_answer": "D",
+    "explanation": "Sau Modal verb 'should', động từ luôn ở dạng nguyên thể không 'to' (bare infinitive)."
+  },
+  {
+    "id": 41,
+    "question": "Choose the word whose underlined part is pronounced differently: 'wea<u>th</u>er', 'ga<u>th</u>er', 'clo<u>th</u>ing', '<u>th</u>eater'.",
+    "options": [
+      "A. weather",
+      "B. gather",
+      "C. clothing",
+      "D. theater"
+    ],
+    "correct_answer": "D",
+    "explanation": "Trong từ 'theater', âm 'th' được phát âm là âm vô thanh /θ/. Các từ còn lại phát âm là âm hữu thanh /ð/."
+  },
+  {
+    "id": 42,
+    "question": "I wanted to buy the new comic book, ____ I didn't have enough money.",
+    "options": [
+      "A. so",
+      "B. and",
+      "C. but",
+      "D. because"
+    ],
+    "correct_answer": "C",
+    "explanation": "Hai vế câu mang ý nghĩa tương phản (muốn mua - không đủ tiền), nên dùng liên từ 'but'."
+  },
+  {
+    "id": 43,
+    "question": "Which sport requires 'goggles' and a 'swimsuit'?",
+    "options": [
+      "A. Cycling",
+      "B. Swimming",
+      "C. Karate",
+      "D. Skiing"
+    ],
+    "correct_answer": "B",
+    "explanation": "'Goggles' (kính bơi) và 'swimsuit' (đồ bơi) là dụng cụ đặc trưng của môn bơi lội."
+  },
+  {
+    "id": 44,
+    "question": "Choose the correct past simple form: 'Where ____ you yesterday? I ____ at home.'",
+    "options": [
+      "A. was / were",
+      "B. were / was",
+      "C. are / am",
+      "D. were / were"
+    ],
+    "correct_answer": "B",
+    "explanation": "Chủ ngữ 'You' đi với 'were', chủ ngữ 'I' đi với 'was' trong thì quá khứ đơn."
+  },
+  {
+    "id": 45,
+    "question": "____ do you watch TV? - Every evening.",
+    "options": [
+      "A. When",
+      "B. What time",
+      "C. How often",
+      "D. How long"
+    ],
+    "correct_answer": "C",
+    "explanation": "Câu trả lời 'Every evening' chỉ tần suất, nên câu hỏi chính xác nhất phải dùng 'How often'. 'When' cũng có thể chấp nhận trong giao tiếp nhưng 'How often' chuyên biệt hơn cho câu trả lời này."
+  },
+  {
+    "id": 46,
+    "question": "An educational program is a program that ____.",
+    "options": [
+      "A. makes you laugh",
+      "B. teaches you something",
+      "C. shows you animals",
+      "D. gives you news"
+    ],
+    "correct_answer": "B",
+    "explanation": "Định nghĩa của 'educational' (mang tính giáo dục) là dạy cho người xem kiến thức mới."
+  },
+  {
+    "id": 47,
+    "question": "Choose the correct imperative sentence to give a warning.",
+    "options": [
+      "A. Do talk in class!",
+      "B. Please talk in class.",
+      "C. Don't talk in class!",
+      "D. Not talk in class!"
+    ],
+    "correct_answer": "C",
+    "explanation": "Câu mệnh lệnh phủ định bắt đầu bằng 'Don't + V_inf'."
+  },
+  {
+    "id": 48,
+    "question": "Choose the odd one out: 'Tokyo', 'London', 'Vietnam', 'Bangkok'.",
+    "options": [
+      "A. Tokyo",
+      "B. London",
+      "C. Vietnam",
+      "D. Bangkok"
+    ],
+    "correct_answer": "C",
+    "explanation": "'Vietnam' là tên quốc gia (Country), 3 từ còn lại là tên các thành phố (Cities)."
+  },
+  {
+    "id": 49,
+    "question": "Which verb goes with 'aerobics'?",
+    "options": [
+      "A. Play",
+      "B. Go",
+      "C. Do",
+      "D. Have"
+    ],
+    "correct_answer": "C",
+    "explanation": "Collocation (kết hợp từ): Dùng 'Do' cho các môn thể thao cá nhân không dùng bóng (do aerobics, do yoga, do judo)."
+  },
+  {
+    "id": 50,
+    "question": "Pelé is one of the greatest football ____ of all time.",
+    "options": [
+      "A. players",
+      "B. playermen",
+      "C. player",
+      "D. plays"
+    ],
+    "correct_answer": "A",
+    "explanation": "Cấu trúc 'one of the...' (một trong những) luôn đi kèm với danh từ số nhiều (players)."
+  },
+  {
+    "id": 51,
+    "question": "Rearrange the words to make a question: 'sports / like / do / what / you / ?'",
+    "options": [
+      "A. What sports you do like?",
+      "B. What sports like do you?",
+      "C. What do you like sports?",
+      "D. What sports do you like?"
+    ],
+    "correct_answer": "D",
+    "explanation": "Trật tự câu hỏi Wh-: Wh-word + Noun (nếu có) + Auxiliary verb + S + V?"
+  },
+  {
+    "id": 52,
+    "question": "I like watching cartoons, ____ my brother likes watching sports.",
+    "options": [
+      "A. so",
+      "B. because",
+      "C. but",
+      "D. or"
+    ],
+    "correct_answer": "C",
+    "explanation": "Dùng 'but' để nối hai mệnh đề có ý nghĩa đối lập về sở thích giữa hai người."
+  },
+  {
+    "id": 53,
+    "question": "Which word has the underlined part pronounced as /æ/: 'g<u>a</u>me', 'sk<u>a</u>te', 'r<u>a</u>ce', 'm<u>a</u>p'?",
+    "options": [
+      "A. game",
+      "B. skate",
+      "C. race",
+      "D. map"
+    ],
+    "correct_answer": "D",
+    "explanation": "'Map' phát âm là /mæp/ (âm a bẹt). Các từ còn lại phát âm là /eɪ/ (âm a dài/nhị trùng âm)."
+  },
+  {
+    "id": 54,
+    "question": "Choose the correct question tag (Intonation): 'Can you pass me the remote control?' - This is a ____.",
+    "options": [
+      "A. Request",
+      "B. Suggestion",
+      "C. Offer",
+      "D. Warning"
+    ],
+    "correct_answer": "A",
+    "explanation": "Cấu trúc 'Can you...?' trong ngữ cảnh này dùng để đưa ra một yêu cầu (Request)."
+  },
+  {
+    "id": 55,
+    "question": "This racket belongs to me. It is ____.",
+    "options": [
+      "A. my",
+      "B. mine",
+      "C. me",
+      "D. I"
+    ],
+    "correct_answer": "B",
+    "explanation": "'Mine' là đại từ sở hữu (Possessive Pronoun), thay thế cho 'my racket'. 'My' là tính từ sở hữu, phải đi kèm danh từ."
+  },
+  {
+    "id": 56,
+    "question": "Big Ben is a famous ____ in London.",
+    "options": [
+      "A. tower",
+      "B. bridge",
+      "C. landmark",
+      "D. river"
+    ],
+    "correct_answer": "C",
+    "explanation": "Mặc dù Big Ben là tháp đồng hồ (clock tower), nhưng trong sách giáo khoa, nó thường được giới thiệu chung là một 'landmark' (địa danh nổi tiếng) biểu tượng của London."
+  },
+  {
+    "id": 57,
+    "question": "We usually play football ____ the afternoon.",
+    "options": [
+      "A. on",
+      "B. at",
+      "C. in",
+      "D. for"
+    ],
+    "correct_answer": "C",
+    "explanation": "Giới từ chỉ thời gian: 'in the morning/afternoon/evening'."
+  },
+  {
+    "id": 58,
+    "question": "Identify the mistake: 'Why (A) don't (B) we (C) going to the cinema (D) tonight?'",
+    "options": [
+      "A. Why",
+      "B. don't",
+      "C. going",
+      "D. tonight"
+    ],
+    "correct_answer": "C",
+    "explanation": "Cấu trúc gợi ý 'Why don't we + V_inf?'. Phải sửa 'going' thành 'go'."
+  },
+  {
+    "id": 59,
+    "question": "Choose the correct sentence combining these two: 'It was raining. We cancelled the match.'",
+    "options": [
+      "A. It was raining, but we cancelled the match.",
+      "B. It was raining, so we cancelled the match.",
+      "C. Because it was raining, so we cancelled the match.",
+      "D. Although it was raining, we cancelled the match."
+    ],
+    "correct_answer": "B",
+    "explanation": "'So' chỉ kết quả của hành động (Trời mưa -> hủy trận đấu). Lưu ý: Tiếng Anh không dùng 'Because' và 'so' trong cùng một câu (đáp án C sai)."
+  },
+  {
+    "id": 60,
+    "question": "The newsreader on TV speaks very ____.",
+    "options": [
+      "A. clear",
+      "B. clearly",
+      "C. slow",
+      "D. good"
+    ],
+    "correct_answer": "B",
+    "explanation": "Cần một trạng từ (adverb) để bổ nghĩa cho động từ 'speaks'. 'Clearly' là trạng từ, các từ còn lại là tính từ (trừ khi dùng 'slow' trong văn nói suồng sã, nhưng ngữ pháp chuẩn phải là 'slowly')."
+  },
+  {
+    "id": 81,
+    "question": "If we ____ waste paper, we ____ a lot of trees.",
+    "options": [
+      "A. recycle / will save",
+      "B. will recycle / save",
+      "C. recycle / save",
+      "D. recycling / will save"
+    ],
+    "correct_answer": "A",
+    "explanation": "Câu điều kiện loại 1: Mệnh đề If dùng thì hiện tại đơn (recycle), mệnh đề chính dùng tương lai đơn (will save)."
+  },
+  {
+    "id": 82,
+    "question": "Choose the word whose underlined part is pronounced differently: 'h<u>ou</u>r', 'h<u>ou</u>se', 'h<u>ow</u>', 'm<u>ou</u>se'.",
+    "options": [
+      "A. hour",
+      "B. house",
+      "C. how",
+      "D. mouse"
+    ],
+    "correct_answer": "A",
+    "explanation": "Trong từ 'hour', âm 'h' bị câm, phần gạch chân phát âm là /aʊ/ nhưng bắt đầu bằng nguyên âm. Quan trọng hơn, 'house', 'how', 'mouse' đều có âm 'h' được phát âm hoặc bắt đầu bằng phụ âm rõ ràng, nhưng ở góc độ nguyên âm thì 'hour' thường gây nhầm lẫn nhất về mạo từ (an hour)."
+  },
+  {
+    "id": 83,
+    "question": "My father goes to work ____ 7.00 ____ the morning.",
+    "options": [
+      "A. at / on",
+      "B. in / at",
+      "C. at / in",
+      "D. on / in"
+    ],
+    "correct_answer": "C",
+    "explanation": "Dùng 'at' cho giờ cụ thể (at 7.00) và 'in' cho các buổi trong ngày (in the morning)."
+  },
+  {
+    "id": 84,
+    "question": "Which sentence is correct regarding the article 'a/an'?",
+    "options": [
+      "A. He is an university student.",
+      "B. He is a university student.",
+      "C. He is an unique boy.",
+      "D. It is a hour."
+    ],
+    "correct_answer": "B",
+    "explanation": "Mặc dù 'university' bắt đầu bằng nguyên âm 'u' nhưng phát âm là /ju:/ (bán nguyên âm 'y'), nên ta dùng mạo từ 'a', không dùng 'an'."
+  },
+  {
+    "id": 85,
+    "question": "Robots in the future might be able to ____ our feelings.",
+    "options": [
+      "A. understand",
+      "B. watch",
+      "C. look",
+      "D. hear"
+    ],
+    "correct_answer": "A",
+    "explanation": "Trong ngữ cảnh nói về sự thông minh của robot tương lai, 'understand feelings' (thấu hiểu cảm xúc) là collocations chính xác và ý nghĩa nhất."
+  },
+  {
+    "id": 86,
+    "question": "Don't make so much noise! The baby ____.",
+    "options": [
+      "A. sleep",
+      "B. sleeps",
+      "C. is sleeping",
+      "D. slept"
+    ],
+    "correct_answer": "C",
+    "explanation": "Câu mệnh lệnh 'Don't make so much noise!' là dấu hiệu cho thấy hành động 'ngủ' đang diễn ra ngay lúc nói -> Hiện tại tiếp diễn."
+  },
+  {
+    "id": 87,
+    "question": "Choose the correct question for the underlined part: 'It takes *about two hours* to get to Hai Phong.'",
+    "options": [
+      "A. How often does it take to get to Hai Phong?",
+      "B. How far does it take to get to Hai Phong?",
+      "C. How long does it take to get to Hai Phong?",
+      "D. How much does it take to get to Hai Phong?"
+    ],
+    "correct_answer": "C",
+    "explanation": "Hỏi về khoảng thời gian (duration) dùng 'How long'. 'How far' dùng cho khoảng cách địa lý."
+  },
+  {
+    "id": 88,
+    "question": "Of all the students in my class, Nam is ____.",
+    "options": [
+      "A. the goodest",
+      "B. the best",
+      "C. better",
+      "D. good"
+    ],
+    "correct_answer": "B",
+    "explanation": "So sánh nhất của tính từ bất quy tắc 'good' là 'the best'. 'Goodest' là sai ngữ pháp."
+  },
+  {
+    "id": 89,
+    "question": "We ____ go camping this weekend because the weather forecast says it will rain.",
+    "options": [
+      "A. won't",
+      "B. don't",
+      "C. aren't",
+      "D. mustn't"
+    ],
+    "correct_answer": "A",
+    "explanation": "Dùng 'won't' (will not) để đưa ra một quyết định về tương lai dựa trên thông tin hiện tại (dự báo thời tiết)."
+  },
+  {
+    "id": 90,
+    "question": "Identify the mistake: 'There (A) is (B) a little (C) apples (D) in the basket.'",
+    "options": [
+      "A. is",
+      "B. a little",
+      "C. apples",
+      "D. in"
+    ],
+    "correct_answer": "B",
+    "explanation": "'Apples' là danh từ đếm được số nhiều, không dùng 'a little' (dành cho danh từ không đếm được). Phải dùng 'a few'."
+  },
+  {
+    "id": 91,
+    "question": "My brother can ____ karate very well.",
+    "options": [
+      "A. play",
+      "B. do",
+      "C. go",
+      "D. make"
+    ],
+    "correct_answer": "B",
+    "explanation": "Dùng 'do' với các môn võ thuật (do karate, do judo)."
+  },
+  {
+    "id": 92,
+    "question": "Which word corresponds to the definition: 'To put used things through a process so that they can be used again'?",
+    "options": [
+      "A. Reuse",
+      "B. Reduce",
+      "C. Recycle",
+      "D. Repair"
+    ],
+    "correct_answer": "C",
+    "explanation": "Đây là định nghĩa chính xác của 'Recycle' (Tái chế - qua xử lý). 'Reuse' là tái sử dụng (dùng lại ngay mà không qua xử lý)."
+  },
+  {
+    "id": 93,
+    "question": "What is the opposite of 'dangerous'?",
+    "options": [
+      "A. safe",
+      "B. noisy",
+      "C. polluted",
+      "D. exciting"
+    ],
+    "correct_answer": "A",
+    "explanation": "Trái nghĩa (Antonym): Dangerous (nguy hiểm) >< Safe (an toàn)."
+  },
+  {
+    "id": 94,
+    "question": "Choose the word with the different stress pattern: 'recycle', 'pollution', 'dangerous', 'computer'.",
+    "options": [
+      "A. recycle",
+      "B. pollution",
+      "C. dangerous",
+      "D. computer"
+    ],
+    "correct_answer": "C",
+    "explanation": "'Dangerous' nhấn âm 1 (/ˈdeɪn.dʒər.əs/). Các từ còn lại nhấn âm 2 (re-CY-cle, pol-LU-tion, com-PU-ter)."
+  },
+  {
+    "id": 95,
+    "question": "If you use ____ plastic bags, you will help the environment.",
+    "options": [
+      "A. fewer",
+      "B. less",
+      "C. more",
+      "D. much"
+    ],
+    "correct_answer": "A",
+    "explanation": "'Plastic bags' là danh từ đếm được số nhiều, nên dùng 'fewer'. 'Less' dùng cho danh từ không đếm được."
+  },
+  {
+    "id": 96,
+    "question": "This gym is ____ than the one near my house.",
+    "options": [
+      "A. badder",
+      "B. worse",
+      "C. bad",
+      "D. worst"
+    ],
+    "correct_answer": "B",
+    "explanation": "So sánh hơn của tính từ bất quy tắc 'bad' là 'worse'. 'Badder' không tồn tại trong ngữ pháp chuẩn."
+  },
+  {
+    "id": 97,
+    "question": "Choose the correct response: 'Congratulations on winning the first prize!' - '____'",
+    "options": [
+      "A. You're welcome.",
+      "B. It's very kind of you to say so.",
+      "C. Good luck!",
+      "D. Yes, I do."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đáp lại lời chúc mừng một cách lịch sự. 'You're welcome' dùng để đáp lại lời cảm ơn."
+  },
+  {
+    "id": 98,
+    "question": "Walking to school is a good way to reduce our ____ footprint.",
+    "options": [
+      "A. hand",
+      "B. carbon",
+      "C. finger",
+      "D. walking"
+    ],
+    "correct_answer": "B",
+    "explanation": "'Carbon footprint' (dấu chân carbon) là thuật ngữ chỉ lượng khí thải nhà kính mà một cá nhân tạo ra."
+  },
+  {
+    "id": 99,
+    "question": "Which sentence has the correct word order?",
+    "options": [
+      "A. I enough money don't have to buy this robot.",
+      "B. I don't have money enough to buy this robot.",
+      "C. I don't have enough money to buy this robot.",
+      "D. I don't enough have money to buy this robot."
+    ],
+    "correct_answer": "C",
+    "explanation": "Cấu trúc: Enough + Noun (đủ cái gì). Ngược lại, Adjective + Enough (đủ như thế nào)."
+  },
+  {
+    "id": 100,
+    "question": "Find the odd one out regarding 'Types of Houses': 'Villa', 'Apartment', 'Stilt house', 'Classroom'.",
+    "options": [
+      "A. Villa",
+      "B. Apartment",
+      "C. Stilt house",
+      "D. Classroom"
+    ],
+    "correct_answer": "D",
+    "explanation": "'Classroom' là phòng học, không phải là loại hình nhà ở (Type of accommodation) như 3 từ còn lại."
+  }
+]

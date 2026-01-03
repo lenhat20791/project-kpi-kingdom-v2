@@ -1,0 +1,1202 @@
+[
+  {
+    "id": 1,
+    "question": "Trong văn bản 'Bài học đường đời đầu tiên', chi tiết nào miêu tả ngoại hình của Dế Choắt thể hiện rõ nhất sự tiều tụy, yếu ớt mang tính chất so sánh độc đáo của Tô Hoài?",
+    "options": [
+      "A. Người gầy gò và dài lêu nghêu như một gã nghiện thuốc phiện.",
+      "B. Đôi cánh ngắn hủn hoẳn đến giữa lưng, hở cả mạng sườn như người cởi trần mặc áo gi-lê.",
+      "C. Cái mặt lúc nào cũng ngẩn ngẩn ngơ ngơ, đôi càng bè bè.",
+      "D. Cánh dài chấm đuôi, mỗi khi vũ lên nghe tiếng phành phạch."
+    ],
+    "correct_answer": "B",
+    "explanation": "Chi tiết 'hở cả mạng sườn như người cởi trần mặc áo gi-lê' là hình ảnh so sánh đặc sắc của Tô Hoài để lột tả vẻ ngoài gầy yếu, tội nghiệp của Choắt."
+  },
+  {
+    "id": 2,
+    "question": "Trong truyền thuyết 'Thánh Gióng', việc Gióng đòi 'ngựa sắt, roi sắt, áo giáp sắt' mang ý nghĩa lịch sử - văn hóa sâu sắc nào sau đây?",
+    "options": [
+      "A. Khẳng định Gióng là một vị thần có sở thích sử dụng kim khí.",
+      "B. Phản ánh thời kỳ người Việt cổ đã đạt đến trình độ kỹ thuật đúc đồng rèn sắt điêu luyện.",
+      "C. Cho thấy triều đình thời bấy giờ rất giàu có và chuẩn bị sẵn sàng vũ khí sắt.",
+      "D. Thể hiện ước mơ của nhân dân về một người anh hùng bất tử không bao giờ chết."
+    ],
+    "correct_answer": "B",
+    "explanation": "Vũ khí sắt trong truyện phản ánh bước tiến lịch sử của cư dân Văn Lang trong thời đại đồ sắt, giúp nâng cao khả năng chống ngoại xâm."
+  },
+  {
+    "id": 3,
+    "question": "Trong văn bản 'Cô Tô' của Nguyễn Tuân, mặt trời bình minh được ví như 'lòng đỏ quả trứng thiên nhiên đầy đặn, hồng hào', hình ảnh này được đặt trên một chiếc khay như thế nào?",
+    "options": [
+      "A. Một chiếc khay bạc đường kính rộng bằng cả một chân trời.",
+      "B. Một chiếc khay vàng rực rỡ tượng trưng cho sự phú quý của biển khơi.",
+      "C. Một chiếc khay bằng ngọc thạch trong suốt của biển đông.",
+      "D. Một chiếc khay bạc đường kính rộng bằng cả một cái mâm lễ phẩm."
+    ],
+    "correct_answer": "A",
+    "explanation": "Nguyên văn Nguyễn Tuân viết: 'Y như một mâm lễ phẩm đầy đặn... đặt lên một cái khay bạc đường kính rộng bằng cả một chân trời màu ngọc trai'."
+  },
+  {
+    "id": 4,
+    "question": "Câu văn 'Cả một vùng nước đỏ rực lên như một vườn hoa khổng lồ' (Lao xao ngày hè) sử dụng biện pháp tu từ nào là trọng tâm?",
+    "options": [
+      "A. Ẩn dụ chuyển đổi cảm giác từ thị giác sang khứu giác.",
+      "B. So sánh kết hợp với tính từ chỉ màu sắc mạnh.",
+      "C. Hoán dụ lấy bộ phận chỉ toàn thể để tả cảnh vật.",
+      "D. Nhân hóa khiến dòng nước có linh hồn như con người."
+    ],
+    "correct_answer": "B",
+    "explanation": "Tác giả sử dụng phép so sánh (như) để cụ thể hóa vẻ đẹp rực rỡ của mặt nước dưới ánh mặt trời thông qua hình ảnh vườn hoa."
+  },
+  {
+    "id": 5,
+    "question": "Trong truyện 'Sơn Tinh, Thủy Tinh', vì sao Thủy Tinh dù có phép thuật cao cường nhưng vẫn luôn thất bại trước Sơn Tinh?",
+    "options": [
+      "A. Vì Sơn Tinh được nhà vua ưu ái ban cho nhiều vũ khí thần kỳ hơn.",
+      "B. Vì Thủy Tinh kiệt sức sau khi dâng nước quá cao.",
+      "C. Vì sức mạnh bền bỉ của Sơn Tinh tượng trưng cho công cuộc đắp đê, trị thủy kiên cường của người Việt cổ.",
+      "D. Vì Thủy Tinh chỉ có thể hô mưa gọi gió chứ không biết dời núi lấp biển."
+    ],
+    "correct_answer": "C",
+    "explanation": "Thất bại của Thủy Tinh khẳng định chiến thắng tất yếu của con người trước thiên tai lũ lụt thông qua sự kiên trì dời núi, đắp đê."
+  },
+  {
+    "id": 6,
+    "question": "Xác định từ láy có cấu trúc đặc biệt (láy toàn bộ nhưng biến đổi thanh điệu) trong câu: 'Sóng biếc theo làn hơi gợn tí / Lá vàng trước gió khẽ đưa vèo'?",
+    "options": [
+      "A. Khẽ đưa",
+      "B. Vàng vọt",
+      "C. Tí ti",
+      "D. Gợn tí"
+    ],
+    "correct_answer": "C",
+    "explanation": "Từ 'tí ti' là từ láy toàn bộ, có sự biến đổi thanh điệu (thanh sắc thành thanh ngang) để tạo âm hưởng nhẹ nhàng."
+  },
+  {
+    "id": 7,
+    "question": "Trong bài thơ 'Chuyện cổ tích về loài người', chi tiết 'Cây cao bằng gang tay / Lá cỏ bằng sợi tóc' nhằm nhấn mạnh điều gì?",
+    "options": [
+      "A. Sự khắc nghiệt của thiên nhiên khi mới hình thành.",
+      "B. Thế giới lúc bấy giờ còn rất nhỏ bé, nguyên sơ để phù hợp với tầm vóc của trẻ con.",
+      "C. Sự kỳ ảo của trái đất thời tiền sử.",
+      "D. Trẻ con không cần những thứ quá lớn lao khi mới sinh ra."
+    ],
+    "correct_answer": "B",
+    "explanation": "Mọi sự vật trong khổ thơ đều nhỏ nhắn, gợi ra thế giới trẻ thơ - nơi trẻ em là trung tâm và mọi thứ bắt đầu từ điểm xuất phát của trẻ."
+  },
+  {
+    "id": 8,
+    "question": "Biện pháp tu từ ẩn dụ trong câu 'Thuyền về có nhớ bến chăng / Bến thì một dạ khăng khăng đợi thuyền' thuộc kiểu ẩn dụ nào?",
+    "options": [
+      "A. Ẩn dụ cách thức.",
+      "B. Ẩn dụ hình thức.",
+      "C. Ẩn dụ phẩm chất.",
+      "D. Ẩn dụ chuyển đổi cảm giác."
+    ],
+    "correct_answer": "C",
+    "explanation": "Ẩn dụ phẩm chất: Sự chung thủy của 'bến' tương đồng với phẩm chất đợi chờ của con người (người ở lại)."
+  },
+  {
+    "id": 9,
+    "question": "Trong văn bản 'Cây tre Việt Nam', Thép Mới viết: 'Gậy tre, chông tre chống lại sắt thép của quân thù. Tre xung phong vào xe tăng, đại bác'. Biện pháp tu từ nào nổi bật nhất ở đây?",
+    "options": [
+      "A. Hoán dụ kết hợp so sánh.",
+      "B. Nhân hóa kết hợp điệp từ.",
+      "C. Ẩn dụ kết hợp nhân hóa.",
+      "D. Liệt kê kết hợp hoán dụ."
+    ],
+    "correct_answer": "B",
+    "explanation": "Nhân hóa (tre xung phong, chống lại) và Điệp từ (tre) nhấn mạnh tinh thần chiến đấu anh dũng của cây tre như một chiến sĩ."
+  },
+  {
+    "id": 10,
+    "question": "Trong văn bản 'Bài học đường đời đầu tiên', thái độ của Dế Mèn khi đứng trước cái chết của Dế Choắt đã có sự thay đổi tinh tế như thế nào?",
+    "options": [
+      "A. Từ kiêu căng ngạo mạn chuyển sang hối hận tức thời rồi quên ngay.",
+      "B. Từ hoảng sợ vô cùng đến hối hận chân thành và tự rút ra bài học sâu sắc.",
+      "C. Từ hả hê vì trêu được chị Cốc đến sợ hãi vì bị chị Cốc đuổi đánh.",
+      "D. Chỉ đơn thuần là buồn bã vì mất đi một người hàng xóm láng giềng."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sự thay đổi tâm lý từ 'hoảng hốt' sang 'hối hận' và 'nghĩ về bài học' cho thấy sự trưởng thành trong nhận thức của nhân vật."
+  },
+  {
+    "id": 11,
+    "question": "Trong 'Em bé thông minh', thử thách cuối cùng của sứ giả nước láng giềng (xâu sợi chỉ qua ruột con ốc vặn rất dài) có ý nghĩa gì đối với vị thế quốc gia?",
+    "options": [
+      "A. Để kiểm tra xem nước ta có nhiều người giỏi toán hay không.",
+      "B. Để hạ nhục uy tín của nhà vua và triều đình trước lân bang.",
+      "C. Thể hiện trí tuệ dân gian có thể giải quyết những vấn đề ngoại giao phức tạp mà giới thượng tầng bế tắc.",
+      "D. Để chứng minh rằng kiến thức trong sách vở luôn quan trọng hơn kinh nghiệm đời sống."
+    ],
+    "correct_answer": "C",
+    "explanation": "Thử thách xâu chỉ khẳng định trí tuệ thực tiễn của nhân dân có sức mạnh bảo vệ chủ quyền và thể diện quốc gia."
+  },
+  {
+    "id": 12,
+    "question": "Xác định chức năng của cụm động từ 'đang nổi khùng lên' trong câu: 'Mặt biển đang nổi khùng lên'?",
+    "options": [
+      "A. Làm chủ ngữ của câu.",
+      "B. Làm vị ngữ của câu.",
+      "C. Làm định ngữ cho danh từ mặt biển.",
+      "D. Làm trạng ngữ chỉ cách thức."
+    ],
+    "correct_answer": "B",
+    "explanation": "Cụm động từ này đóng vai trò vị ngữ, thông báo trạng thái hoạt động của chủ ngữ 'Mặt biển'."
+  },
+  {
+    "id": 13,
+    "question": "Trong bài thơ 'Mây và Sóng', tại sao em bé lại từ chối những lời mời gọi hấp dẫn của những người sống trên mây và trong sóng?",
+    "options": [
+      "A. Vì em bé sợ đi xa sẽ gặp nguy hiểm và không biết đường về.",
+      "B. Vì trò chơi của họ không hay bằng những trò chơi em tự nghĩ ra.",
+      "C. Vì em thấu hiểu rằng tình yêu dành cho mẹ và sự hiện diện bên mẹ là niềm hạnh phúc lớn nhất.",
+      "D. Vì em bé bận phải đi học và làm bài tập ở nhà."
+    ],
+    "correct_answer": "C",
+    "explanation": "Sự từ chối của em bé khẳng định sức mạnh của tình mẫu tử thiêng liêng, vượt qua mọi cám dỗ rực rỡ bên ngoài."
+  },
+  {
+    "id": 14,
+    "question": "Từ ghép 'mặt mũi' trong tiếng Việt thuộc loại từ ghép nào dưới đây?",
+    "options": [
+      "A. Từ ghép chính phụ.",
+      "B. Từ ghép đẳng lập.",
+      "C. Từ ghép tổng hợp.",
+      "D. Cả B và C đều đúng."
+    ],
+    "correct_answer": "D",
+    "explanation": "'Mặt mũi' là từ ghép đẳng lập (hai thành tố ngang hàng) đồng thời là từ ghép tổng hợp (chỉ chung khuôn mặt con người)."
+  },
+  {
+    "id": 15,
+    "question": "Trong truyện 'Thạch Sanh', chi tiết 'Niêu cơm thần' có đặc điểm nào thể hiện khát vọng nhân đạo sâu sắc của nhân dân ta?",
+    "options": [
+      "A. Niêu cơm rất to, có thể nuôi được cả quân đội 18 nước chư hầu.",
+      "B. Niêu cơm bé xíu nhưng ăn hết lại đầy, tượng trưng cho sự no ấm và tấm lòng khoan dung của người Việt.",
+      "C. Niêu cơm chỉ dành riêng cho những người nghèo khổ như Thạch Sanh.",
+      "D. Niêu cơm có tác dụng làm cho quân sĩ chư hầu quên mất quê hương."
+    ],
+    "correct_answer": "B",
+    "explanation": "Niêu cơm thiết đãi quân sĩ chư hầu thể hiện tư tưởng yêu chuộng hòa bình và sự bao dung của dân tộc ta sau chiến thắng."
+  },
+  {
+    "id": 16,
+    "question": "Dấu phẩy trong câu 'Trong bóng râm của lùm cây, tôi nằm nghe tiếng chim hót' có tác dụng gì?",
+    "options": [
+      "A. Ngăn cách các vế trong câu ghép.",
+      "B. Ngăn cách trạng ngữ với chủ ngữ và vị ngữ.",
+      "C. Ngăn cách các từ ngữ có cùng chức vụ trong câu.",
+      "D. Ngăn cách các thành phần biệt lập của câu."
+    ],
+    "correct_answer": "B",
+    "explanation": "Dấu phẩy dùng để phân tách trạng ngữ chỉ nơi chốn 'Trong bóng râm của lùm cây' với nòng cốt câu."
+  },
+  {
+    "id": 17,
+    "question": "Trong văn bản 'Cô Tô', để miêu tả cơn bão biển, Nguyễn Tuân đã sử dụng hình ảnh so sánh 'Cát bay như...'?",
+    "options": [
+      "A. Như những mũi kim đâm vào da thịt.",
+      "B. Như một trận mưa đá dữ dội.",
+      "C. Như bắn vào má vào tai.",
+      "D. Như một bức màn che kín tầm mắt."
+    ],
+    "correct_answer": "C",
+    "explanation": "Nguyên văn: 'Cát bay như bắn vào má vào tai', gợi cảm giác đau rát và sức mạnh tấn công của gió cát."
+  },
+  {
+    "id": 18,
+    "question": "Từ nào sau đây là từ đơn đa âm (từ mượn)?",
+    "options": [
+      "A. Mặn mà",
+      "B. Ra-đi-ô",
+      "C. Lung linh",
+      "D. Học hành"
+    ],
+    "correct_answer": "B",
+    "explanation": "'Ra-đi-ô' là từ mượn, tuy có 3 tiếng nhưng chỉ biểu đạt 1 nghĩa duy nhất, được coi là từ đơn đa âm."
+  },
+  {
+    "id": 19,
+    "question": "Ý nghĩa của hình ảnh 'Tre anh hùng chiến đấu' trong tác phẩm của Thép Mới là biểu tượng cho?",
+    "options": [
+      "A. Vẻ đẹp thanh cao, giản dị của làng quê Việt Nam.",
+      "B. Khả năng cung cấp nguyên liệu vô tận cho sản xuất.",
+      "C. Phẩm chất quật cường, kiên trung của con người Việt Nam trong kháng chiến.",
+      "D. Sự tồn tại lâu đời của một loài thực vật quý hiếm."
+    ],
+    "correct_answer": "C",
+    "explanation": "Cây tre được nâng tầm thành biểu tượng của dân tộc: gan góc, kiên cường chống lại mọi kẻ thù xâm lược."
+  },
+  {
+    "id": 20,
+    "question": "Phép hoán dụ trong câu 'Áo chàm đưa buổi phân ly / Cầm tay nhau biết nói gì hôm nay' sử dụng mối quan hệ nào?",
+    "options": [
+      "A. Lấy vật chứa đựng để gọi vật bị chứa đựng.",
+      "B. Lấy dấu hiệu của vật để gọi vật.",
+      "C. Lấy cái cụ thể để gọi cái trừu tượng.",
+      "D. Lấy bộ phận để gọi toàn thể."
+    ],
+    "correct_answer": "B",
+    "explanation": "'Áo chàm' là trang phục đặc trưng (dấu hiệu) để gọi người dân Việt Bắc."
+  },
+  {
+    "id": 21,
+    "question": "Trong văn bản 'Thạch Sanh', chi tiết 'bộ cung tên vàng' mà Thạch Sanh dùng để bắn đại bàng có nguồn gốc từ đâu, và nó tượng trưng cho điều gì?",
+    "options": [
+      "A. Do Ngọc Hoàng ban tặng, tượng trưng cho sức mạnh của công lý và thần linh.",
+      "B. Do vua Thủy Tề tặng để đền ơn cứu thái tử, tượng trưng cho sự hỗ trợ của các thế lực siêu nhiên chính nghĩa.",
+      "C. Do Thạch Sanh tự rèn đúc từ hang sâu, tượng trưng cho sự tự lực cánh sinh của người anh hùng.",
+      "D. Do mẹ Thạch Sanh để lại như một báu vật gia truyền, tượng trưng cho tình mẫu tử thiêng liêng."
+    ],
+    "correct_answer": "B",
+    "explanation": "Trong truyện, sau khi cứu Thái tử con vua Thủy Tề, Thạch Sanh được tặng bộ cung tên vàng. Chi tiết này thể hiện sự liên kết giữa các thế lực chính nghĩa để tiêu diệt cái ác."
+  },
+  {
+    "id": 22,
+    "question": "Trong câu văn 'Gậy tre, chông tre chống lại sắt thép của quân thù' (Cây tre Việt Nam), biện pháp hoán dụ 'sắt thép' dùng để chỉ đối tượng nào?",
+    "options": [
+      "A. Chỉ các loại vũ khí hiện đại, tối tân của quân đội xâm lược.",
+      "B. Chỉ tính chất cứng rắn, không thể lay chuyển của kẻ thù.",
+      "C. Chỉ những công trình kiến trúc bằng kim loại của thực dân.",
+      "D. Chỉ sự lạnh lùng và tàn bạo trong tâm hồn quân xâm lược."
+    ],
+    "correct_answer": "A",
+    "explanation": "Hoán dụ 'sắt thép' lấy vật liệu chế tạo vũ khí để chỉ chính các loại vũ khí hiện đại (xe tăng, đại bác, súng đạn) của quân thù."
+  },
+  {
+    "id": 23,
+    "question": "Trong đoạn trích 'Bài học đường đời đầu tiên', khi miêu tả cái chết của Dế Choắt, Tô Hoài đã dùng cụm từ nào để diễn tả sự chấm dứt hoàn toàn của một sinh mạng tội nghiệp?",
+    "options": [
+      "A. Thế là Choắt không còn thở được nữa, người cứ cứng đờ ra.",
+      "B. Choắt chỉ ngáp ngáp mấy cái rồi nằm im bất động trên nền đất lạnh.",
+      "C. Choắt thở hồng hộc, rồi một luồng máu mồm tươi tắn vọt ra.",
+      "D. Luồng hơi thở cuối cùng của Choắt đã tắt ngấm trong sự hối hận của tôi."
+    ],
+    "correct_answer": "C",
+    "explanation": "Chi tiết 'luồng máu mồm tươi tắn vọt ra' là một hình ảnh khốc liệt, trực diện, khắc họa hậu quả bi thảm từ trò đùa của Dế Mèn."
+  },
+  {
+    "id": 24,
+    "question": "Trong truyền thuyết 'Sơn Tinh, Thủy Tinh', chi tiết nào cho thấy Sơn Tinh không chỉ có sức mạnh cơ bắp mà còn có quyền năng điều khiển quy luật của tự nhiên?",
+    "options": [
+      "A. Sơn Tinh dùng phép lạ bốc từng quả đồi, dời từng dãy núi.",
+      "B. Thủy Tinh dâng nước cao bao nhiêu, Sơn Tinh dâng núi cao lên bấy nhiêu.",
+      "C. Sơn Tinh đem đầy đủ sính lễ đến trước và rước được Mỵ Nương về núi.",
+      "D. Sơn Tinh dùng cung tên thần bắn tan những cột sóng dữ dội của Thủy Tinh."
+    ],
+    "correct_answer": "B",
+    "explanation": "Hành động 'nước dâng đến đâu, núi dâng đến đó' thể hiện khả năng chế ngự và biến đổi địa hình để đối phó với thiên tai của người Việt cổ."
+  },
+  {
+    "id": 25,
+    "question": "Từ láy 'lững thững' trong câu 'Dế Choắt lững thững đi ra khỏi hang' mang sắc thái nghĩa gì khác biệt so với từ 'chậm chạp'?",
+    "options": [
+      "A. Chỉ tốc độ di chuyển rất chậm do cơ thể quá nặng nề.",
+      "B. Gợi vẻ đi lại chậm rãi, từng bước một, thể hiện sự yếu ớt và thiếu sức sống.",
+      "C. Gợi vẻ đi lại thong dong, không chút vội vã của người đang suy nghĩ.",
+      "D. Chỉ sự lười biếng, không muốn di chuyển của nhân vật."
+    ],
+    "correct_answer": "B",
+    "explanation": "Từ 'lững thững' không chỉ nói về tốc độ mà còn gợi lên hình ảnh một cơ thể gầy gò, yếu ớt, di chuyển một cách khó khăn, nặng nề."
+  },
+  {
+    "id": 26,
+    "question": "Trong bài thơ 'Mây và Sóng', tại sao tác giả lại để em bé nói rằng: 'Nhưng con biết có trò chơi hay hơn' trước khi từ chối lời mời của mây và sóng?",
+    "options": [
+      "A. Vì em bé muốn khoe khoang sự thông minh của mình với các vị thần.",
+      "B. Để nhấn mạnh rằng trí sáng tạo của trẻ thơ có thể biến tình yêu thương thành những trò chơi kỳ diệu nhất.",
+      "C. Vì em bé thực sự không thích những trò chơi ở trên không trung hay dưới biển.",
+      "D. Để đánh lạc hướng những người sống trên mây và trong sóng để em trốn về với mẹ."
+    ],
+    "correct_answer": "B",
+    "explanation": "Câu nói này khẳng định tình mẫu tử không hề khô khan mà luôn tràn đầy sự sáng tạo và niềm vui, vượt xa những vẻ đẹp ảo ảnh bên ngoài."
+  },
+  {
+    "id": 27,
+    "question": "Xác định thành phần phụ trước của cụm danh từ trong câu: 'Tất cả những cái vuốt ở chân, ở khoeo cứ cứng dần và nhọn hoắt'?",
+    "options": [
+      "A. Tất cả những cái",
+      "B. Tất cả những",
+      "C. cứng dần và nhọn hoắt",
+      "D. ở chân, ở khoeo"
+    ],
+    "correct_answer": "B",
+    "explanation": "Trong cụm danh từ này, 'vốn' là danh từ trung tâm, 'Tất cả' chỉ tổng lượng, 'những' chỉ số lượng không xác định, là các phụ trước."
+  },
+  {
+    "id": 28,
+    "question": "Trong văn bản 'Cô Tô', Nguyễn Tuân miêu tả nước biển sau bão bằng cụm từ 'lam biếc đậm đà hơn hết cả các thứ màu xanh của nước biển hằng ngày'. Từ 'đậm đà' ở đây được dùng theo biện pháp tu từ nào?",
+    "options": [
+      "A. Ẩn dụ chuyển đổi cảm giác (từ thị giác sang vị giác).",
+      "B. Hoán dụ lấy tính chất của vật để chỉ vật.",
+      "C. So sánh không ngang bằng giữa các sắc độ xanh.",
+      "D. Nhân hóa làm cho màu sắc trở nên có tâm hồn như con người."
+    ],
+    "correct_answer": "A",
+    "explanation": "Nguyễn Tuân dùng 'đậm đà' (vốn chỉ vị giác) để miêu tả màu sắc (thị giác), làm tăng độ sâu và sự hữu hình của màu biển Cô Tô."
+  },
+  {
+    "id": 29,
+    "question": "Trong 'Em bé thông minh', câu đố của viên quan: 'Ngựa của ông đi một ngày được mấy bước?' đã bị em bé bẻ gãy bằng câu hỏi ngược lại như thế nào?",
+    "options": [
+      "A. Thế ngựa của vua đi một ngày được mấy dặm?",
+      "B. Thế ông cho biết trâu của cha tôi cày một ngày được mấy đường?",
+      "C. Thế ông có biết một ngày có bao nhiêu sợi lông chim bay trên trời không?",
+      "D. Thế ông hãy đếm xem trên đầu ông có bao nhiêu sợi tóc?"
+    ],
+    "correct_answer": "B",
+    "explanation": "Em bé hỏi ngược lại về số đường cày của con trâu - một câu hỏi cũng vô lý và không thể trả lời chính xác tương tự như câu hỏi về bước chân ngựa."
+  },
+  {
+    "id": 30,
+    "question": "Trong truyện 'Thánh Gióng', chi tiết Gióng ăn bảy nong cơm ba nong cà, uống nước vợi cả khúc sông nhằm mục đích nghệ thuật gì?",
+    "options": [
+      "A. Thể hiện Gióng là một người khổng lồ có sức mạnh thể chất phi thường.",
+      "B. Phóng đại sự đóng góp của nhân dân và khẳng định sức mạnh của Gióng là sức mạnh của toàn dân tộc.",
+      "C. Chứng minh rằng trong thời chiến, con người cần phải ăn nhiều mới có sức đánh giặc.",
+      "D. Tạo ra một tình huống hài hước để giảm bớt sự căng thẳng của cuộc chiến tranh."
+    ],
+    "correct_answer": "B",
+    "explanation": "Gióng lớn lên bằng cơm gạo của dân làng, việc ăn nhiều tượng trưng cho việc tập hợp mọi nguồn lực của cộng đồng vào một cá nhân anh hùng."
+  },
+  {
+    "id": 31,
+    "question": "Trong bài thơ 'Chuyện cổ tích về loài người', hình ảnh 'Cái bống cực kỳ ngoan / Cái bống đi chợ xa' được nhắc đến để giải thích cho sự xuất hiện của điều gì?",
+    "options": [
+      "A. Sự xuất hiện của những bài hát ru và ca dao.",
+      "B. Sự xuất hiện của những người bạn cùng lứa tuổi với trẻ con.",
+      "C. Sự xuất hiện của đôi mắt để nhìn thấy cái đẹp.",
+      "D. Sự xuất hiện của đôi bàn tay để làm việc."
+    ],
+    "correct_answer": "A",
+    "explanation": "Khổ thơ về cái bống, về những câu chuyện xa xưa chính là để giải thích cho nguồn gốc của lời ru, của tâm hồn văn hóa mà người mẹ mang lại cho trẻ."
+  },
+  {
+    "id": 32,
+    "question": "Xác định kiểu hoán dụ trong câu thơ: 'Bàn tay ta làm nên tất cả / Có sức người sỏi đá cũng thành cơm'?",
+    "options": [
+      "A. Lấy dấu hiệu của vật để gọi vật.",
+      "B. Lấy vật chứa đựng để gọi vật bị chứa đựng.",
+      "C. Lấy bộ phận để gọi toàn thể.",
+      "D. Lấy cái cụ thể để gọi cái trừu tượng."
+    ],
+    "correct_answer": "C",
+    "explanation": "'Bàn tay' là một bộ phận của cơ thể người, dùng để chỉ sức lao động của con người (toàn thể)."
+  },
+  {
+    "id": 33,
+    "question": "Trong văn bản 'Lao xao ngày hè', tác giả miêu tả chim diều hâu có đặc điểm gì khiến các loài chim khác phải khiếp sợ?",
+    "options": [
+      "A. Tiếng kêu 'chéc chéc' xé rách bầu trời đêm.",
+      "B. Đôi cánh rộng che khuất cả mặt trời khi nó sà xuống.",
+      "C. Mũi khăm khằm, đánh hơi cực tinh, hễ thấy gà con là lao xuống như mũi tên.",
+      "D. Bộ lông đen xì và đôi mắt đỏ rực như lửa."
+    ],
+    "correct_answer": "C",
+    "explanation": "Chi tiết 'mũi khăm khằm' và khả năng đánh hơi, săn mồi chớp nhoáng là đặc điểm nhận dạng sự hung ác của diều hâu trong văn bản."
+  },
+  {
+    "id": 34,
+    "question": "Đặc điểm nào dưới đây là đặc trưng nhất của thể loại 'Truyện đồng thoại' mà 'Bài học đường đời đầu tiên' đã thể hiện rất rõ?",
+    "options": [
+      "A. Các nhân vật là những vị thần có sức mạnh siêu nhiên.",
+      "B. Các nhân vật là loài vật nhưng được nhân hóa để mang đặc điểm, tâm lý như con người.",
+      "C. Cốt truyện luôn kết thúc bằng một phép màu giải quyết mọi xung đột.",
+      "D. Ngôn ngữ truyện luôn trang trọng, mang đậm tính triết lý cổ điển."
+    ],
+    "correct_answer": "B",
+    "explanation": "Truyện đồng thoại sử dụng hình ảnh loài vật để phản ánh các vấn đề của đời sống con người một cách sinh động và gần gũi."
+  },
+  {
+    "id": 35,
+    "question": "Trong văn bản 'Cô Tô', tại sao Nguyễn Tuân lại ví những hòn đảo sau bão như 'những quân cờ trên một cái bàn cờ xanh lục'?",
+    "options": [
+      "A. Để thể hiện sự nhỏ bé của những hòn đảo trước sự mênh mông của biển cả.",
+      "B. Để ca ngợi sự sắp đặt tài tình, trật tự và vẻ đẹp bình yên của quần đảo sau cơn bão dữ.",
+      "C. Để ám chỉ cuộc đấu tranh giữa con người và thiên nhiên như một ván cờ.",
+      "D. Để miêu tả sự hỗn loạn của các hòn đảo khi bị sóng đánh vào."
+    ],
+    "correct_answer": "B",
+    "explanation": "Hình ảnh bàn cờ và quân cờ gợi lên sự gọn gàng, sắc nét và vẻ đẹp tĩnh lặng, thanh cao của thiên nhiên sau khi bão tan."
+  },
+  {
+    "id": 36,
+    "question": "Trong câu 'Dế Choắt có cái đuôi ngắn hủn hoẳn', từ 'ngắn hủn hoẳn' giữ vai trò ngữ pháp gì trong cụm danh từ 'cái đuôi ngắn hủn hoẳn'?",
+    "options": [
+      "A. Danh từ trung tâm.",
+      "B. Thành phần phụ trước.",
+      "C. Thành phần phụ sau.",
+      "D. Trạng ngữ bổ trợ cho động từ."
+    ],
+    "correct_answer": "C",
+    "explanation": "Trong cụm danh từ này, 'đuôi' là danh từ trung tâm, còn 'ngắn hủn hoẳn' là tính từ đóng vai trò thành phần phụ sau nêu đặc điểm."
+  },
+  {
+    "id": 37,
+    "question": "Trong truyện 'Sơn Tinh, Thủy Tinh', việc Thủy Tinh đem quân đánh Sơn Tinh hằng năm nhằm mục đích gì đối với nhận thức của người dân Việt cổ?",
+    "options": [
+      "A. Giải thích hiện tượng lũ lụt lặp đi lặp lại hằng năm ở đồng bằng Bắc Bộ.",
+      "B. Nhắc nhở con người luôn phải cảnh giác với sự trả thù của kẻ thù cũ.",
+      "C. Thể hiện sự kiên trì, không bao giờ bỏ cuộc của các vị thần.",
+      "D. Khẳng định rằng tình yêu có thể dẫn đến những cuộc chiến tranh dai dẳng."
+    ],
+    "correct_answer": "A",
+    "explanation": "Cuộc chiến lặp lại hằng năm là cách người xưa dùng thần thoại để giải thích quy luật tự nhiên của mùa lũ ở lưu vực sông Hồng."
+  },
+  {
+    "id": 38,
+    "question": "Từ nào sau đây không phải là từ láy tượng thanh: 'ào ào', 'vi vu', 'ngào ngạt', 'rì rào'?",
+    "options": [
+      "A. Ào ào",
+      "B. Vi vu",
+      "C. Ngào ngạt",
+      "D. Rì rào"
+    ],
+    "correct_answer": "C",
+    "explanation": "'Ngào ngạt' là từ láy tượng hình/tượng vị (chỉ mùi thơm), không phải từ láy mô phỏng âm thanh."
+  },
+  {
+    "id": 39,
+    "question": "Trong 'Thánh Gióng', hình ảnh 'Gióng nhổ những cụm tre cạnh đường quật vào giặc' khi roi sắt bị gãy mang ý nghĩa gì?",
+    "options": [
+      "A. Gióng là người thông minh, biết tận dụng mọi thứ xung quanh.",
+      "B. Sức mạnh của lòng yêu nước giúp con người biến cây cỏ quê hương thành vũ khí lợi hại.",
+      "C. Cây tre là loại cây cứng nhất trong các loài cây ở làng quê Việt Nam.",
+      "D. Gióng muốn phá hủy môi trường để tiêu diệt kẻ thù."
+    ],
+    "correct_answer": "B",
+    "explanation": "Chi tiết này khẳng định: khi có giặc, ngay cả cây tre hiền lành bên đường cũng trở thành vũ khí, thể hiện sự đồng lòng của thiên nhiên và con người Việt Nam."
+  },
+  {
+    "id": 40,
+    "question": "Trong đoạn trích 'Bài học đường đời đầu tiên', khi miêu tả hành động trêu chị Cốc, Dế Mèn đã 'vênh váo' thực hiện động tác gì?",
+    "options": [
+      "A. Nhảy phắt lên mỏm đất cao rồi hát ghẹo chị Cốc.",
+      "B. Quăng một cái tát vào mặt chị Cốc rồi chạy mất.",
+      "C. Giơ chân lên mặt chị Cốc và thách thức bằng giọng hống hách.",
+      "D. Vuốt râu, ra oai với Dế Choắt rồi mới cất tiếng hát trêu chị Cốc."
+    ],
+    "correct_answer": "D",
+    "explanation": "Trước khi trêu chị Cốc, Mèn đã thực hiện một loạt hành động 'làm bộ' như vuốt râu, ra oai để thể hiện sự 'anh hùng' hão huyền của mình trước mặt Dế Choắt."
+  },
+  {
+    "id": 41,
+    "question": "Trong văn bản 'Cây tre Việt Nam', câu văn 'Tre ăn ở với người, đời đời kiếp kiếp' sử dụng từ ngữ nào mang sắc thái nhân hóa đậm nét nhất để chỉ sự gắn bó?",
+    "options": [
+      "A. Đời đời kiếp kiếp",
+      "B. Ăn ở với người",
+      "C. Cùng ta làm ăn",
+      "D. Gắn bó lâu dài"
+    ],
+    "correct_answer": "B",
+    "explanation": "Cụm từ 'ăn ở với người' thường dùng để chỉ mối quan hệ sinh hoạt, tình cảm giữa người với người, nay được dùng cho tre để khẳng định sự gắn kết tâm giao, bền chặt."
+  },
+  {
+    "id": 42,
+    "question": "Trong bài thơ 'Mây và Sóng', cấu trúc của hai đoạn thơ (đoạn về mây và đoạn về sóng) có đặc điểm gì nổi bật về mặt nghệ thuật?",
+    "options": [
+      "A. Cấu trúc đối lập hoàn toàn về nội dung và hình ảnh.",
+      "B. Cấu trúc lặp lại có biến đổi, tạo ra sự đối chiếu giữa thế giới ảo ảnh và tình mẫu tử thực tại.",
+      "C. Đoạn sau có số câu thơ nhiều gấp đôi đoạn trước để nhấn mạnh cảm xúc.",
+      "D. Sử dụng các vần chân khác biệt hoàn toàn để tạo sự thay đổi nhịp điệu."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sự lặp lại cấu trúc (lời mời gọi -> sự từ chối -> trò chơi mới) giúp nhấn mạnh rằng dù cám dỗ có thay đổi thì tình yêu dành cho mẹ vẫn là bất biến."
+  },
+  {
+    "id": 43,
+    "question": "Xác định kiểu hoán dụ trong câu: 'Vì lợi ích mười năm thì phải trồng cây, vì lợi ích trăm năm thì phải trồng người'?",
+    "options": [
+      "A. Lấy dấu hiệu của vật để gọi vật.",
+      "B. Lấy vật chứa đựng để gọi vật bị chứa đựng.",
+      "C. Lấy cái cụ thể để gọi cái trừu tượng (thời gian ngắn/dài).",
+      "D. Lấy bộ phận để gọi toàn thể."
+    ],
+    "correct_answer": "C",
+    "explanation": "'Mười năm' và 'trăm năm' là những con số cụ thể dùng để chỉ thời gian ngắn hạn (trước mắt) và dài hạn (chiến lược) trong giáo dục."
+  },
+  {
+    "id": 44,
+    "question": "Trong truyện 'Thạch Sanh', chi tiết 'Tiếng đàn giải oan' và 'Tiếng đàn đẩy lùi quân sĩ 18 nước chư hầu' cho thấy Thạch Sanh là hình tượng nghệ sĩ - chiến sĩ mang sức mạnh của?",
+    "options": [
+      "A. Phép thuật kỳ ảo được thần linh ban cho.",
+      "B. Sự thông minh, mưu mẹo vượt trội so với Lý Thông.",
+      "C. Chính nghĩa, lòng yêu hòa bình và sự thấu cảm nhân văn.",
+      "D. Sự hỗ trợ từ linh hồn của những con vật đã bị tiêu diệt."
+    ],
+    "correct_answer": "C",
+    "explanation": "Tiếng đàn không phải là vũ khí sát thương mà là vũ khí của lòng nhân đạo, có khả năng cảm hóa con người và dập tắt chiến tranh."
+  },
+  {
+    "id": 45,
+    "question": "Trong văn bản 'Lao xao ngày hè', tại sao tác giả lại gọi chim chèo bẻo là 'kẻ cắp' nhưng lại là 'kẻ cắp có nghĩa'?",
+    "options": [
+      "A. Vì nó hay ăn trộm trứng chim khác nhưng lại đem chia cho chim nghèo.",
+      "B. Vì nó lấy trộm mồi của diều hâu nhưng lại dũng cảm đánh đuổi diều hâu bảo vệ làng xóm.",
+      "C. Vì tiếng kêu của nó nghe giống như tiếng gọi của những người đi chợ.",
+      "D. Vì nó thường xuyên giúp các loài chim khác xây tổ sau khi phá hoại."
+    ],
+    "correct_answer": "B",
+    "explanation": "Duy Khán miêu tả chèo bẻo chuyên đi 'đánh hôi' mồi nhưng lại là hiệp sĩ trị tội lũ diều hâu ác ôn, bảo vệ đàn gà."
+  },
+  {
+    "id": 46,
+    "question": "Trong cụm động từ 'đang mải miết bay về phía chân trời', thành phần phụ sau là?",
+    "options": [
+      "A. đang mải miết",
+      "B. bay về phía chân trời",
+      "C. mải miết bay về phía chân trời",
+      "D. về phía chân trời"
+    ],
+    "correct_answer": "D",
+    "explanation": "Trong cụm này, 'bay' là động từ trung tâm, 'mải miết' là phụ trước chỉ trạng thái, 'về phía chân trời' là phụ sau chỉ hướng của hành động."
+  },
+  {
+    "id": 47,
+    "question": "Trong văn bản 'Cô Tô', chi tiết 'những cái giếng đá của người dân chài ven biển' sau bão được Nguyễn Tuân miêu tả như thế nào để thấy sự đông vui?",
+    "options": [
+      "A. Như một cái chợ nhỏ náo nhiệt đầy tiếng cười nói.",
+      "B. Vây quanh là những người đi tắm biển và hóng gió.",
+      "C. Vây quanh là những người gánh nước ngọt chuẩn bị cho chuyến đi biển dài ngày.",
+      "D. Im lìm và tĩnh lặng chờ đợi những giọt nước mưa đầu tiên."
+    ],
+    "correct_answer": "C",
+    "explanation": "Cảnh sinh hoạt quanh giếng nước ngọt là chi tiết cho thấy nhịp sống lao động bình yên, khẩn trương của người dân đảo sau bão."
+  },
+  {
+    "id": 48,
+    "question": "Từ láy 'khúm núm' trong văn bản 'Bài học đường đời đầu tiên' dùng để miêu tả thái độ của ai, trong hoàn cảnh nào?",
+    "options": [
+      "A. Dế Choắt khi đứng trước sự bắt nạt của Dế Mèn.",
+      "B. Dế Mèn khi đứng trước chị Cốc sau khi trêu chọc.",
+      "C. Dế Choắt khi đang cố gắng đào hang thật sâu.",
+      "D. Dế Mèn khi nói chuyện với các bác Xiến Tóc."
+    ],
+    "correct_answer": "A",
+    "explanation": "Từ 'khúm núm' lột tả dáng vẻ sợ sệt, thiếu tự tin của Choắt trước một kẻ kiêu ngạo, hống hách như Mèn."
+  },
+  {
+    "id": 49,
+    "question": "Trong bài thơ 'Chuyện cổ tích về loài người', 'Màu xanh bắt đầu cỏ / Màu đỏ bắt đầu hoa' gợi lên sự thay đổi gì của trái đất?",
+    "options": [
+      "A. Sự xuất hiện của các mùa trong năm.",
+      "B. Thế giới bắt đầu có màu sắc và sự sống đa dạng để trẻ em quan sát.",
+      "C. Sự phân chia rõ ràng giữa mặt đất và bầu trời.",
+      "D. Trái đất bắt đầu nóng lên sau thời kỳ băng hà."
+    ],
+    "correct_answer": "B",
+    "explanation": "Màu sắc xuất hiện để thế giới không còn trần trụi, giúp tâm hồn trẻ thơ được nuôi dưỡng bởi vẻ đẹp tự nhiên."
+  },
+  {
+    "id": 50,
+    "question": "Tại sao trong kết thúc truyện 'Em bé thông minh', em bé lại được bổ dụng làm Trạng nguyên?",
+    "options": [
+      "A. Vì em bé là con của một vị quan có công với triều đình.",
+      "B. Vì em bé đã trải qua các kỳ thi hương, thi hội một cách xuất sắc.",
+      "C. Vì trí tuệ của em vượt qua cả các đại thần, giúp giữ vững thể diện quốc gia trước ngoại bang.",
+      "D. Vì nhà vua không tìm được ai khác thông minh bằng em bé."
+    ],
+    "correct_answer": "C",
+    "explanation": "Danh hiệu Trạng nguyên là sự ghi nhận cao nhất cho trí tuệ nhân dân, khẳng định giá trị của kiến thức thực tế và sự thông minh bẩm sinh."
+  },
+  {
+    "id": 51,
+    "question": "Xác định biện pháp tu từ ẩn dụ trong câu: 'Mặt trời của bắp thì nằm trên đồi / Mặt trời của mẹ con nằm trên lưng'?",
+    "options": [
+      "A. Ẩn dụ cách thức.",
+      "B. Ẩn dụ phẩm chất.",
+      "C. Ẩn dụ hình thức.",
+      "D. Ẩn dụ chuyển đổi cảm giác."
+    ],
+    "correct_answer": "B",
+    "explanation": "Em bé được ví với 'mặt trời' vì em là nguồn sáng, nguồn sống và niềm hy vọng ấm áp của người mẹ, tương đồng về phẩm chất quan trọng."
+  },
+  {
+    "id": 52,
+    "question": "Trong văn bản 'Cây tre Việt Nam', tác giả dùng hình ảnh 'Tre già măng mọc' để khẳng định điều gì về dân tộc?",
+    "options": [
+      "A. Sự già đi theo quy luật của thời gian.",
+      "B. Sự kế thừa liên tục và sức sống bất diệt của các thế hệ người Việt.",
+      "C. Sự cứng cáp của cây măng so với cây tre già.",
+      "D. Khả năng thay thế lẫn nhau trong sản xuất nông nghiệp."
+    ],
+    "correct_answer": "B",
+    "explanation": "'Tre già măng mọc' là biểu tượng của sự tiếp nối, truyền thống anh hùng không bao giờ đứt quãng của dân tộc Việt Nam."
+  },
+  {
+    "id": 53,
+    "question": "Trong câu 'Bao nhiêu người đi, bấy nhiêu người về', từ 'bao nhiêu - bấy nhiêu' thuộc loại từ nào?",
+    "options": [
+      "A. Đại từ chỉ lượng bất định.",
+      "B. Số từ chỉ số lượng xác định.",
+      "C. Lượng từ chỉ sự phân phối.",
+      "D. Danh từ chỉ đơn vị thời gian."
+    ],
+    "correct_answer": "A",
+    "explanation": "Cặp từ này là đại từ dùng để chỉ một số lượng không cụ thể, thường dùng trong cấu trúc hô ứng."
+  },
+  {
+    "id": 54,
+    "question": "Trong truyện 'Sơn Tinh, Thủy Tinh', chi tiết 'nước dâng cao bao nhiêu, núi cao lên bấy nhiêu' chứa đựng nghệ thuật gì?",
+    "options": [
+      "A. So sánh ngang bằng.",
+      "B. Phóng đại (khoa trương) kết hợp cấu trúc đối lập.",
+      "C. Ẩn dụ chuyển đổi cảm giác.",
+      "D. Liệt kê các hành động của thần núi."
+    ],
+    "correct_answer": "B",
+    "explanation": "Phép phóng đại giúp khắc họa sức mạnh vô song của Sơn Tinh - biểu tượng cho sức mạnh chế ngự thiên tai của nhân dân ta."
+  },
+  {
+    "id": 55,
+    "question": "Dấu chấm phẩy trong câu 'Gậy tre, chông tre chống lại sắt thép của quân thù; tre xung phong vào xe tăng, đại bác' có tác dụng gì?",
+    "options": [
+      "A. Ngăn cách các bộ phận trong một phép liệt kê phức tạp.",
+      "B. Ngăn cách hai vế của một câu ghép có quan hệ mật thiết về nội dung.",
+      "C. Đánh dấu phần giải thích cho cụm từ đứng trước.",
+      "D. Kết thúc một ý tưởng để chuyển sang ý tưởng mới hoàn toàn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Dấu chấm phẩy ngăn cách hai vế câu cùng nói về tinh thần chiến đấu của tre, giúp câu văn có nhịp điệu và sự liên kết chặt chẽ."
+  },
+  {
+    "id": 56,
+    "question": "Trong văn bản 'Cô Tô', tại sao tác giả lại gọi trận bão là 'một cuộc đánh phá dữ dội'?",
+    "options": [
+      "A. Vì bão làm hỏng hết các thiết bị ghi hình của tác giả.",
+      "B. Vì tác giả sử dụng biện pháp nhân hóa để biến thiên tai thành một kẻ thù có ý thức tấn công con người.",
+      "C. Vì bão đã phá hủy hoàn toàn hòn đảo Cô Tô.",
+      "D. Vì tác giả muốn so sánh bão với các cuộc chiến tranh trong lịch sử."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sử dụng từ 'đánh phá' vốn dùng trong quân sự giúp nhấn mạnh sức tàn phá khủng khiếp và sự đối đầu kịch tính giữa thiên nhiên và con người."
+  },
+  {
+    "id": 57,
+    "question": "Từ ghép 'vui sướng' thuộc loại từ ghép nào?",
+    "options": [
+      "A. Từ ghép chính phụ.",
+      "B. Từ ghép đẳng lập.",
+      "C. Từ ghép phân loại.",
+      "D. Từ ghép có yếu tố Hán Việt."
+    ],
+    "correct_answer": "B",
+    "explanation": "Hai yếu tố 'vui' và 'sướng' đều có nghĩa và có vai trò ngang hàng nhau, cùng chỉ một trạng thái cảm xúc tích cực."
+  },
+  {
+    "id": 58,
+    "question": "Trong văn bản 'Lao xao ngày hè', việc miêu tả các loài chim theo các nhóm (chim hiền, chim ác, chim trị ác) thể hiện cái nhìn gì của tác giả?",
+    "options": [
+      "A. Cái nhìn khách quan của một nhà khoa học sinh vật.",
+      "B. Cái nhìn nhân hóa, áp đặt chuẩn mực đạo đức con người vào thế giới tự nhiên.",
+      "C. Sự thiếu hiểu biết về đặc tính sinh học của các loài chim.",
+      "D. Mong muốn biến khu vườn thành một chiến trường khốc liệt."
+    ],
+    "correct_answer": "B",
+    "explanation": "Tác giả dùng thế giới chim chóc để phản ánh thế giới loài người với đủ các hạng người: tốt, xấu, thiện, ác."
+  },
+  {
+    "id": 59,
+    "question": "Trong bài thơ 'Mây và Sóng', chi tiết em bé ôm mẹ và bế mẹ chính là hình ảnh thực tại của trò chơi nào?",
+    "options": [
+      "A. Con là mây và mẹ là trăng.",
+      "B. Con là sóng và mẹ là bến bờ kỳ lạ.",
+      "C. Con là hoa và mẹ là cây.",
+      "D. Cả A và B đều đúng."
+    ],
+    "correct_answer": "D",
+    "explanation": "Trong trò chơi với mây, con là mây mẹ là trăng; trong trò chơi với sóng, con là sóng mẹ là bến bờ. Cả hai đều kết thúc bằng hành động ôm ấp thực tại."
+  },
+  {
+    "id": 60,
+    "question": "Xác định ngôi kể trong đoạn văn miêu tả cảnh vượt thác của Dượng Hương Thư (Vượt thác - Võ Quảng)?",
+    "options": [
+      "A. Ngôi thứ nhất (người kể xưng tôi).",
+      "B. Ngôi thứ ba (người kể giấu mình).",
+      "C. Kết hợp linh hoạt ngôi thứ nhất và ngôi thứ ba.",
+      "D. Ngôi thứ hai (người kể gọi nhân vật là bạn)."
+    ],
+    "correct_answer": "B",
+    "explanation": "Tác giả đóng vai trò là người quan sát khách quan từ bên ngoài để miêu tả hành động và ngoại hình của nhân vật."
+  },
+  {
+    "id": 61,
+    "question": "Trong truyện 'Thạch Sanh', chi tiết công chúa bị câm và chỉ khỏi khi nghe tiếng đàn của Thạch Sanh mang ý nghĩa biểu tượng sâu sắc nào?",
+    "options": [
+      "A. Tiếng đàn là phương thuốc thần kỳ có khả năng chữa mọi loại bệnh tật.",
+      "B. Sự im lặng của công chúa là sự phản kháng trước cái ác, và tiếng đàn là tiếng nói của công lý, sự thật giúp giải tỏa nỗi oan ức.",
+      "C. Công chúa quá xúc động trước tài năng âm nhạc của Thạch Sanh nên đã nói lại được.",
+      "D. Tiếng đàn làm thức tỉnh linh hồn của công chúa vốn đã bị đại bàng đánh cắp."
+    ],
+    "correct_answer": "B",
+    "explanation": "Nỗi oan của Thạch Sanh và sự im lặng của công chúa có mối liên hệ mật thiết. Tiếng đàn là vũ khí chính nghĩa giúp phơi bày sự thật mà lời nói bình thường không làm được."
+  },
+  {
+    "id": 62,
+    "question": "Xác định kiểu hoán dụ trong câu thơ: 'Đầu xanh có tội tình gì / Má hồng đến quá nửa thì chưa thôi'?",
+    "options": [
+      "A. Lấy vật chứa đựng gọi vật bị chứa đựng.",
+      "B. Lấy dấu hiệu của vật để gọi vật (đặc điểm ngoại hình chỉ con người).",
+      "C. Lấy cái cụ thể để gọi cái trừu tượng.",
+      "D. Lấy bộ phận để gọi toàn thể."
+    ],
+    "correct_answer": "B",
+    "explanation": "'Đầu xanh' (tóc đen - trẻ tuổi) và 'Má hồng' (người con gái đẹp) là những dấu hiệu ngoại hình dùng để chỉ những người trẻ tuổi, tài hoa nhưng bạc mệnh."
+  },
+  {
+    "id": 63,
+    "question": "Trong văn bản 'Cô Tô', tại sao Nguyễn Tuân lại miêu tả bầu trời sau bão bằng cụm từ 'trong trẻo sáng sủa như một tấm kính vừa được lau sạch'?",
+    "options": [
+      "A. Để nhấn mạnh sự thay đổi về nhiệt độ của không khí sau bão.",
+      "B. Để thể hiện cảm giác thanh khiết, vô ngần và sức sống mãnh liệt của thiên nhiên sau khi đã gột rửa mọi bụi bặm.",
+      "C. Vì tác giả muốn so sánh bầu trời với một vật dụng gia đình quen thuộc.",
+      "D. Để giải thích tại sao tác giả có thể nhìn rõ các hòn đảo ở xa."
+    ],
+    "correct_answer": "B",
+    "explanation": "Hình ảnh tấm kính được lau sạch gợi tả độ trong, sáng và sự mới mẻ của cảnh vật, một đặc trưng trong phong cách quan sát tỉ mỉ của Nguyễn Tuân."
+  },
+  {
+    "id": 64,
+    "question": "Trong văn bản 'Bài học đường đời đầu tiên', chi tiết Dế Choắt khuyên Dế Mèn: 'Ở đời mà có thói hung hăng bậy bạ, có óc mà không biết nghĩ, sớm muộn rồi cũng chuốc họa vào thân' đóng vai trò gì trong cấu trúc truyện?",
+    "options": [
+      "A. Là lời mắng chửi cuối cùng của một kẻ bị hại dành cho kẻ gây tội.",
+      "B. Là lời trăn trối mang tính triết lý, tạo ra bước ngoặt làm thay đổi hoàn toàn nhận thức và hành động của nhân vật chính.",
+      "C. Là một lời dự báo về những nguy hiểm mà Dế Mèn sẽ gặp phải trong tương lai.",
+      "D. Chỉ đơn giản là lời than vãn về số phận hẩm hiu của Dế Choắt."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đây không phải là sự oán trách mà là bài học xương máu giúp Dế Mèn thức tỉnh, chuyển hóa từ một kẻ kiêu ngạo sang một kẻ biết hối lỗi và tu dưỡng."
+  },
+  {
+    "id": 65,
+    "question": "Xác định thành phần phụ sau trong cụm tính từ 'vẫn còn rất xanh mướt như những thảm nhung'?",
+    "options": [
+      "A. vẫn còn rất",
+      "B. như những thảm nhung",
+      "C. rất xanh mướt",
+      "D. xanh mướt như những thảm nhung"
+    ],
+    "correct_answer": "B",
+    "explanation": "Trong cụm này, 'xanh mướt' là tính từ trung tâm, 'vẫn còn rất' là phụ trước, 'như những thảm nhung' là phụ sau chỉ sự so sánh mức độ."
+  },
+  {
+    "id": 66,
+    "question": "Trong truyền thuyết 'Sơn Tinh, Thủy Tinh', việc xây dựng hình ảnh Thủy Tinh thất bại hết năm này qua năm khác mang ý nghĩa lịch sử nào?",
+    "options": [
+      "A. Cho thấy người Việt cổ không có khả năng chế ngự hoàn toàn thiên nhiên.",
+      "B. Phản ánh quyết tâm sắt đá và sự chiến thắng bền bỉ của cư dân Việt cổ trong cuộc chiến chống lũ lụt bảo vệ mùa màng.",
+      "C. Thể hiện sự thiên vị của lịch sử đối với những thế lực ở vùng núi.",
+      "D. Chứng minh rằng các thế lực ác sẽ luôn thất bại trước cái thiện."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sự thất bại của Thủy Tinh là biểu tượng cho sự kiên cường của nhân dân ta: dù lũ lụt có xảy ra hằng năm nhưng chúng ta vẫn đắp đê, trị thủy thành công."
+  },
+  {
+    "id": 67,
+    "question": "Biện pháp tu từ nào được sử dụng trong câu thơ: 'Dưới trăng quyên đã gọi hè / Đầu tường lửa lựu lập lòe đâm bông' (Nguyễn Du)?",
+    "options": [
+      "A. Hoán dụ (lửa lựu chỉ hoa lựu đỏ).",
+      "B. Nhân hóa (quyên gọi hè).",
+      "C. Ẩn dụ hình thức (lửa lựu - hoa lựu đỏ rực như ngọn lửa).",
+      "D. So sánh ngầm giữa hoa lựu và đốm lửa."
+    ],
+    "correct_answer": "C",
+    "explanation": "Đây là ẩn dụ hình thức, dựa trên sự tương đồng về màu sắc và sự tỏa sáng giữa hoa lựu đỏ và ngọn lửa, làm cho cảnh vật trở nên sống động, gợi cảm."
+  },
+  {
+    "id": 68,
+    "question": "Trong bài thơ 'Chuyện cổ tích về loài người', chi tiết 'Muốn cho trẻ hiểu biết / Thế là bố sinh ra' nhằm khẳng định vai trò gì của người cha?",
+    "options": [
+      "A. Người cha là người trực tiếp nuôi dưỡng trẻ về mặt thể xác.",
+      "B. Người cha mang đến cho trẻ tri thức, sự cứng cáp và định hướng để trẻ bước vào xã hội.",
+      "C. Người cha sinh ra để thay thế vai trò của người mẹ khi mẹ vắng nhà.",
+      "D. Người cha là người kể cho trẻ nghe những câu chuyện cổ tích về các vị thần."
+    ],
+    "correct_answer": "B",
+    "explanation": "Xuân Quỳnh đã phân định rất tinh tế: Mẹ mang lại tình yêu và lời ru, còn Bố mang lại tri thức và sự hiểu biết cho trẻ."
+  },
+  {
+    "id": 69,
+    "question": "Trong truyện 'Thánh Gióng', hình ảnh 'ngựa sắt phun ra lửa' mang ý nghĩa gì trong tâm thức dân gian?",
+    "options": [
+      "A. Thể hiện sự kỳ ảo của các vật dụng thần thoại.",
+      "B. Là sự kết hợp giữa sức mạnh công nghệ (sắt) và sức mạnh hủy diệt tự nhiên (lửa) để thiêu rụi kẻ thù.",
+      "C. Chứng tỏ Gióng có khả năng điều khiển được lửa theo ý muốn.",
+      "D. Để giải thích cho sự xuất hiện của các khu rừng bị cháy ở Sóc Sơn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Hình ảnh này vừa thể hiện tầm vóc hiện đại (so với thời bấy giờ) của vũ khí, vừa thể hiện sức mạnh áp đảo của chính nghĩa đối với quân xâm lược."
+  },
+  {
+    "id": 70,
+    "question": "Xác định từ ghép chính phụ trong danh sách sau: 'ông bà', 'cha mẹ', 'xe đạp', 'đi đứng'?",
+    "options": [
+      "A. Ông bà",
+      "B. Cha mẹ",
+      "C. Xe đạp",
+      "D. Đi đứng"
+    ],
+    "correct_answer": "C",
+    "explanation": "'Xe đạp' là từ ghép chính phụ vì 'xe' là yếu tố chính (loại phương tiện), 'đạp' là yếu tố phụ (chỉ cách thức vận hành) bổ nghĩa cho từ 'xe'."
+  },
+  {
+    "id": 71,
+    "question": "Trong văn bản 'Em bé thông minh', thử thách xâu sợi chỉ qua ruột con ốc vặn thực chất dựa trên kiến thức nào của nhân dân?",
+    "options": [
+      "A. Kiến thức về toán học và hình học không gian phức tạp.",
+      "B. Kiến thức về tập tính của loài vật (con kiến thích đường và có khả năng len lỏi).",
+      "C. Sự may mắn và ngẫu nhiên trong hành động của em bé.",
+      "D. Phép thuật biến hóa làm cho sợi chỉ tự chui qua con ốc."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đây là trí tuệ dân gian bắt nguồn từ việc quan sát thế giới tự nhiên và vận dụng kinh nghiệm đời sống để giải quyết các vấn đề hóc búa."
+  },
+  {
+    "id": 72,
+    "question": "Từ 'mặn mà' trong câu 'Tình cảm của họ thật mặn mà' là loại từ nào?",
+    "options": [
+      "A. Từ ghép đẳng lập.",
+      "B. Từ láy tượng hình.",
+      "C. Từ láy bộ phận (âm đầu).",
+      "D. Từ đơn đa âm."
+    ],
+    "correct_answer": "C",
+    "explanation": "'Mặn mà' là từ láy bộ phận lặp lại âm đầu 'm', dùng để chỉ mức độ đậm sâu của tình cảm."
+  },
+  {
+    "id": 73,
+    "question": "Trong văn bản 'Lao xao ngày hè', tại sao tác giả lại miêu tả chim Quạ là 'kẻ bất lương'?",
+    "options": [
+      "A. Vì nó có bộ lông màu đen gợi sự tang tóc, u ám.",
+      "B. Vì hành động hay nhìn trộm, bắt trộm gà con và thái độ lén lút, nham hiểm của nó.",
+      "C. Vì nó hay kêu những tiếng khó nghe báo hiệu điềm xấu.",
+      "D. Vì nó thường xuyên tranh giành lãnh thổ với chim chèo bẻo."
+    ],
+    "correct_answer": "B",
+    "explanation": "Duy Khán tập trung vào hành vi (bắt trộm gà) và tính cách (nhìn trộm) để gắn cho quạ mác 'bất lương', tương ứng với kiểu người xấu trong xã hội."
+  },
+  {
+    "id": 74,
+    "question": "Chức năng của dấu hai chấm trong câu văn sau là gì: 'Dế Choắt nhìn tôi với ánh mắt buồn rầu: - Thôi, tôi chết đây...'?",
+    "options": [
+      "A. Dùng để liệt kê các sự vật, hiện tượng.",
+      "B. Dùng để đánh dấu (báo trước) lời đối thoại trực tiếp của nhân vật.",
+      "C. Dùng để ngăn cách các vế của một câu ghép.",
+      "D. Dùng để giải thích cho phần nội dung đứng trước đó."
+    ],
+    "correct_answer": "B",
+    "explanation": "Trong ngữ cảnh này, dấu hai chấm báo hiệu lời nói của Dế Choắt sẽ xuất hiện ngay sau đó (kết hợp với dấu gạch ngang)."
+  },
+  {
+    "id": 75,
+    "question": "Trong truyện 'Thạch Sanh', hình tượng Lý Thông được xây dựng theo thủ pháp nghệ thuật nào là chủ đạo?",
+    "options": [
+      "A. Thủ pháp lý tưởng hóa nhân vật phản diện.",
+      "B. Thủ pháp đối lập (foil character) nhằm làm nổi bật sự thật thà, vị tha của Thạch Sanh.",
+      "C. Thủ pháp trào phúng để gây cười cho độc giả.",
+      "D. Thủ pháp đồng hiện nhiều không gian khác nhau."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sự xảo quyệt, gian trá của Lý Thông được đặt cạnh sự chất phác, anh hùng của Thạch Sanh để tạo ra sự tương phản gay gắt về đạo đức."
+  },
+  {
+    "id": 66,
+    "question": "Thành ngữ 'Lên thác xuống ghềnh' sử dụng biện pháp tu từ nào để chỉ sự gian khổ?",
+    "options": [
+      "A. So sánh ngang bằng giữa các địa danh.",
+      "B. Hoán dụ lấy địa hình hiểm trở để chỉ cuộc đời gian nan.",
+      "C. Ẩn dụ cách thức thể hiện hành động di chuyển khó khăn.",
+      "D. Điệp từ để nhấn mạnh sự lặp lại của khó khăn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đây là phép hoán dụ, mượn những hình ảnh cụ thể của địa hình sông nước (thác, ghềnh) để biểu thị khái quát cho những trắc trở, gian lao trong cuộc sống."
+  },
+  {
+    "id": 77,
+    "question": "Sự khác biệt lớn nhất giữa 'Lời người kể chuyện' và 'Lời nhân vật' trong văn bản tự sự là?",
+    "options": [
+      "A. Lời người kể chuyện luôn nằm trong ngoặc kép.",
+      "B. Lời nhân vật thể hiện trực tiếp ngôn ngữ, tính cách của nhân vật; lời người kể chuyện dùng để dẫn dắt, miêu tả và kết nối.",
+      "C. Lời người kể chuyện chỉ xuất hiện ở đầu tác phẩm.",
+      "D. Lời nhân vật luôn dài hơn lời người kể chuyện."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đây là kiến thức đặc trưng thể loại: người kể chuyện dẫn dắt thế giới truyện, còn nhân vật tham gia vào thế giới đó bằng ngôn ngữ riêng."
+  },
+  {
+    "id": 78,
+    "question": "Hình ảnh 'bến bờ kỳ lạ' trong bài thơ 'Mây và Sóng' có ý nghĩa gì?",
+    "options": [
+      "A. Là một địa danh có thật trên bản đồ thế giới.",
+      "B. Tượng trưng cho vòng tay và lòng mẹ - nơi bình yên, bao dung nhất mà không trò chơi nào sánh kịp.",
+      "C. Là nơi mà những người sống trong sóng muốn đưa em bé tới.",
+      "D. Là biểu tượng của sự tò mò, ham học hỏi của trẻ em đối với thế giới."
+    ],
+    "correct_answer": "B",
+    "explanation": "Mẹ chính là 'bến bờ', là điểm tựa vững chãi nhất cho con giữa những đợt sóng cuộc đời đầy biến động."
+  },
+  {
+    "id": 79,
+    "question": "Từ nào dưới đây là từ ghép đẳng lập có nguồn gốc Hán Việt?",
+    "options": [
+      "A. Sơn hà",
+      "B. Sách vở",
+      "C. Xe pháo",
+      "D. Ăn mặc"
+    ],
+    "correct_answer": "A",
+    "explanation": "'Sơn' (núi) và 'Hà' (sông) là hai yếu tố Hán Việt có nghĩa độc lập, kết hợp đẳng lập để chỉ chung về đất nước."
+  },
+  {
+    "id": 80,
+    "question": "Tại sao 'Thánh Gióng' được xếp vào thể loại truyền thuyết mà không phải truyện cổ tích?",
+    "options": [
+      "A. Vì có nhiều chi tiết kỳ ảo, hoang đường.",
+      "B. Vì cốt truyện gắn liền với các nhân vật và sự kiện lịch sử, được cộng đồng tin là có thật trong quá khứ.",
+      "C. Vì truyện có kết thúc hậu cho nhân vật chính.",
+      "D. Vì truyện không có sự tham gia của các con vật biết nói."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đặc trưng của truyền thuyết là yếu tố lịch sử được 'thần kỳ hóa' để thể hiện thái độ và cách đánh giá của nhân dân đối với các sự kiện quan trọng."
+  },
+  {
+    "id": 81,
+    "question": "Trong văn bản 'Cô Tô', Nguyễn Tuân miêu tả âm thanh của trận bão bằng cụm từ 'như một trận động đất từ phía biển dâng lên'. Cách so sánh này nhằm nhấn mạnh điều gì ở sức mạnh của bão?",
+    "options": [
+      "A. Nhấn mạnh âm thanh chói tai làm người nghe hoảng sợ.",
+      "B. Nhấn mạnh sự rung chuyển dữ dội và tầm vóc hủy diệt mang tính địa chất của thiên tai.",
+      "C. Khẳng định bão biển luôn đi kèm với những trận động đất lớn.",
+      "D. Thể hiện sự bất lực của con người trước các hiện tượng thiên nhiên kỳ ảo."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sử dụng hình ảnh 'động đất' để so sánh với 'bão' giúp cụ thể hóa sức mạnh vô hình của gió và sóng thành sự rung chuyển hữu hình, cực kỳ dữ dội."
+  },
+  {
+    "id": 82,
+    "question": "Trong bài thơ 'Mây và Sóng', tại sao trò chơi của em bé ('Con là sóng và mẹ sẽ là bến bờ kỳ lạ') lại được coi là trò chơi 'vĩnh cửu'?",
+    "options": [
+      "A. Vì sóng luôn luôn vỗ vào bờ không bao giờ ngừng nghỉ.",
+      "B. Vì em bé có thể chơi trò chơi này suốt cả ngày mà không thấy chán.",
+      "C. Vì nó tượng trưng cho sự gắn bó không thể tách rời và tình yêu thương bao la luôn hiện hữu giữa mẹ và con.",
+      "D. Vì trò chơi này diễn ra ở một bến bờ xa xôi không có trên bản đồ."
+    ],
+    "correct_answer": "C",
+    "explanation": "Sự kết hợp giữa 'sóng' (con) và 'bến bờ' (mẹ) tạo nên một vòng lặp hạnh phúc, khẳng định tình mẫu tử là bất tử và vượt qua mọi giới hạn không gian, thời gian."
+  },
+  {
+    "id": 83,
+    "question": "Xác định biện pháp tu từ trọng tâm trong câu văn của Thép Mới: 'Tre, anh hùng lao động! Tre, anh hùng chiến đấu!'?",
+    "options": [
+      "A. Điệp ngữ kết hợp ẩn dụ chuyển đổi cảm giác.",
+      "B. Nhân hóa kết hợp điệp cấu trúc và thán từ.",
+      "C. Hoán dụ lấy bộ phận để gọi toàn thể nhân dân Việt Nam.",
+      "D. So sánh không ngang bằng giữa cây tre và con người."
+    ],
+    "correct_answer": "B",
+    "explanation": "Tác giả gọi tre là 'anh hùng' (nhân hóa) và lặp lại cấu trúc khẳng định để tôn vinh phẩm chất cao quý của tre như một con người thực thụ."
+  },
+  {
+    "id": 84,
+    "question": "Trong 'Bài học đường đời đầu tiên', chi tiết nào cho thấy Dế Mèn dù kiêu ngạo nhưng vẫn là một nhân vật có ý thức giữ gìn sức khỏe và vẻ đẹp hình thể?",
+    "options": [
+      "A. Mèn thường xuyên đi dạo quanh các vùng đầm lầy.",
+      "B. Mèn ăn uống điều độ và làm việc có chừng mực để cơ thể mẫm bóng.",
+      "C. Mèn luôn vuốt râu bằng hai chân trước một cách trịnh trọng.",
+      "D. Mèn tự xây dựng một cái hang rất sâu và có nhiều ngách."
+    ],
+    "correct_answer": "B",
+    "explanation": "Câu văn 'Tôi ăn uống điều độ và làm việc có chừng mực nên tôi chóng lớn lắm' cho thấy Mèn có lối sống quy củ, là cơ sở cho vẻ đẹp cường tráng của mình."
+  },
+  {
+    "id": 85,
+    "question": "Xác định thành phần phụ trước của cụm tính từ trong câu: 'Nước biển hôm nay vẫn còn rất trong xanh và mát mẻ'?",
+    "options": [
+      "A. vẫn còn rất",
+      "B. hôm nay vẫn còn",
+      "C. trong xanh và mát mẻ",
+      "D. Nước biển hôm nay"
+    ],
+    "correct_answer": "A",
+    "explanation": "Các từ 'vẫn', 'còn', 'rất' đứng trước tính từ trung tâm để bổ sung ý nghĩa về thời gian và mức độ cho tính chất của nước biển."
+  },
+  {
+    "id": 86,
+    "question": "Trong truyện 'Sơn Tinh, Thủy Tinh', chi tiết 'Voi chín ngà, gà chín cựa, ngựa chín hồng mao' chứa đựng yếu tố nghệ thuật nào tiêu biểu của thần thoại/truyền thuyết?",
+    "options": [
+      "A. Nghệ thuật đối lập giữa các loài vật.",
+      "B. Con số 'chín' mang tính ước lệ, biểu trưng cho sự quý hiếm, hoàn hảo và linh thiêng trong văn hóa phương Đông.",
+      "C. Nghệ thuật miêu tả thực tế đời sống muông thú thời bấy giờ.",
+      "D. Sử dụng các danh từ riêng để định danh các loài vật thần kỳ."
+    ],
+    "correct_answer": "B",
+    "explanation": "Số 9 là con số cực đỉnh trong quan niệm dân gian, việc đòi hỏi các sính lễ này nhấn mạnh thử thách khắc nghiệt và tính chất phi thường của lễ vật."
+  },
+  {
+    "id": 87,
+    "question": "Trong bài thơ 'Chuyện cổ tích về loài người', tại sao khi 'bố sinh ra' thì trái đất mới bắt đầu có 'đường', có 'nhà' và có 'trường học'?",
+    "options": [
+      "A. Vì bố là người có sức mạnh để xây dựng các công trình đó.",
+      "B. Vì sự xuất hiện của bố đại diện cho việc hình thành quy tắc xã hội, giáo dục và sự định hướng tương lai cho trẻ.",
+      "C. Vì mẹ quá bận rộn với việc ru con nên không thể xây trường học.",
+      "D. Vì đó là mong muốn của trẻ em khi bắt đầu lớn lên."
+    ],
+    "correct_answer": "B",
+    "explanation": "Dưới góc nhìn của Xuân Quỳnh, bố mang đến thế giới khách quan, kiến thức và sự rèn luyện, giúp trẻ bước ra khỏi vòng tay mẹ để hòa nhập xã hội."
+  },
+  {
+    "id": 88,
+    "question": "Xác định từ láy tượng hình gợi tả dáng vẻ bước đi không vững trong câu: 'Dưới bóng tre, những người nông dân đi lại liêu xiêu trên con đường làng'?",
+    "options": [
+      "A. Dưới bóng tre",
+      "B. Nông dân",
+      "C. Liêu xiêu",
+      "D. Đi lại"
+    ],
+    "correct_answer": "C",
+    "explanation": "'Liêu xiêu' là từ láy tượng hình gợi vẻ nghiêng ngả, không vững vàng, thường dùng để tả bóng dáng vất vả của người nông dân."
+  },
+  {
+    "id": 89,
+    "question": "Trong văn bản 'Lao xao ngày hè', việc tác giả dùng từ 'nhấm nhẳn' để tả thái độ của chim bồ các mang lại hiệu quả gì?",
+    "options": [
+      "A. Miêu tả tiếng hót vang dội của loài chim này.",
+      "B. Nhân hóa chim bồ các như một người có tính cách khó chịu, hay gắt gỏng nhưng thực chất không ác.",
+      "C. Khẳng định bồ các là loài chim nguy hiểm nhất trong khu vườn.",
+      "D. Gợi tả vẻ đẹp kiêu sa của bộ lông chim bồ các."
+    ],
+    "correct_answer": "B",
+    "explanation": "'Nhấm nhẳn' là một từ chỉ thái độ con người, dùng cho chim bồ các tạo nên sự sinh động và tính cách riêng cho loài chim 'hay đưa chuyện' này."
+  },
+  {
+    "id": 90,
+    "question": "Trong truyện 'Em bé thông minh', tại sao em bé lại yêu cầu sứ giả về tâu với vua: 'Rèn cho tôi một cái kim thành một cái con dao để xẻ thịt chim'?",
+    "options": [
+      "A. Vì em bé thực sự cần một con dao nhỏ để làm việc.",
+      "B. Đây là chiến thuật đáp trả sự phi lý bằng sự phi lý, buộc nhà vua phải thừa nhận yêu cầu của mình là không thể thực hiện.",
+      "C. Vì em bé muốn thử tài rèn kiếm của các thợ rèn trong cung đình.",
+      "D. Để chứng tỏ rằng em bé cũng có những công cụ thần kỳ không kém gì nhà vua."
+    ],
+    "correct_answer": "B",
+    "explanation": "Vua yêu cầu dọn cỗ từ 1 con chim sẻ (vô lý), em bé yêu cầu rèn dao từ 1 cái kim (vô lý tương ứng) để nhà vua tự nhận ra cái sai của mình."
+  },
+  {
+    "id": 91,
+    "question": "Từ 'mặt' trong cụm từ 'mặt bàn' và 'mặt biển' được dùng theo phương thức chuyển nghĩa nào?",
+    "options": [
+      "A. Hoán dụ (lấy bộ phận chỉ toàn thể).",
+      "B. Ẩn dụ (dựa trên sự tương đồng về vị trí trên cùng, bề mặt phẳng).",
+      "C. Chuyển nghĩa do sự thay đổi về chức năng sử dụng.",
+      "D. Từ đồng âm khác nghĩa hoàn toàn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Từ 'mặt' (người) được chuyển nghĩa sang vật dựa trên sự tương đồng về vị trí bề mặt ngoài cùng, phía trên của đối tượng."
+  },
+  {
+    "id": 92,
+    "question": "Trong truyện 'Thạch Sanh', chi tiết Lý Thông bị sét đánh chết rồi hóa thành con bọ hung mang ý nghĩa gì trong quan niệm nhân dân?",
+    "options": [
+      "A. Thể hiện sự thương hại của thần linh đối với Lý Thông.",
+      "B. Sự trừng phạt thích đáng, hạ thấp nhân phẩm kẻ độc ác xuống hàng vật bẩn thỉu, đời đời không thể ngẩng mặt lên được.",
+      "C. Là một cách để Lý Thông có thể chuộc lỗi với Thạch Sanh.",
+      "D. Chứng minh rằng linh hồn của con người có thể luân hồi sang loài vật."
+    ],
+    "correct_answer": "B",
+    "explanation": "Hóa thành bọ hung là hình phạt nhục nhã nhất, thể hiện quy luật 'ở hiền gặp lành, ác giả ác báo' và sự khinh bỉ tột độ của nhân dân đối với kẻ phản bội."
+  },
+  {
+    "id": 93,
+    "question": "Dấu ngoặc kép trong đoạn văn sau có tác dụng gì: 'Dế Mèn tự cho mình là một \"tay ghê gớm\", có thể đứng đầu thiên hạ'?",
+    "options": [
+      "A. Trích dẫn lời nói trực tiếp của nhân vật Dế Mèn.",
+      "B. Đánh dấu từ ngữ được dùng với ý nghĩa đặc biệt, mang sắc thái mỉa mai, châm biếm của người kể chuyện.",
+      "C. Nhấn mạnh tên gọi riêng của nhân vật trong tác phẩm.",
+      "D. Đánh dấu tên một tác phẩm văn học được nhắc đến."
+    ],
+    "correct_answer": "B",
+    "explanation": "Trong ngữ cảnh này, dấu ngoặc kép dùng để nhấn mạnh sự tự phụ quá mức và mỉa mai cái tôi ảo tưởng của Dế Mèn."
+  },
+  {
+    "id": 94,
+    "question": "Trong văn bản 'Cây tre Việt Nam', tại sao tre lại được coi là 'người bạn thân' của nông dân Việt Nam?",
+    "options": [
+      "A. Vì tre cung cấp bóng mát cho người nông dân khi đi cày.",
+      "B. Vì tre gắn bó mật thiết với con người trong lao động sản xuất, trong đời sống sinh hoạt và cả trong chiến đấu bảo vệ tổ quốc.",
+      "C. Vì tre là loài cây duy nhất có thể sống được ở làng quê Việt Nam.",
+      "D. Vì tre có vẻ ngoài giản dị giống như tính cách của người nông dân."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sự 'thân' ở đây được hiểu theo nghĩa toàn diện: từ cánh tay đắc lực của nhà nông đến vũ khí chống giặc và là nguồn cảm hứng văn hóa."
+  },
+  {
+    "id": 95,
+    "question": "Trong bài thơ 'Mây và Sóng', chi tiết em bé nói: 'Mẹ mình đang đợi ở nhà', 'Làm sao có thể rời mẹ mà đi được?' cho thấy sự phát triển nào trong tâm lý trẻ thơ?",
+    "options": [
+      "A. Sự nhút nhát, không dám khám phá những điều mới lạ.",
+      "B. Ý thức về trách nhiệm và sự thấu cảm về sự chờ đợi, nỗi lo lòng của mẹ, vượt lên trên nhu cầu vui chơi cá nhân.",
+      "C. Sự phụ thuộc hoàn toàn vào người lớn trong mọi hoạt động.",
+      "D. Mong muốn được ở nhà để mẹ mua cho nhiều đồ chơi hơn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Câu nói cho thấy em bé không chỉ yêu mẹ mà còn hiểu được mẹ cần mình, thể hiện một sự trưởng thành về mặt cảm xúc rất tinh tế."
+  },
+  {
+    "id": 96,
+    "question": "Xác định cụm động từ trong câu: 'Thánh Gióng vươn vai một cái bỗng biến thành một tráng sĩ mình cao hơn trượng'?",
+    "options": [
+      "A. Thánh Gióng vươn vai",
+      "B. bỗng biến thành một tráng sĩ mình cao hơn trượng",
+      "C. vươn vai một cái",
+      "D. Cả B và C đều là các cụm động từ."
+    ],
+    "correct_answer": "D",
+    "explanation": "Câu văn chứa hai hoạt động chính của Gióng, cả hai đều cấu tạo theo mô hình cụm động từ với các thành phần phụ bổ nghĩa cho hành động 'vươn' và 'biến'."
+  },
+  {
+    "id": 97,
+    "question": "Sự khác biệt chính giữa ngôi kể thứ nhất và ngôi kể thứ ba là?",
+    "options": [
+      "A. Ngôi thứ nhất chỉ kể chuyện mình, ngôi thứ ba kể chuyện người khác.",
+      "B. Ngôi thứ nhất cho phép người kể trực tiếp bộc lộ cảm xúc; ngôi thứ ba giúp người kể có cái nhìn bao quát, khách quan và linh hoạt về các nhân vật.",
+      "C. Ngôi thứ nhất luôn chính xác hơn ngôi kể thứ ba.",
+      "D. Ngôi thứ ba không bao giờ xuất hiện trong các câu chuyện dân gian."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đây là kiến thức thể loại trọng tâm: ngôi thứ nhất mang tính trải nghiệm, ngôi thứ ba mang tính toàn năng và bao quát."
+  },
+  {
+    "id": 98,
+    "question": "Trong văn bản 'Cô Tô', hình ảnh 'chim hải âu bay ngang loạng choạng' sau bão gợi lên điều gì?",
+    "options": [
+      "A. Vẻ đẹp thanh bình của bầu trời biển khơi.",
+      "B. Những dư chấn khủng khiếp của cơn bão vẫn còn tác động đến sinh vật, làm nổi bật sự tĩnh lặng và mệt mỏi của đất trời.",
+      "C. Sự vui mừng của loài chim khi bão tan.",
+      "D. Hải âu là loài chim báo hiệu bão sắp quay trở lại."
+    ],
+    "correct_answer": "B",
+    "explanation": "Từ 'loạng choạng' cực tả sự rã rời sau cuộc chiến với bão, một chi tiết quan sát rất đắt của Nguyễn Tuân để tả hậu quả của thiên tai."
+  },
+  {
+    "id": 99,
+    "question": "Thành ngữ 'Ếch ngồi đáy giếng' thường được dùng để chỉ kiểu người nào trong thực tế?",
+    "options": [
+      "A. Người yêu thích cuộc sống yên tĩnh, không thích xô bồ.",
+      "B. Người có hiểu biết hạn hẹp nhưng lại tự phụ, kiêu ngạo và coi thường người khác.",
+      "C. Người có khả năng chịu đựng gian khổ trong không gian chật hẹp.",
+      "D. Người không bao giờ chịu thay đổi môi trường sống của mình."
+    ],
+    "correct_answer": "B",
+    "explanation": "Thành ngữ này mượn hình ảnh con ếch để phê phán thói chủ quan, nông cạn và kiêu ngạo của những người thiếu kiến thức nhưng luôn nghĩ mình là nhất."
+  },
+  {
+    "id": 100,
+    "question": "Điểm chung lớn nhất về thông điệp nhân văn giữa các tác phẩm 'Bài học đường đời đầu tiên', 'Thạch Sanh' và 'Mây và Sóng' là gì?",
+    "options": [
+      "A. Đều khuyên con người nên tránh xa những nguy hiểm trong cuộc sống.",
+      "B. Đều nhấn mạnh giá trị của sự trải nghiệm và những bài học từ lỗi lầm.",
+      "C. Đều tôn vinh những tình cảm tốt đẹp (lòng nhân ái, sự hối lỗi, tình mẫu tử) giúp con người hoàn thiện bản thân.",
+      "D. Đều cho thấy sức mạnh của các thế lực siêu nhiên đối với con người."
+    ],
+    "correct_answer": "C",
+    "explanation": "Dù khác thể loại, cả ba đều hướng tới việc giáo dục tâm hồn, bồi đắp lòng nhân ái, sự vị tha và trân trọng những giá trị cốt lõi của con người."
+  }
+]

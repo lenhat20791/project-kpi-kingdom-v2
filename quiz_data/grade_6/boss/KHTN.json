@@ -1,0 +1,1204 @@
+[
+  {
+    "id": 1,
+    "question": "Khi sử dụng nhiệt kế thủy ngân để đo nhiệt độ nước sôi, nếu bầu nhiệt kế chạm vào đáy cốc thủy tinh đang đun trên bếp, kết quả đo sẽ sai lệch như thế nào?",
+    "options": [
+      "A. Nhiệt độ đo được thấp hơn nhiệt độ thực của nước vì đáy cốc cách nhiệt.",
+      "B. Nhiệt độ đo được cao hơn nhiệt độ thực của nước vì nhiệt truyền trực tiếp từ nguồn nhiệt qua đáy cốc vào bầu nhiệt kế.",
+      "C. Không ảnh hưởng gì, vẫn đo chính xác nhiệt độ sôi là 100 độ C.",
+      "D. Nhiệt kế sẽ bị vỡ ngay lập tức do sốc nhiệt."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đáy cốc tiếp xúc trực tiếp với ngọn lửa/bếp nên thường có nhiệt độ cao hơn nước. Để đo chính xác, bầu nhiệt kế phải lơ lửng trong lòng chất lỏng, không chạm đáy hoặc thành cốc."
+  },
+  {
+    "id": 2,
+    "question": "Trong phân loại thế giới sống, tại sao Virus không được xem là một cơ thể sinh vật hoàn chỉnh mà chỉ là 'dạng sống'?",
+    "options": [
+      "A. Vì kích thước của virus quá nhỏ, chỉ quan sát được dưới kính hiển vi điện tử.",
+      "B. Vì virus gây bệnh cho con người và sinh vật khác.",
+      "C. Vì virus chưa có cấu tạo tế bào và không thể tự sinh sản nếu không ký sinh vào vật chủ.",
+      "D. Vì virus không có vật chất di truyền (DNA hoặc RNA)."
+    ],
+    "correct_answer": "C",
+    "explanation": "Đặc điểm quyết định sự sống là cấu tạo tế bào. Virus chỉ có vỏ protein và lõi axit nucleic, chúng buộc phải ký sinh nội bào bắt buộc mới nhân lên được."
+  },
+  {
+    "id": 3,
+    "question": "Tại sao khi dập tắt đám cháy xăng dầu, người ta TUYỆT ĐỐI KHÔNG được dùng nước?",
+    "options": [
+      "A. Vì nước sẽ phản ứng hóa học với xăng dầu tạo ra chất cháy nổ mạnh hơn.",
+      "B. Vì xăng dầu nhẹ hơn nước và không tan trong nước, nó sẽ nổi lên trên và tiếp tục cháy lan rộng theo dòng nước.",
+      "C. Vì nước làm giảm nhiệt độ đám cháy quá nhanh gây nứt vỡ các vật dụng xung quanh.",
+      "D. Vì trong nước có khí oxy hòa tan sẽ cung cấp thêm oxy cho sự cháy."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đây là kiến thức Hóa học về tính chất vật lý (khối lượng riêng và tính tan). Xăng dầu nhẹ hơn nước nên sẽ nổi lên trên, nước chảy đến đâu lửa lan đến đó."
+  },
+  {
+    "id": 4,
+    "question": "Lực ma sát nghỉ có vai trò gì quan trọng nhất khi một người đang bước đi trên mặt đường?",
+    "options": [
+      "A. Cản trở chuyển động của chân, làm người đó đi chậm lại.",
+      "B. Giúp bàn chân bám chặt vào mặt đường, tạo ra lực đẩy người về phía trước mà không bị trượt ngã.",
+      "C. Sinh ra nhiệt làm ấm bàn chân.",
+      "D. Làm mòn đế giày dép theo thời gian."
+    ],
+    "correct_answer": "B",
+    "explanation": "Khi ta bước, chân đạp về phía sau. Lực ma sát nghỉ giữa chân và mặt đất giữ cho chân không bị trượt về sau, nhờ đó phản lực của đất đẩy người tiến về phía trước."
+  },
+  {
+    "id": 5,
+    "question": "Để tách riêng muối ăn và cát ra khỏi hỗn hợp của chúng, quy trình nào sau đây là chính xác nhất theo thứ tự?",
+    "options": [
+      "A. Cô cạn -> Hòa tan -> Lọc.",
+      "B. Lọc -> Hòa tan -> Cô cạn.",
+      "C. Hòa tan -> Lọc -> Cô cạn.",
+      "D. Hòa tan -> Cô cạn -> Lọc."
+    ],
+    "correct_answer": "C",
+    "explanation": "Bước 1: Hòa tan (muối tan, cát không tan). Bước 2: Lọc (loại bỏ cát trên giấy lọc). Bước 3: Cô cạn (làm bay hơi nước để thu lại muối)."
+  },
+  {
+    "id": 6,
+    "question": "Tế bào thực vật khác biệt cơ bản so với tế bào động vật ở thành phần nào giúp cây cứng cáp dù không có bộ xương?",
+    "options": [
+      "A. Màng tế bào (Cell membrane).",
+      "B. Thành tế bào (Cell wall).",
+      "C. Lục lạp (Chloroplast).",
+      "D. Không bào lớn (Vacuole)."
+    ],
+    "correct_answer": "B",
+    "explanation": "Thành tế bào được cấu tạo từ cellulose rất bền chắc, đóng vai trò như bộ khung xương tí hon bảo vệ và quy định hình dạng tế bào, giúp cây đứng thẳng."
+  },
+  {
+    "id": 7,
+    "question": "Khi quan sát các pha của Mặt Trăng, hiện tượng 'Trăng tròn' (Full Moon) xảy ra khi nào?",
+    "options": [
+      "A. Khi Mặt Trăng nằm ở giữa Trái Đất và Mặt Trời.",
+      "B. Khi Trái Đất nằm ở giữa Mặt Trăng và Mặt Trời.",
+      "C. Khi Mặt Trời, Trái Đất và Mặt Trăng tạo thành một góc vuông.",
+      "D. Khi Mặt Trăng đi vào vùng bóng tối của Trái Đất."
+    ],
+    "correct_answer": "B",
+    "explanation": "Khi Trái Đất nằm giữa, toàn bộ phần được chiếu sáng của Mặt Trăng hướng về phía Trái Đất nên ta thấy trăng tròn. (Nếu thẳng hàng tuyệt đối sẽ gây Nguyệt thực)."
+  },
+  {
+    "id": 8,
+    "question": "Trong thí nghiệm đo độ giãn của lò xo treo thẳng đứng, nếu treo vật nặng 50g thì lò xo dài 12cm, treo vật 100g thì lò xo dài 14cm. Hỏi chiều dài tự nhiên của lò xo là bao nhiêu?",
+    "options": [
+      "A. 10 cm",
+      "B. 8 cm",
+      "C. 12 cm",
+      "D. 2 cm"
+    ],
+    "correct_answer": "A",
+    "explanation": "Tăng thêm 50g (từ 50g lên 100g), lò xo giãn thêm 2cm (14-12). Vậy 50g tương ứng độ giãn 2cm. Chiều dài tự nhiên = Chiều dài khi treo 50g - Độ giãn = 12 - 2 = 10cm."
+  },
+  {
+    "id": 9,
+    "question": "Hỗn hợp 'Sốt mayonnaise' thuộc loại hỗn hợp nào?",
+    "options": [
+      "A. Dung dịch đồng nhất.",
+      "B. Huyền phù (Suspension).",
+      "C. Nhũ tương (Emulsion).",
+      "D. Hỗn hợp khí trong lỏng."
+    ],
+    "correct_answer": "C",
+    "explanation": "Mayonnaise là nhũ tương, gồm các giọt dầu ăn phân tán trong giấm/nước cốt chanh (hai chất lỏng không hòa tan vào nhau) nhờ chất nhũ hóa từ lòng đỏ trứng."
+  },
+  {
+    "id": 10,
+    "question": "Vì sao nấm men được sử dụng để làm bánh mì nở xốp?",
+    "options": [
+      "A. Vì nấm men ăn bột mì và sinh ra khí Oxy làm phồng bánh.",
+      "B. Vì nấm men hô hấp/lên men tạo ra khí Carbon dioxide (CO2) mắc kẹt trong bột.",
+      "C. Vì nấm men nở to ra khi gặp nhiệt độ cao.",
+      "D. Vì nấm men phân hủy đường thành nước làm bột mềm ra."
+    ],
+    "correct_answer": "B",
+    "explanation": "Trong quá trình lên men bột mì, nấm men chuyển hóa đường thành khí CO2 và cồn. Khí CO2 bị giữ lại trong mạng lưới gluten của bột tạo nên các lỗ rỗng xốp."
+  },
+  {
+    "id": 11,
+    "question": "Khi nói về sự nở vì nhiệt, tại sao các tấm tôn lợp nhà thường có dạng lượn sóng mà không phải là tấm phẳng?",
+    "options": [
+      "A. Để nước mưa chảy nhanh hơn.",
+      "B. Để tăng độ cứng cho tấm tôn.",
+      "C. Để có không gian cho tôn co giãn vì nhiệt mà không làm bung đinh ốc.",
+      "D. Để phản xạ ánh sáng mặt trời tốt hơn."
+    ],
+    "correct_answer": "C",
+    "explanation": "Dạng lượn sóng giúp tấm tôn có thể giãn ra hoặc co lại khi nhiệt độ thay đổi (nắng/mưa) mà không bị cong vênh hay làm hỏng cấu trúc mái."
+  },
+  {
+    "id": 12,
+    "question": "Điểm khác biệt chính giúp phân biệt Dương xỉ (Ferns) và Rêu (Mosses) là gì?",
+    "options": [
+      "A. Dương xỉ sống ở nơi ẩm ướt, rêu sống ở nơi khô ráo.",
+      "B. Dương xỉ đã có mạch dẫn (mạch gỗ, mạch rây) và rễ thật, còn rêu thì chưa.",
+      "C. Dương xỉ sinh sản bằng hạt, rêu sinh sản bằng bào tử.",
+      "D. Dương xỉ có hoa, rêu không có hoa."
+    ],
+    "correct_answer": "B",
+    "explanation": "Cả hai đều sinh sản bằng bào tử và thích ẩm ướt. Điểm tiến hóa quan trọng là Dương xỉ có hệ thống mạch dẫn chính thức và rễ thật, trong khi rêu chỉ có rễ giả và chưa có mạch dẫn."
+  },
+  {
+    "id": 13,
+    "question": "Trong không khí, khí Oxygen chiếm khoảng 21% thể tích, nhưng khí nào chiếm thể tích lớn nhất (khoảng 78%)?",
+    "options": [
+      "A. Carbon dioxide.",
+      "B. Nitrogen (Nitơ).",
+      "C. Hơi nước.",
+      "D. Argon."
+    ],
+    "correct_answer": "B",
+    "explanation": "Nitrogen là thành phần chính của không khí, đóng vai trò quan trọng trong việc pha loãng Oxygen để sự cháy không diễn ra quá mạnh."
+  },
+  {
+    "id": 14,
+    "question": "Một vật có khối lượng 5kg trên Trái Đất. Khi đưa vật này lên Mặt Trăng (nơi trọng lực chỉ bằng 1/6 Trái Đất), thì đại lượng nào sau đây thay đổi?",
+    "options": [
+      "A. Khối lượng của vật.",
+      "B. Trọng lượng của vật.",
+      "C. Cả khối lượng và trọng lượng đều thay đổi.",
+      "D. Cả khối lượng và trọng lượng đều không đổi."
+    ],
+    "correct_answer": "B",
+    "explanation": "Khối lượng là lượng chất chứa trong vật (không đổi dù ở đâu). Trọng lượng là độ lớn lực hút (thay đổi tùy theo thiên thể). Ở Mặt Trăng vật sẽ 'nhẹ' đi nhưng vẫn là 5kg chất."
+  },
+  {
+    "id": 15,
+    "question": "Loại nấm nào sau đây là nấm đơn bào?",
+    "options": [
+      "A. Nấm rơm.",
+      "B. Nấm mốc đen bánh mì.",
+      "C. Nấm men (Yeast).",
+      "D. Nấm linh chi."
+    ],
+    "correct_answer": "C",
+    "explanation": "Đa số nấm là đa bào (như nấm rơm, nấm mốc). Chỉ có nấm men là nấm đơn bào điển hình."
+  },
+  {
+    "id": 16,
+    "question": "Khi đốt than (Carbon) trong điều kiện thiếu khí Oxy (ví dụ ủ bếp than trong phòng kín), sẽ sinh ra một loại khí cực độc, không màu, không mùi, có khả năng gây tử vong nhanh chóng. Đó là khí gì?",
+    "options": [
+      "A. Carbon dioxide (CO2).",
+      "B. Carbon monoxide (CO).",
+      "C. Sulfur dioxide (SO2).",
+      "D. Nitrogen dioxide (NO2)."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sự cháy không hoàn toàn sinh ra khí CO. Khí này kết hợp chặt với Hemoglobin trong máu, ngăn cản máu vận chuyển Oxy lên não, gây ngạt và tử vong."
+  },
+  {
+    "id": 17,
+    "question": "Cấp độ tổ chức nào sau đây là đúng theo thứ tự từ nhỏ đến lớn trong cơ thể đa bào?",
+    "options": [
+      "A. Tế bào -> Cơ quan -> Mô -> Hệ cơ quan -> Cơ thể.",
+      "B. Mô -> Tế bào -> Cơ quan -> Hệ cơ quan -> Cơ thể.",
+      "C. Tế bào -> Mô -> Cơ quan -> Hệ cơ quan -> Cơ thể.",
+      "D. Tế bào -> Mô -> Hệ cơ quan -> Cơ quan -> Cơ thể."
+    ],
+    "correct_answer": "C",
+    "explanation": "Tập hợp tế bào giống nhau tạo thành Mô. Các mô kết hợp tạo thành Cơ quan. Các cơ quan phối hợp tạo thành Hệ cơ quan."
+  },
+  {
+    "id": 18,
+    "question": "Biển báo an toàn trong phòng thực hành có hình tam giác đều, viền đen, nền vàng cảnh báo điều gì?",
+    "options": [
+      "A. Hành động bị cấm.",
+      "B. Hành động bắt buộc phải thực hiện.",
+      "C. Cảnh báo nguy hiểm.",
+      "D. Chỉ dẫn nơi để thiết bị cứu hỏa."
+    ],
+    "correct_answer": "C",
+    "explanation": "Theo quy chuẩn ký hiệu an toàn: Hình tròn viền đỏ là cấm, hình tròn nền xanh là bắt buộc, hình tam giác nền vàng là cảnh báo nguy hiểm."
+  },
+  {
+    "id": 19,
+    "question": "Hành tinh nào trong Hệ Mặt Trời được mệnh danh là 'Hành tinh Đỏ' do bề mặt chứa nhiều oxit sắt?",
+    "options": [
+      "A. Sao Kim (Venus).",
+      "B. Sao Hỏa (Mars).",
+      "C. Sao Mộc (Jupiter).",
+      "D. Sao Thổ (Saturn)."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sao Hỏa có màu đỏ đặc trưng do đất đá trên bề mặt chứa nhiều sắt oxit (gỉ sắt)."
+  },
+  {
+    "id": 20,
+    "question": "Trong các vật liệu sau: Nhôm, Nhựa, Gỗ, Cao su. Vật liệu nào có tính chất: Dẫn điện tốt, dẫn nhiệt tốt, có ánh kim và dễ dát mỏng?",
+    "options": [
+      "A. Nhôm.",
+      "B. Nhựa.",
+      "C. Gỗ.",
+      "D. Cao su."
+    ],
+    "correct_answer": "A",
+    "explanation": "Đây là các tính chất vật lý đặc trưng của Kim loại (trong trường hợp này là Nhôm). Các vật liệu còn lại là chất cách điện/cách nhiệt."
+  },
+  {
+    "id": 21,
+    "question": "Khi quan sát một giọt nước ao dưới kính hiển vi, bạn thấy một sinh vật nhỏ bé, di chuyển bằng cách biến hình (tạo chân giả) và bắt mồi. Đó là sinh vật nào?",
+    "options": [
+      "A. Trùng roi (Euglena).",
+      "B. Trùng giày (Paramecium).",
+      "C. Trùng biến hình (Amoeba).",
+      "D. Tảo lục đơn bào."
+    ],
+    "correct_answer": "C",
+    "explanation": "Trùng biến hình (Amoeba) thuộc nhóm Nguyên sinh vật, di chuyển và bắt mồi bằng cách hình thành chân giả (pseudopods) do sự chuyển động của chất nguyên sinh."
+  },
+  {
+    "id": 22,
+    "question": "Trong các hiện tượng sau, hiện tượng nào thể hiện sự biến đổi HÓA HỌC (chất bị biến đổi thành chất khác)?",
+    "options": [
+      "A. Đun sôi nước biển để thu được muối.",
+      "B. Hòa tan đường vào nước.",
+      "C. Đốt cháy một tờ giấy.",
+      "D. Băng tan ở hai cực Trái Đất."
+    ],
+    "correct_answer": "C",
+    "explanation": "Đốt cháy giấy là phản ứng hóa học (giấy biến thành tro và khí CO2). Các hiện tượng còn lại (bay hơi, hòa tan, nóng chảy) chỉ là biến đổi vật lý (thay đổi trạng thái)."
+  },
+  {
+    "id": 23,
+    "question": "Tại sao lốp xe ô tô và xe máy thường có các rãnh sâu (gai lốp) trên bề mặt?",
+    "options": [
+      "A. Để tăng tính thẩm mỹ cho bánh xe.",
+      "B. Để tăng lực ma sát nghỉ, giúp xe bám đường tốt hơn khi di chuyển, đặc biệt là đường ướt.",
+      "C. Để giảm lực ma sát lăn, giúp xe chạy nhanh hơn.",
+      "D. Để giảm khối lượng của bánh xe giúp tiết kiệm nhiên liệu."
+    ],
+    "correct_answer": "B",
+    "explanation": "Rãnh lốp giúp thoát nước và tăng độ bám (ma sát) giữa bánh xe và mặt đường, ngăn chặn hiện tượng trượt bánh."
+  },
+  {
+    "id": 24,
+    "question": "Cây hạt trần (như cây Thông, cây Vạn tuế) khác biệt cơ bản với Cây hạt kín (như cây Cam, cây Đậu) ở điểm nào?",
+    "options": [
+      "A. Cây hạt trần không có lá xanh.",
+      "B. Cây hạt trần chưa có hoa và quả thực sự; hạt nằm lộ trên các lá noãn hở (nón).",
+      "C. Cây hạt trần có kích thước nhỏ hơn cây hạt kín.",
+      "D. Cây hạt trần sống dưới nước, cây hạt kín sống trên cạn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đây là đặc điểm phân loại quan trọng nhất: Hạt trần chưa có bầu nhụy bao bọc hạt (không có quả thật), cơ quan sinh sản là Nón."
+  },
+  {
+    "id": 25,
+    "question": "Khi đun nóng một lượng chất lỏng, khối lượng riêng của chất lỏng sẽ thay đổi như thế nào?",
+    "options": [
+      "A. Tăng lên.",
+      "B. Giảm đi.",
+      "C. Không thay đổi.",
+      "D. Lúc đầu tăng sau đó giảm."
+    ],
+    "correct_answer": "B",
+    "explanation": "Khi đun nóng, khối lượng (m) không đổi, nhưng thể tích (V) tăng lên do sự nở vì nhiệt. Vì D = m/V, nên khi V tăng thì Khối lượng riêng (D) sẽ giảm."
+  },
+  {
+    "id": 26,
+    "question": "Trong các biện pháp sau, biện pháp nào KHÔNG giúp bảo quản lương thực thực phẩm an toàn?",
+    "options": [
+      "A. Hút chân không.",
+      "B. Sấy khô/Phơi khô.",
+      "C. Để thực phẩm ở nơi nóng ẩm, kín gió.",
+      "D. Ướp muối hoặc đường (làm mứt)."
+    ],
+    "correct_answer": "C",
+    "explanation": "Môi trường nóng ẩm là điều kiện lý tưởng cho vi khuẩn và nấm mốc phát triển gây hỏng thực phẩm. Bảo quản cần nơi khô ráo, thoáng mát hoặc lạnh."
+  },
+  {
+    "id": 27,
+    "question": "Năng lượng hao phí trong quá trình một bóng đèn sợi đốt đang sáng chủ yếu chuyển thành dạng năng lượng nào?",
+    "options": [
+      "A. Năng lượng ánh sáng (Quang năng).",
+      "B. Năng lượng nhiệt (Nhiệt năng).",
+      "C. Năng lượng âm thanh.",
+      "D. Năng lượng hóa học."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đối với bóng đèn, quang năng là năng lượng có ích, còn nhiệt năng tỏa ra làm nóng bóng đèn là năng lượng hao phí (chiếm phần lớn ở bóng sợi đốt)."
+  },
+  {
+    "id": 28,
+    "question": "Loài thực vật nào sau đây thực chất KHÔNG PHẢI là thực vật mà thuộc giới Nguyên sinh (Protista)?",
+    "options": [
+      "A. Rêu tường.",
+      "B. Tảo lục (Algae).",
+      "C. Cây dương xỉ.",
+      "D. Cây lúa nước."
+    ],
+    "correct_answer": "B",
+    "explanation": "Theo hệ thống phân loại mới 5 giới, Tảo (Algae) dù có diệp lục và quang hợp nhưng cấu tạo cơ thể đơn giản, chưa phân hóa mô, nên được xếp vào giới Nguyên sinh, không phải giới Thực vật."
+  },
+  {
+    "id": 29,
+    "question": "Khi hòa tan đường phèn (cục lớn) vào nước, cách nào sau đây giúp đường tan nhanh nhất?",
+    "options": [
+      "A. Dùng nước lạnh và để yên.",
+      "B. Dùng nước nóng và để yên.",
+      "C. Nghiền nhỏ đường, dùng nước nóng và khuấy đều.",
+      "D. Nghiền nhỏ đường, dùng nước lạnh và khuấy đều."
+    ],
+    "correct_answer": "C",
+    "explanation": "Tốc độ hòa tan phụ thuộc 3 yếu tố: Diện tích tiếp xúc (nghiền nhỏ), Nhiệt độ (nước nóng), và Sự lưu thông (khuấy). Kết hợp cả 3 sẽ nhanh nhất."
+  },
+  {
+    "id": 30,
+    "question": "Lực nào sau đây là lực không tiếp xúc?",
+    "options": [
+      "A. Lực của gió thổi vào cánh buồm.",
+      "B. Lực hút của Nam châm lên cái ghim sắt.",
+      "C. Lực của búa đóng vào đinh.",
+      "D. Lực ma sát giữa lốp xe và mặt đường."
+    ],
+    "correct_answer": "B",
+    "explanation": "Nam châm có thể hút sắt từ xa mà không cần chạm vào (thông qua từ trường), đây là lực không tiếp xúc. Các lực còn lại đều cần sự tiếp xúc bề mặt.",
+      "image_tag": ""
+  },
+  {
+    "id": 31,
+    "question": "Tác hại nguy hiểm nhất của việc vứt rác thải nhựa bừa bãi ra môi trường biển là gì?",
+    "options": [
+      "A. Làm mất mỹ quan bãi biển.",
+      "B. Nhựa phân rã thành hạt vi nhựa (microplastic), đi vào chuỗi thức ăn và tích tụ trong cơ thể sinh vật và con người.",
+      "C. Gây mùi hôi khó chịu.",
+      "D. Làm cản trở tàu thuyền đi lại."
+    ],
+    "correct_answer": "B",
+    "explanation": "Vấn đề vi nhựa là nghiêm trọng nhất về mặt sinh thái và sức khỏe, vì nó xâm nhập sâu vào chuỗi thức ăn và rất khó loại bỏ."
+  },
+  {
+    "id": 32,
+    "question": "Trong cơ thể người, cơ quan nào đóng vai trò chính trong việc trao đổi khí (lấy O2 và thải CO2)?",
+    "options": [
+      "A. Tim.",
+      "B. Dạ dày.",
+      "C. Phổi.",
+      "D. Gan."
+    ],
+    "correct_answer": "C",
+    "explanation": "Phổi là cơ quan chính của hệ hô hấp, nơi diễn ra quá trình trao đổi khí tại các phế nang."
+  },
+  {
+    "id": 33,
+    "question": "Nhiên liệu hóa thạch (than đá, dầu mỏ, khí đốt) được xếp vào loại nguồn năng lượng nào?",
+    "options": [
+      "A. Năng lượng tái tạo (Renewable).",
+      "B. Năng lượng không tái tạo (Non-renewable).",
+      "C. Năng lượng sạch.",
+      "D. Năng lượng vô tận."
+    ],
+    "correct_answer": "B",
+    "explanation": "Nhiên liệu hóa thạch mất hàng triệu năm để hình thành, tốc độ tiêu thụ của con người nhanh hơn nhiều so với tốc độ tái tạo, nên chúng sẽ bị cạn kiệt."
+  },
+  {
+    "id": 34,
+    "question": "Đặc điểm nào sau đây là đặc trưng chỉ có ở lớp Thú (Mammalia), giúp phân biệt với các lớp động vật khác?",
+    "options": [
+      "A. Đẻ con và nuôi con bằng sữa mẹ.",
+      "B. Có xương sống.",
+      "C. Hô hấp bằng phổi.",
+      "D. Máu đỏ."
+    ],
+    "correct_answer": "A",
+    "explanation": "Có tuyến sữa và nuôi con bằng sữa là đặc điểm định danh của lớp Thú. Các đặc điểm khác (xương sống, phổi, máu đỏ) có thể tìm thấy ở Chim, Bò sát, Lưỡng cư..."
+  },
+  {
+    "id": 35,
+    "question": "Tại sao 'Bóng tối' xuất hiện phía sau vật cản khi có ánh sáng chiếu vào?",
+    "options": [
+      "A. Vì ánh sáng bị vật cản hấp thụ hoàn toàn.",
+      "B. Vì ánh sáng truyền đi theo đường thẳng và không thể đi vòng qua vật cản.",
+      "C. Vì vật cản phát ra bóng tối.",
+      "D. Vì mắt người không nhìn thấy ánh sáng ở phía sau vật."
+    ],
+    "correct_answer": "B",
+    "explanation": "Định luật truyền thẳng của ánh sáng: Trong môi trường trong suốt và đồng tính, ánh sáng truyền đi theo đường thẳng. Vùng phía sau vật cản không nhận được ánh sáng tạo nên bóng tối.",
+      "image_tag": ""
+  },
+  {
+    "id": 36,
+    "question": "Nấm mốc (như mốc đen bánh mì) dinh dưỡng theo hình thức nào?",
+    "options": [
+      "A. Tự dưỡng (Quang hợp như cây xanh).",
+      "B. Dị dưỡng hoại sinh (Phân giải chất hữu cơ có sẵn).",
+      "C. Tự tổng hợp chất dinh dưỡng từ không khí.",
+      "D. Ăn các vi sinh vật nhỏ hơn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Nấm không có diệp lục nên không quang hợp được. Chúng tiết enzyme ra ngoài để phân giải thức ăn rồi hấp thụ (hoại sinh)."
+  },
+  {
+    "id": 37,
+    "question": "Khi đo chiều dài của một vật bằng thước thẳng, đặt mắt như thế nào là đúng để đọc kết quả chính xác?",
+    "options": [
+      "A. Đặt mắt nhìn theo hướng xiên từ trái sang.",
+      "B. Đặt mắt nhìn theo hướng xiên từ phải sang.",
+      "C. Đặt mắt nhìn theo hướng vuông góc với cạnh thước tại đầu kia của vật.",
+      "D. Đặt mắt ở bất kỳ vị trí nào cũng được."
+    ],
+    "correct_answer": "C",
+    "explanation": "Để tránh sai số do thị sai (parallax error), mắt phải nhìn vuông góc với vạch chia trên thước."
+  },
+  {
+    "id": 38,
+    "question": "Trong Hệ Mặt Trời, hành tinh nào có kích thước lớn nhất?",
+    "options": [
+      "A. Trái Đất.",
+      "B. Sao Thổ.",
+      "C. Sao Mộc (Jupiter).",
+      "D. Mặt Trời."
+    ],
+    "correct_answer": "C",
+    "explanation": "Sao Mộc là hành tinh khí khổng lồ lớn nhất hệ mặt trời. (Lưu ý: Mặt Trời là Ngôi sao, không phải hành tinh)."
+  },
+  {
+    "id": 39,
+    "question": "Vật liệu 'Composite' là gì?",
+    "options": [
+      "A. Là một loại nhựa dẻo đặc biệt.",
+      "B. Là vật liệu tổ hợp từ hai hay nhiều vật liệu khác nhau để tạo ra vật liệu mới có tính chất vượt trội.",
+      "C. Là kim loại nguyên chất.",
+      "D. Là gốm sứ chịu nhiệt cao."
+    ],
+    "correct_answer": "B",
+    "explanation": "Composite (Compozit) là vật liệu tổng hợp (ví dụ: bê tông cốt thép, nhựa cốt sợi thủy tinh) nhằm kết hợp ưu điểm của các vật liệu thành phần."
+  },
+  {
+    "id": 40,
+    "question": "Khi em bé bị sốt cao, mẹ thường chườm khăn mát lên trán để hạ sốt. Hiện tượng vật lý nào xảy ra ở đây?",
+    "options": [
+      "A. Sự dẫn nhiệt từ trán (nóng hơn) sang khăn (lạnh hơn).",
+      "B. Sự đối lưu nhiệt.",
+      "C. Sự bức xạ nhiệt.",
+      "D. Sự ngưng tụ hơi nước."
+    ],
+    "correct_answer": "A",
+    "explanation": "Nhiệt năng truyền từ vật có nhiệt độ cao (trán) sang vật có nhiệt độ thấp (khăn) qua tiếp xúc trực tiếp là sự dẫn nhiệt."
+  },
+  {
+    "id": 41,
+    "question": "Tại sao các loài động vật thuộc ngành Chân khớp (như tôm, cua, châu chấu) phải trải qua quá trình 'lột xác' để lớn lên?",
+    "options": [
+      "A. Vì lớp vỏ cũ bị bẩn nên cần thay mới.",
+      "B. Vì lớp vỏ kitin bên ngoài cứng chắc, không đàn hồi, kìm hãm sự tăng trưởng kích thước cơ thể.",
+      "C. Vì chúng muốn thay đổi màu sắc để ngụy trang.",
+      "D. Vì lớp vỏ cũ bị vi khuẩn ăn mòn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Lớp vỏ kitin giống như một bộ giáp cố định. Muốn lớn lên, con vật phải chui ra khỏi vỏ cũ, cơ thể phồng to nhanh chóng trước khi vỏ mới cứng lại."
+  },
+  {
+    "id": 42,
+    "question": "Hiện tượng 'Gỉ sắt' (Sắt để ngoài không khí ẩm lâu ngày bị hóa nâu đỏ) là minh chứng cho điều gì?",
+    "options": [
+      "A. Sự biến đổi vật lý.",
+      "B. Phản ứng hóa học giữa sắt và khí Oxy (có xúc tác của hơi nước).",
+      "C. Sắt bị bụi bẩn bám vào.",
+      "D. Sắt bị nấm mốc ăn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Gỉ sắt là chất mới (Oxit sắt) được tạo thành do phản ứng hóa học, không còn giữ được tính chất cứng, ánh kim của sắt ban đầu."
+  },
+  {
+    "id": 43,
+    "question": "Khi nói về Lực hấp dẫn của Trái Đất, phương và chiều của trọng lực luôn như thế nào?",
+    "options": [
+      "A. Phương ngang, chiều từ trái sang phải.",
+      "B. Phương thẳng đứng, chiều từ dưới lên trên.",
+      "C. Phương thẳng đứng, chiều hướng về phía tâm Trái Đất.",
+      "D. Phương xiên, chiều tùy thuộc vào hướng gió."
+    ],
+    "correct_answer": "C",
+    "explanation": "Trọng lực là lực hút của Trái Đất tác dụng lên vật, luôn có phương thẳng đứng và chiều hướng về tâm Trái Đất (từ trên xuống dưới)."
+  },
+  {
+    "id": 44,
+    "question": "Hệ Mặt Trời của chúng ta nằm trong thiên hà nào và thiên hà đó có hình dạng gì?",
+    "options": [
+      "A. Thiên hà Tiên Nữ (Andromeda) - Hình elip.",
+      "B. Ngân Hà (Milky Way) - Hình xoắn ốc.",
+      "C. Ngân Hà (Milky Way) - Hình tròn.",
+      "D. Thiên hà Mắt Đen - Hình thấu kính."
+    ],
+    "correct_answer": "B",
+    "explanation": "Chúng ta sống trong Ngân Hà (Milky Way), một thiên hà xoắn ốc (Spiral Galaxy) với các cánh tay xoắn chứa hàng tỷ ngôi sao."
+  },
+  {
+    "id": 45,
+    "question": "Tại sao cá thở được dưới nước trong khi con người thì không?",
+    "options": [
+      "A. Vì cá có phổi đặc biệt lọc được nước.",
+      "B. Vì cá phân giải được phân tử nước (H2O) để lấy Oxy.",
+      "C. Vì cá có mang, giúp lấy khí Oxy hòa tan trong nước và thải CO2 vào nước.",
+      "D. Vì cá không cần Oxy để sống."
+    ],
+    "correct_answer": "C",
+    "explanation": "Cá không tách được O khỏi H2O. Mang cá có cấu tạo đặc biệt với rất nhiều mao mạch máu để trao đổi khí Oxy *hòa tan* giữa nước và máu."
+  },
+  {
+    "id": 46,
+    "question": "Nước phù sa sông Hồng (nước đục có lẫn đất mịn lơ lửng) là ví dụ điển hình của loại hỗn hợp nào?",
+    "options": [
+      "A. Dung dịch (Solution).",
+      "B. Huyền phù (Suspension).",
+      "C. Nhũ tương (Emulsion).",
+      "D. Chất tinh khiết."
+    ],
+    "correct_answer": "B",
+    "explanation": "Huyền phù là hỗn hợp không đồng nhất gồm các hạt chất rắn lơ lửng trong chất lỏng. Nếu để yên lâu ngày, đất sẽ lắng xuống đáy."
+  },
+  {
+    "id": 47,
+    "question": "Trong trường hợp nào dưới đây, lực ma sát là CÓ HẠI?",
+    "options": [
+      "A. Ma sát giữa đế giày và mặt đường khi đi bộ.",
+      "B. Ma sát giữa má phanh và vành xe khi bóp phanh.",
+      "C. Ma sát giữa các chi tiết máy (trục quay, ổ bi) khi vận hành.",
+      "D. Ma sát giữa viên phấn và bảng đen."
+    ],
+    "correct_answer": "C",
+    "explanation": "Ma sát trong máy móc làm mòn chi tiết và sinh nhiệt hao phí, cần được giảm thiểu bằng dầu bôi trơn. Các trường hợp còn lại ma sát đều có ích."
+  },
+  {
+    "id": 48,
+    "question": "Sự khác biệt quan trọng nhất về cấu tạo tế bào giúp phân biệt Vi khuẩn (Bacteria) với các sinh vật nhân thực (như Nấm, Thực vật, Động vật) là gì?",
+    "options": [
+      "A. Vi khuẩn có kích thước nhỏ hơn.",
+      "B. Vi khuẩn chưa có màng nhân bao bọc vật chất di truyền (Tế bào nhân sơ).",
+      "C. Vi khuẩn không có vách tế bào.",
+      "D. Vi khuẩn không thể tự di chuyển."
+    ],
+    "correct_answer": "B",
+    "explanation": "Vi khuẩn thuộc nhóm sinh vật nhân sơ (Prokaryotes), tức là vùng nhân chứa DNA nằm lơ lửng trong tế bào chất, chưa có màng nhân bao bọc."
+  },
+  {
+    "id": 49,
+    "question": "Quá trình quang hợp của cây xanh có vai trò gì quan trọng nhất đối với sự sống trên Trái Đất?",
+    "options": [
+      "A. Tạo ra bóng mát.",
+      "B. Tổng hợp chất hữu cơ và giải phóng khí Oxygen.",
+      "C. Hút nước ngầm làm khô đất.",
+      "D. Làm đẹp cảnh quan."
+    ],
+    "correct_answer": "B",
+    "explanation": "Quang hợp là cơ chế duy nhất chuyển năng lượng mặt trời thành năng lượng hóa học nuôi sống sinh vật và cung cấp nguồn Oxy để hô hấp."
+  },
+  {
+    "id": 50,
+    "question": "Tại sao ở các vùng cực lạnh giá (như Bắc Cực), người ta thường dùng nhiệt kế rượu thay vì nhiệt kế thủy ngân?",
+    "options": [
+      "A. Vì rượu rẻ hơn thủy ngân.",
+      "B. Vì thủy ngân rất độc nếu bị vỡ.",
+      "C. Vì rượu đông đặc ở nhiệt độ thấp hơn thủy ngân rất nhiều.",
+      "D. Vì màu đỏ của rượu dễ nhìn hơn trên nền tuyết trắng."
+    ],
+    "correct_answer": "C",
+    "explanation": "Thủy ngân đông đặc ở -39 độ C, trong khi rượu đông đặc ở -114 độ C. Ở vùng cực nhiệt độ có thể xuống thấp hơn -40 độ C, lúc đó nhiệt kế thủy ngân sẽ bị đông cứng và hỏng."
+  },
+  {
+    "id": 51,
+    "question": "Lưỡng cư (như Ếch, Nhái) hô hấp bằng cách nào?",
+    "options": [
+      "A. Chỉ bằng phổi.",
+      "B. Chỉ bằng da.",
+      "C. Bằng mang khi ở nòng nọc và bằng cả phổi lẫn da khi trưởng thành.",
+      "D. Bằng ống khí."
+    ],
+    "correct_answer": "C",
+    "explanation": "Lưỡng cư có đời sống 'hai môi trường'. Ấu trùng thở bằng mang dưới nước. Con trưởng thành thở bằng phổi nhưng phổi cấu tạo đơn giản nên hô hấp qua da ẩm ướt đóng vai trò rất quan trọng."
+  },
+  {
+    "id": 52,
+    "question": "Hiện tượng mưa axit làm ăn mòn các bức tượng đá vôi để ngoài trời. Đây là tác dụng của chất nào?",
+    "options": [
+      "A. Nước tinh khiết.",
+      "B. Dung dịch axit (tạo thành từ khí thải SO2, NOx hòa tan trong nước mưa).",
+      "C. Khí Oxy.",
+      "D. Ánh sáng mặt trời."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đá vôi (Canxi cacbonat) phản ứng hóa học mạnh với axit, bị hòa tan và ăn mòn."
+  },
+  {
+    "id": 53,
+    "question": "Khi thả một hòn bi sắt và một chiếc lông chim rơi tự do trong ống chân không (đã hút hết không khí), hiện tượng gì sẽ xảy ra?",
+    "options": [
+      "A. Bi sắt rơi nhanh hơn lông chim.",
+      "B. Lông chim rơi nhanh hơn bi sắt.",
+      "C. Cả hai rơi nhanh như nhau và chạm đáy cùng lúc.",
+      "D. Lông chim sẽ lơ lửng không rơi."
+    ],
+    "correct_answer": "C",
+    "explanation": "Trong chân không, không có lực cản không khí, mọi vật đều rơi với cùng một gia tốc trọng trường bất kể khối lượng nặng nhẹ."
+  },
+  {
+    "id": 54,
+    "question": "Tại sao nướng lại bánh mì bị ỉu là một biện pháp xử lý vật lý giúp bánh giòn trở lại?",
+    "options": [
+      "A. Vì nhiệt độ làm thay đổi thành phần hóa học của bột mì.",
+      "B. Vì nhiệt độ làm bay hơi nước đã ngấm vào bánh, trả lại cấu trúc khô xốp.",
+      "C. Vì nhiệt làm cháy lớp vỏ bên ngoài.",
+      "D. Vì nhiệt diệt chết nấm mốc."
+    ],
+    "correct_answer": "B",
+    "explanation": "Bánh mì ỉu là do hấp thụ độ ẩm. Nướng lại làm nước bay hơi (biến đổi trạng thái/vật lý) giúp bánh giòn lại."
+  },
+  {
+    "id": 55,
+    "question": "Hiện tượng Ngày và Đêm luân phiên trên Trái Đất là do chuyển động nào gây ra?",
+    "options": [
+      "A. Trái Đất quay quanh Mặt Trời.",
+      "B. Mặt Trời quay quanh Trái Đất.",
+      "C. Trái Đất tự quay quanh trục của nó.",
+      "D. Mặt Trăng quay quanh Trái Đất."
+    ],
+    "correct_answer": "C",
+    "explanation": "Trái Đất tự quay quanh trục, nên tại một thời điểm chỉ có một nửa bề mặt được Mặt Trời chiếu sáng (Ngày), nửa kia bị khuất (Đêm)."
+  },
+  {
+    "id": 56,
+    "question": "Vật liệu nào sau đây có tính 'đàn hồi' tốt nhất?",
+    "options": [
+      "A. Đất sét.",
+      "B. Dây đồng.",
+      "C. Dây cao su.",
+      "D. Thủy tinh."
+    ],
+    "correct_answer": "C",
+    "explanation": "Tính đàn hồi là khả năng lấy lại hình dạng ban đầu sau khi bị biến dạng. Cao su có tính đàn hồi rất cao. Đất sét là vật liệu dẻo (giữ nguyên biến dạng)."
+  },
+  {
+    "id": 57,
+    "question": "Đặc điểm cấu tạo nào của xương chim giúp chúng thích nghi tốt với đời sống bay lượn?",
+    "options": [
+      "A. Xương rất đặc và nặng để giữ thăng bằng.",
+      "B. Xương xốp, nhẹ và rỗng ở bên trong (chứa khí) để giảm trọng lượng.",
+      "C. Xương mềm như sụn.",
+      "D. Chim không có xương."
+    ],
+    "correct_answer": "B",
+    "explanation": "Để bay được, cơ thể chim cần nhẹ nhất có thể. Cấu trúc xương rỗng là một sự thích nghi tuyệt vời của tự nhiên."
+  },
+  {
+    "id": 58,
+    "question": "Nguồn năng lượng nào sau đây được gọi là 'năng lượng sinh khối' (Bioenergy)?",
+    "options": [
+      "A. Than đá khai thác từ mỏ.",
+      "B. Năng lượng từ dòng nước chảy.",
+      "C. Năng lượng từ rơm rạ, gỗ, phân động vật, rác thải hữu cơ.",
+      "D. Năng lượng hạt nhân."
+    ],
+    "correct_answer": "C",
+    "explanation": "Năng lượng sinh khối có nguồn gốc từ các vật chất hữu cơ (thực vật, động vật). Đây là năng lượng tái tạo."
+  },
+  {
+    "id": 59,
+    "question": "Để đo khối lượng của một vật (ví dụ bao gạo), dụng cụ nào sau đây cho kết quả chính xác về bản chất vật lý?",
+    "options": [
+      "A. Lực kế.",
+      "B. Cân (Cân đồng hồ, cân đòn, cân điện tử).",
+      "C. Bình chia độ.",
+      "D. Thước dây."
+    ],
+    "correct_answer": "B",
+    "explanation": "Cân là dụng cụ đo khối lượng (lượng chất). Lực kế đo trọng lượng (lực hút). Dù ở đời sống ta hay dùng lẫn lộn, nhưng trong khoa học cần phân biệt rõ."
+  },
+  {
+    "id": 60,
+    "question": "Trong một chuỗi thức ăn: Cỏ -> Châu chấu -> Ếch -> Rắn. Sinh vật nào được gọi là 'Sinh vật tiêu thụ bậc 1'?",
+    "options": [
+      "A. Cỏ.",
+      "B. Châu chấu.",
+      "C. Ếch.",
+      "D. Rắn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Cỏ là sinh vật sản xuất. Châu chấu ăn cỏ là sinh vật tiêu thụ bậc 1. Ếch ăn châu chấu là sinh vật tiêu thụ bậc 2."
+  },
+  {
+    "id": 61,
+    "question": "Tại sao trong những ngày nắng nóng gay gắt, cá trong ao hồ thường nổi đầu lên mặt nước để thở?",
+    "options": [
+      "A. Vì nước nóng làm cá bị chín.",
+      "B. Vì nhiệt độ tăng làm độ tan của khí Oxygen trong nước giảm mạnh, dẫn đến thiếu dưỡng khí.",
+      "C. Vì cá thích tắm nắng.",
+      "D. Vì áp suất dưới đáy hồ tăng cao."
+    ],
+    "correct_answer": "B",
+    "explanation": "Khác với chất rắn (nhiệt độ tăng thường tan nhiều hơn), chất khí (như Oxygen) tan ÍT hơn khi nhiệt độ nước tăng cao. Cá nổi lên để cố lấy Oxy từ lớp nước mặt tiếp xúc không khí."
+  },
+  {
+    "id": 62,
+    "question": "Trong thí nghiệm với lò xo, khái niệm 'Giới hạn đàn hồi' nghĩa là gì?",
+    "options": [
+      "A. Là chiều dài lớn nhất mà lò xo có thể giãn ra.",
+      "B. Là mức lực tối đa mà lò xo chịu được; nếu vượt quá mức này, lò xo sẽ bị biến dạng vĩnh viễn và không thể co về hình dạng cũ.",
+      "C. Là khối lượng tối thiểu cần treo để lò xo bắt đầu giãn.",
+      "D. Là thời gian lò xo có thể duy trì độ giãn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Lò xo chỉ đàn hồi trong một giới hạn nhất định. Nếu kéo quá mạnh (vượt giới hạn đàn hồi), cấu trúc kim loại bị phá vỡ và lò xo bị 'dão' hoặc hỏng."
+  },
+  {
+    "id": 63,
+    "question": "Địa y (Lichen) là một dạng sống đặc biệt, thường bám trên thân cây hoặc vách đá. Thực chất Địa y là gì?",
+    "options": [
+      "A. Một loài thực vật bậc thấp.",
+      "B. Một loại nấm ký sinh.",
+      "C. Một dạng cộng sinh chặt chẽ giữa Nấm và Tảo (hoặc vi khuẩn lam).",
+      "D. Một loại rêu."
+    ],
+    "correct_answer": "C",
+    "explanation": "Địa y không phải là một cá thể đơn lẻ mà là mối quan hệ cộng sinh: Nấm cung cấp nước/muối khoáng và nơi trú ẩn, Tảo quang hợp tạo chất hữu cơ nuôi cả hai."
+  },
+  {
+    "id": 64,
+    "question": "Tại sao ổ bi (ball bearing) trong các trục quay của xe đạp, xe máy lại giúp xe chạy nhẹ nhàng hơn?",
+    "options": [
+      "A. Vì ổ bi chuyển ma sát trượt (lực cản lớn) thành ma sát lăn (lực cản nhỏ hơn rất nhiều).",
+      "B. Vì ổ bi làm tăng khối lượng bánh xe giúp xe đầm hơn.",
+      "C. Vì ổ bi được làm bằng thép rất cứng.",
+      "D. Vì ổ bi sinh ra lực đẩy xe đi."
+    ],
+    "correct_answer": "A",
+    "explanation": "Thay vì trục xe trượt trực tiếp trên ổ trục (ma sát trượt lớn), các viên bi tròn lăn giữa hai bề mặt giúp giảm thiểu lực cản đáng kể."
+  },
+  {
+    "id": 65,
+    "question": "Nước cất (Distilled water) dùng trong y tế và thí nghiệm khác với nước máy hoặc nước khoáng ở điểm nào?",
+    "options": [
+      "A. Nước cất chứa nhiều khoáng chất tốt cho sức khỏe hơn.",
+      "B. Nước cất là chất tinh khiết (chỉ chứa H2O), còn nước máy/nước khoáng là hỗn hợp (có lẫn muối khoáng, tạp chất).",
+      "C. Nước cất có nhiệt độ sôi cao hơn 100 độ C.",
+      "D. Nước cất có màu trắng đục."
+    ],
+    "correct_answer": "B",
+    "explanation": "Chất tinh khiết chỉ có một chất duy nhất và có tính chất vật lý nhất định. Nước tự nhiên luôn là hỗn hợp vì có hòa tan các chất khác."
+  },
+  {
+    "id": 66,
+    "question": "Thuốc Kháng sinh (Antibiotics) có tác dụng tiêu diệt hoặc kìm hãm sự phát triển của nhóm sinh vật nào?",
+    "options": [
+      "A. Virus (như cúm, Covid-19).",
+      "B. Vi khuẩn (Bacteria).",
+      "C. Nấm mốc.",
+      "D. Tất cả các vi sinh vật."
+    ],
+    "correct_answer": "B",
+    "explanation": "Kháng sinh chỉ tác dụng lên vi khuẩn (phá vỡ thành tế bào hoặc ngăn tổng hợp protein của vi khuẩn). Kháng sinh KHÔNG tiêu diệt được Virus."
+  },
+  {
+    "id": 67,
+    "question": "Hiện tượng 'Nhật thực' (Solar Eclipse) xảy ra khi 3 thiên thể thẳng hàng theo thứ tự nào?",
+    "options": [
+      "A. Mặt Trời - Trái Đất - Mặt Trăng.",
+      "B. Mặt Trăng - Mặt Trời - Trái Đất.",
+      "C. Mặt Trời - Mặt Trăng - Trái Đất.",
+      "D. Trái Đất - Mặt Trời - Mặt Trăng."
+    ],
+    "correct_answer": "C",
+    "explanation": "Nhật thực là khi Mặt Trăng nằm giữa và che khuất ánh sáng từ Mặt Trời chiếu xuống Trái Đất."
+  },
+  {
+    "id": 68,
+    "question": "Để dập tắt đám cháy do chập điện, biện pháp nào sau đây là AN TOÀN nhất?",
+    "options": [
+      "A. Tạt nước vào đám cháy.",
+      "B. Dùng bình chữa cháy dạng bọt (Foam).",
+      "C. Ngắt cầu dao điện và dùng bình chữa cháy khí CO2 hoặc bột khô.",
+      "D. Dùng chăn ướt trùm lên."
+    ],
+    "correct_answer": "C",
+    "explanation": "Nước và một số loại bọt dẫn điện gây nguy hiểm tính mạng. Phải ngắt điện trước, và dùng khí CO2/bột khô (chất không dẫn điện) để dập lửa."
+  },
+  {
+    "id": 69,
+    "question": "Loài sinh vật nào sau đây được coi là 'Sinh vật chỉ thị' cho môi trường không khí sạch (nhạy cảm với ô nhiễm)?",
+    "options": [
+      "A. Rêu.",
+      "B. Địa y.",
+      "C. Nấm mốc.",
+      "D. Tảo lục."
+    ],
+    "correct_answer": "B",
+    "explanation": "Địa y rất mẫn cảm với khí SO2 trong không khí. Nơi nào có nhiều địa y phát triển, nơi đó không khí rất trong lành."
+  },
+  {
+    "id": 70,
+    "question": "Tại sao đường ray tàu hỏa luôn phải có các khe hở nhỏ ở chỗ nối giữa hai thanh ray?",
+    "options": [
+      "A. Để tiết kiệm sắt.",
+      "B. Để tạo ra tiếng kêu 'xình xịch' vui tai.",
+      "C. Để có không gian cho thanh ray giãn nở vì nhiệt khi trời nắng nóng, tránh bị cong vênh gây trật bánh tàu.",
+      "D. Để dễ dàng tháo lắp khi sửa chữa."
+    ],
+    "correct_answer": "C",
+    "explanation": "Sự nở vì nhiệt của chất rắn rất mạnh. Nếu không có khe hở (khe giãn nở), lực sinh ra khi thanh ray giãn nở có thể bẻ cong đường ray."
+  },
+  {
+    "id": 71,
+    "question": "Trong tên khoa học của con ong mật *Apis cerana*, từ *Apis* chỉ cấp độ phân loại nào?",
+    "options": [
+      "A. Loài (Species).",
+      "B. Chi/Giống (Genus).",
+      "C. Họ (Family).",
+      "D. Bộ (Order)."
+    ],
+    "correct_answer": "B",
+    "explanation": "Theo quy tắc gọi tên kép của Linnaeus: Tên thứ nhất là tên Chi (viết hoa), tên thứ hai là tên Loài (viết thường). *Apis* là tên Chi."
+  },
+  {
+    "id": 72,
+    "question": "Chất nào sau đây là nguyên nhân chính gây ra 'Hiệu ứng nhà kính' làm Trái Đất nóng lên?",
+    "options": [
+      "A. Khí Nitrogen (N2).",
+      "B. Khí Oxygen (O2).",
+      "C. Khí Carbon dioxide (CO2).",
+      "D. Khí Argon."
+    ],
+    "correct_answer": "C",
+    "explanation": "CO2 trong khí quyển có khả năng giữ lại nhiệt bức xạ từ mặt đất, ngăn nó thoát ra vũ trụ, làm nhiệt độ Trái Đất tăng lên."
+  },
+  {
+    "id": 73,
+    "question": "Khi 'Sương đọng trên lá cây vào buổi sáng', quá trình chuyển thể nào đã diễn ra?",
+    "options": [
+      "A. Sự nóng chảy.",
+      "B. Sự bay hơi.",
+      "C. Sự ngưng tụ.",
+      "D. Sự đông đặc."
+    ],
+    "correct_answer": "C",
+    "explanation": "Hơi nước (khí) trong không khí gặp lạnh ngưng tụ thành giọt nước (lỏng) đọng trên lá."
+  },
+  {
+    "id": 74,
+    "question": "Động vật Không xương sống chiếm khoảng bao nhiêu phần trăm tổng số các loài động vật trên Trái Đất?",
+    "options": [
+      "A. Khoảng 10%.",
+      "B. Khoảng 50%.",
+      "C. Khoảng 95%.",
+      "D. Khoảng 30%."
+    ],
+    "correct_answer": "C",
+    "explanation": "Động vật có xương sống (Thú, Chim, Bò sát, Cá...) chỉ là thiểu số. Thế giới động vật chủ yếu là côn trùng, giun, thân mềm... (khoảng 95% trở lên)."
+  },
+  {
+    "id": 75,
+    "question": "Khi một quả bóng rơi từ trên cao xuống đất, sự chuyển hóa năng lượng diễn ra như thế nào (bỏ qua ma sát)?",
+    "options": [
+      "A. Thế năng trọng trường chuyển hóa thành Động năng.",
+      "B. Động năng chuyển hóa thành Thế năng trọng trường.",
+      "C. Nhiệt năng chuyển hóa thành Động năng.",
+      "D. Thế năng đàn hồi chuyển hóa thành Nhiệt năng."
+    ],
+    "correct_answer": "A",
+    "explanation": "Ở trên cao, bóng có thế năng cực đại. Khi rơi, độ cao giảm (Thế năng giảm) và vận tốc tăng (Động năng tăng)."
+  },
+  {
+    "id": 76,
+    "question": "Trong cơ thể người, Vitamin D có vai trò quan trọng nhất là gì?",
+    "options": [
+      "A. Giúp sáng mắt.",
+      "B. Giúp cơ thể hấp thụ Calcium (Canxi) để tạo xương và răng chắc khỏe.",
+      "C. Tăng cường hệ miễn dịch chống cảm cúm.",
+      "D. Giúp đông máu khi bị thương."
+    ],
+    "correct_answer": "B",
+    "explanation": "Thiếu Vitamin D (thường tổng hợp qua da dưới ánh nắng) sẽ dẫn đến còi xương ở trẻ em và loãng xương ở người lớn do không hấp thụ được Canxi."
+  },
+  {
+    "id": 77,
+    "question": "Để tách dầu ăn bị lẫn trong nước, phương pháp nào hiệu quả nhất?",
+    "options": [
+      "A. Lọc qua giấy lọc.",
+      "B. Cô cạn.",
+      "C. Dùng phễu chiết (chiết tách chất lỏng không tan).",
+      "D. Chưng cất."
+    ],
+    "correct_answer": "C",
+    "explanation": "Dầu ăn nhẹ hơn nước và không tan trong nước nên sẽ phân lớp. Dùng phễu chiết để xả nước ở dưới ra, giữ lại dầu ở trên."
+  },
+  {
+    "id": 78,
+    "question": "Tại sao các loài Ốc bươu vàng được coi là sinh vật ngoại lai gây hại?",
+    "options": [
+      "A. Vì chúng có nọc độc.",
+      "B. Vì chúng ăn tàn phá lúa non và cạnh tranh thức ăn, nơi sống với các loài ốc bản địa.",
+      "C. Vì chúng làm ô nhiễm nguồn nước.",
+      "D. Vì chúng ăn thịt các loài cá nhỏ."
+    ],
+    "correct_answer": "B",
+    "explanation": "Ốc bươu vàng sinh sản cực nhanh và ăn tạp (đặc biệt là mạ non), gây mất cân bằng sinh thái nghiêm trọng và thiệt hại nông nghiệp."
+  },
+  {
+    "id": 79,
+    "question": "Vật liệu Nanomet (Nanomaterials) có kích thước cỡ bao nhiêu?",
+    "options": [
+      "A. Cỡ milimét (10^-3 m).",
+      "B. Cỡ micromét (10^-6 m).",
+      "C. Cỡ nanomét (10^-9 m) - tỉ lệ phần tỷ của mét.",
+      "D. Cỡ picomét (10^-12 m)."
+    ],
+    "correct_answer": "C",
+    "explanation": "Nano nghĩa là một phần tỷ. Ở kích thước này, vật liệu thể hiện những tính chất vô cùng đặc biệt (siêu bền, siêu nhẹ, kháng khuẩn...)."
+  },
+  {
+    "id": 80,
+    "question": "Mặt Trăng không tự phát sáng, vậy ánh sáng trăng chúng ta nhìn thấy là từ đâu?",
+    "options": [
+      "A. Do đất đá trên Mặt Trăng phát quang.",
+      "B. Do phản xạ ánh sáng từ Mặt Trời.",
+      "C. Do phản xạ ánh sáng từ Trái Đất.",
+      "D. Do các ngôi sao chiếu vào."
+    ],
+    "correct_answer": "B",
+    "explanation": "Mặt Trăng giống như một chiếc gương khổng lồ phản chiếu ánh sáng Mặt Trời xuống Trái Đất."
+  },
+  {
+    "id": 81,
+    "question": "Tại sao khi rót nước sôi vào cốc thủy tinh dày thì cốc dễ bị nứt vỡ hơn so với cốc thủy tinh mỏng?",
+    "options": [
+      "A. Vì thủy tinh dày chịu nhiệt kém hơn thủy tinh mỏng.",
+      "B. Vì lớp thủy tinh bên trong nóng lên nở ra, trong khi lớp bên ngoài chưa kịp nóng để nở theo, gây ra lực ngăn cản lớn làm vỡ cốc.",
+      "C. Vì cốc dày nặng hơn nên áp lực lên đáy cốc lớn hơn.",
+      "D. Vì cốc mỏng tỏa nhiệt nhanh hơn."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sự dẫn nhiệt của thủy tinh kém. Cốc càng dày thì sự chênh lệch nhiệt độ giữa mặt trong và mặt ngoài càng lớn, dẫn đến sự giãn nở không đồng đều gây nứt vỡ."
+  },
+  {
+    "id": 82,
+    "question": "Trong tự nhiên, Nấm và Vi khuẩn đóng vai trò 'Người dọn vệ sinh' (Decomposers). Điều này có nghĩa là gì?",
+    "options": [
+      "A. Chúng ăn rác thải nhựa.",
+      "B. Chúng phân giải xác sinh vật chết và chất thải hữu cơ thành các chất vô cơ đơn giản trả lại cho môi trường.",
+      "C. Chúng tiêu diệt các loài sâu bọ gây hại.",
+      "D. Chúng làm sạch nguồn nước bằng cách lọc chất độc."
+    ],
+    "correct_answer": "B",
+    "explanation": "Nếu không có vi khuẩn và nấm phân giải, Trái Đất sẽ ngập trong xác chết. Chúng khép kín vòng tuần hoàn vật chất trong tự nhiên."
+  },
+  {
+    "id": 83,
+    "question": "Để dập tắt ngọn nến đang cháy, ta có thể úp một cái cốc lên. Nguyên lý của hành động này dựa trên yếu tố nào của 'Tam giác lửa'?",
+    "options": [
+      "A. Loại bỏ chất cháy (nến).",
+      "B. Hạ thấp nhiệt độ xuống dưới điểm cháy.",
+      "C. Ngăn cách sự tiếp xúc với khí Oxygen.",
+      "D. Tăng nồng độ khí Carbon dioxide."
+    ],
+    "correct_answer": "C",
+    "explanation": "Sự cháy cần Oxy. Úp cốc làm cô lập ngọn lửa với nguồn Oxy bên ngoài, khi Oxy trong cốc cháy hết thì lửa tắt."
+  },
+  {
+    "id": 84,
+    "question": "Dơi (Bats) biết bay nhưng tại sao lại được xếp vào lớp Thú (Mammalia) chứ không phải lớp Chim (Aves)?",
+    "options": [
+      "A. Vì Dơi kiếm ăn vào ban đêm.",
+      "B. Vì Dơi có lông mao, răng phân hóa và nuôi con bằng sữa mẹ.",
+      "C. Vì cánh của Dơi là màng da chứ không phải lông vũ.",
+      "D. Vì Dơi không đẻ trứng."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đặc điểm cơ bản của Thú là có lông mao (chim là lông vũ) và tuyến sữa. Khả năng bay chỉ là đặc điểm thích nghi, không dùng để phân loại lớp."
+  },
+  {
+    "id": 85,
+    "question": "Hiện tượng 'Sương mù' (Fog) thường thấy vào mùa đông thực chất là gì?",
+    "options": [
+      "A. Khí độc thoát ra từ lòng đất.",
+      "B. Hơi nước bay hơi từ mặt đất lên.",
+      "C. Các hạt bụi lơ lửng trong không khí.",
+      "D. Hơi nước ngưng tụ thành các hạt nước li ti lơ lửng ở lớp không khí sát mặt đất."
+    ],
+    "correct_answer": "D",
+    "explanation": "Sương mù là hiện tượng ngưng tụ (từ hơi sang lỏng) ở tầm thấp. Về bản chất nó giống như Mây nhưng nằm sát đất."
+  },
+  {
+    "id": 86,
+    "question": "Năng lượng của Gió có ưu điểm gì vượt trội so với năng lượng từ Than đá?",
+    "options": [
+      "A. Gió luôn thổi ổn định ở mọi thời điểm.",
+      "B. Năng lượng gió là năng lượng tái tạo, sạch và không phát thải khí nhà kính.",
+      "C. Chi phí xây dựng điện gió rất rẻ.",
+      "D. Năng lượng gió dễ lưu trữ và vận chuyển."
+    ],
+    "correct_answer": "B",
+    "explanation": "Tính chất 'Tái tạo' (vô tận) và 'Sạch' (không CO2) là ưu điểm cốt lõi của điện gió so với nhiên liệu hóa thạch."
+  },
+  {
+    "id": 87,
+    "question": "Trong giấy lọc dùng cho thí nghiệm, kích thước các lỗ lọc phải như thế nào so với kích thước hạt chất rắn cần lọc?",
+    "options": [
+      "A. Lớn hơn kích thước hạt chất rắn.",
+      "B. Nhỏ hơn kích thước hạt chất rắn nhưng lớn hơn phân tử nước.",
+      "C. Bằng kích thước hạt chất rắn.",
+      "D. Nhỏ hơn phân tử nước."
+    ],
+    "correct_answer": "B",
+    "explanation": "Nguyên lý của lọc là giữ lại các hạt rắn to hơn lỗ lọc, và cho dung môi (nước) cùng chất tan đi qua."
+  },
+  {
+    "id": 88,
+    "question": "Tại sao vào những ngày hè nắng nóng, đứng dưới bóng cây to lại thấy mát hơn nhiều so với đứng dưới mái tôn?",
+    "options": [
+      "A. Vì lá cây hấp thụ hết nhiệt năng.",
+      "B. Vì lá cây có màu xanh dịu mắt.",
+      "C. Vì ngoài việc che nắng, lá cây còn thoát hơi nước làm hạ nhiệt độ môi trường xung quanh.",
+      "D. Vì cây tạo ra gió."
+    ],
+    "correct_answer": "C",
+    "explanation": "Quá trình thoát hơi nước qua khí khổng ở lá lấy đi nhiệt lượng từ môi trường (giống như toát mồ hôi ở người), tạo ra tiểu khí hậu mát mẻ."
+  },
+  {
+    "id": 89,
+    "question": "Thành phần nào của không khí đóng vai trò chính trong việc duy trì sự cháy và hô hấp?",
+    "options": [
+      "A. Nitrogen.",
+      "B. Oxygen.",
+      "C. Carbon dioxide.",
+      "D. Hơi nước."
+    ],
+    "correct_answer": "B",
+    "explanation": "Oxygen là khí duy nhất duy trì sự cháy và cần thiết cho hô hấp tế bào của hầu hết sinh vật."
+  },
+  {
+    "id": 90,
+    "question": "Đơn vị đo lực là gì?",
+    "options": [
+      "A. Kilogam (kg).",
+      "B. Newton (N).",
+      "C. Mét (m).",
+      "D. Lít (l)."
+    ],
+    "correct_answer": "B",
+    "explanation": "Theo hệ đo lường quốc tế SI, đơn vị của lực là Newton, ký hiệu là N (đặt theo tên nhà bác học Isaac Newton)."
+  },
+  {
+    "id": 91,
+    "question": "Tại sao sữa chua (Yogurt) lại có vị chua và đông tụ lại?",
+    "options": [
+      "A. Do người làm cho thêm giấm và bột vào.",
+      "B. Do vi khuẩn Lactic lên men đường trong sữa thành Axit Lactic, làm biến tính protein sữa gây đông tụ.",
+      "C. Do sữa bị hỏng bởi nấm mốc.",
+      "D. Do để trong tủ lạnh quá lâu."
+    ],
+    "correct_answer": "B",
+    "explanation": "Đây là ứng dụng có lợi của vi khuẩn. Axit lactic tạo vị chua và làm protein Casein trong sữa kết tủa tạo độ sệt."
+  },
+  {
+    "id": 92,
+    "question": "Khi ô tô đang chạy nhanh đột ngột phanh gấp, hành khách trên xe sẽ bị ngả về phía nào? Tại sao?",
+    "options": [
+      "A. Ngả về phía sau do lực ma sát.",
+      "B. Ngả về phía trước do quán tính.",
+      "C. Ngả sang bên phải do lực ly tâm.",
+      "D. Không bị ngả đi đâu cả."
+    ],
+    "correct_answer": "B",
+    "explanation": "Theo quán tính, hành khách đang chuyển động cùng vận tốc với xe. Khi xe dừng đột ngột, người vẫn xu hướng bảo toàn vận tốc cũ nên lao về phía trước."
+  },
+  {
+    "id": 93,
+    "question": "Dung dịch 'Bão hòa' là gì?",
+    "options": [
+      "A. Là dung dịch không thể hòa tan thêm chất tan đó ở một nhiệt độ xác định.",
+      "B. Là dung dịch chứa rất nhiều chất tan.",
+      "C. Là dung dịch có thể hòa tan thêm chất tan vô hạn.",
+      "D. Là dung dịch đậm đặc nhất có thể pha chế bằng mọi cách."
+    ],
+    "correct_answer": "A",
+    "explanation": "Khái niệm bão hòa gắn liền với nhiệt độ. Tại nhiệt độ đó, dung môi đã 'no' và không thể nhận thêm chất tan nữa."
+  },
+  {
+    "id": 94,
+    "question": "Sách Đỏ Việt Nam (Red Data Book) là tài liệu dùng để làm gì?",
+    "options": [
+      "A. Ghi chép lịch sử các cuộc chiến tranh.",
+      "B. Danh sách các loài động, thực vật quý hiếm đang có nguy cơ tuyệt chủng cần được bảo vệ.",
+      "C. Sách hướng dẫn trồng cây thuốc.",
+      "D. Danh sách các loài sinh vật có độc."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sách Đỏ là cơ sở pháp lý và khoa học để bảo tồn đa dạng sinh học, cảnh báo về các loài sắp bị biến mất."
+  },
+  {
+    "id": 95,
+    "question": "Tại sao đi bộ trên sàn đá hoa mới lau lại dễ bị trượt ngã?",
+    "options": [
+      "A. Vì lực ma sát nghỉ giữa chân và sàn quá nhỏ.",
+      "B. Vì lực ma sát trượt quá lớn.",
+      "C. Vì sàn đá hoa hút chân người xuống.",
+      "D. Vì nước làm tăng ma sát."
+    ],
+    "correct_answer": "A",
+    "explanation": "Nước làm giảm độ nhám bề mặt, khiến lực ma sát nghỉ (lực giữ chân bám sàn) giảm đi rất nhiều, không đủ để giữ thăng bằng khi bước đi."
+  },
+  {
+    "id": 96,
+    "question": "Loài thực vật nào sau đây có bộ rễ chứa các vi khuẩn cố định đạm (Rhizobium), giúp cải tạo đất?",
+    "options": [
+      "A. Cây Lúa.",
+      "B. Cây Ngô.",
+      "C. Các cây họ Đậu (Lạc, Đỗ tương).",
+      "D. Cây Xương rồng."
+    ],
+    "correct_answer": "C",
+    "explanation": "Vi khuẩn nốt sần cộng sinh trong rễ cây họ Đậu có khả năng chuyển Nito tự do trong không khí thành đạm cho cây và đất."
+  },
+  {
+    "id": 97,
+    "question": "Khi quan sát bầu trời đêm, tại sao các ngôi sao lại 'lấp lánh' trong khi các hành tinh (như Sao Kim, Sao Mộc) thì sáng ổn định hơn?",
+    "options": [
+      "A. Vì ngôi sao tự phát sáng và ở rất xa, ánh sáng đi qua bầu khí quyển bị khúc xạ liên tục. Hành tinh ở gần hơn và phản xạ ánh sáng nên ít bị ảnh hưởng.",
+      "B. Vì ngôi sao chớp tắt liên tục như đèn nháy.",
+      "C. Vì mắt người bị mỏi khi nhìn xa.",
+      "D. Vì có đám mây bay qua."
+    ],
+    "correct_answer": "A",
+    "explanation": "Ngôi sao là điểm sáng ở quá xa (điểm nguồn). Sự nhiễu loạn khí quyển làm tia sáng mong manh đó bị bẻ cong liên tục gây hiện tượng lấp lánh."
+  },
+  {
+    "id": 98,
+    "question": "Để lấy một cái đinh ghim sắt bị rơi vào khe hẹp và sâu mà tay không với tới được, ta nên dùng dụng cụ gì hiệu quả nhất?",
+    "options": [
+      "A. Một cái que tre có dính nhựa mít.",
+      "B. Một thanh nam châm buộc vào dây.",
+      "C. Đổ nước vào cho đinh nổi lên.",
+      "D. Dùng kìm kẹp."
+    ],
+    "correct_answer": "B",
+    "explanation": "Sắt có tính từ, bị nam châm hút. Đây là cách ứng dụng tính chất từ để giải quyết vấn đề thực tế (đinh sắt chìm trong nước không nổi được)."
+  },
+  {
+    "id": 99,
+    "question": "Nhiên liệu sinh học (như Xăng E5, khí Biogas) được khuyến khích sử dụng vì lý do chính nào?",
+    "options": [
+      "A. Giúp động cơ chạy bốc hơn.",
+      "B. Bảo vệ môi trường, giảm sự phụ thuộc vào nhiên liệu hóa thạch và tận dụng được phế phẩm nông nghiệp.",
+      "C. Giá thành đắt hơn xăng thường.",
+      "D. Không bao giờ gây cháy nổ."
+    ],
+    "correct_answer": "B",
+    "explanation": "Nhiên liệu sinh học thân thiện môi trường hơn và là giải pháp năng lượng bền vững thay thế dần dầu mỏ."
+  },
+  {
+    "id": 100,
+    "question": "Tế bào là đơn vị cơ sở của sự sống. Vậy vật nào sau đây được xem là 'Vật không sống' (Non-living thing)?",
+    "options": [
+      "A. Hạt đậu đang nảy mầm.",
+      "B. Con san hô.",
+      "C. Robot trí tuệ nhân tạo (AI).",
+      "D. Vi khuẩn trong sữa chua."
+    ],
+    "correct_answer": "C",
+    "explanation": "Dù Robot có thể di chuyển, 'nói chuyện' hay tính toán, nó không có cấu tạo tế bào, không trao đổi chất, không sinh sản và lớn lên sinh học -> Vật không sống."
+  }
+]
