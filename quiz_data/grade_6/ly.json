@@ -1,0 +1,1455 @@
+{
+  "easy": [
+    {
+      "id": 1,
+      "question": "Đơn vị đo độ dài hợp pháp ở Việt Nam là gì?",
+      "options": [
+        "A. Mét (m)",
+        "B. Kilôgam (kg)",
+        "C. Giây (s)",
+        "D. Lít (l)"
+      ],
+      "correct_answer": "A",
+      "explanation": "Mét là đơn vị đo độ dài trong hệ đo lường hợp pháp."
+    },
+    {
+      "id": 2,
+      "question": "Dụng cụ nào sau đây dùng để đo khối lượng?",
+      "options": [
+        "A. Thước",
+        "B. Nhiệt kế",
+        "C. Cân",
+        "D. Đồng hồ"
+      ],
+      "correct_answer": "C",
+      "explanation": "Cân là dụng cụ dùng để đo khối lượng của vật."
+    },
+    {
+      "id": 3,
+      "question": "Đơn vị đo thời gian là:",
+      "options": [
+        "A. Mét",
+        "B. Giây",
+        "C. Kilôgam",
+        "D. Độ C"
+      ],
+      "correct_answer": "B",
+      "explanation": "Giây là đơn vị đo thời gian."
+    },
+    {
+      "id": 4,
+      "question": "Dụng cụ dùng để đo nhiệt độ là:",
+      "options": [
+        "A. Cân",
+        "B. Thước",
+        "C. Đồng hồ",
+        "D. Nhiệt kế"
+      ],
+      "correct_answer": "D",
+      "explanation": "Nhiệt kế dùng để đo nhiệt độ của vật."
+    },
+    {
+      "id": 5,
+      "question": "Nước đá thuộc thể nào của chất?",
+      "options": [
+        "A. Thể rắn",
+        "B. Thể lỏng",
+        "C. Thể khí",
+        "D. Thể hơi"
+      ],
+      "correct_answer": "A",
+      "explanation": "Nước đá có hình dạng và thể tích xác định nên là thể rắn."
+    },
+    {
+      "id": 6,
+      "question": "Không khí thuộc thể nào của chất?",
+      "options": [
+        "A. Thể rắn",
+        "B. Thể lỏng",
+        "C. Thể khí",
+        "D. Thể đặc"
+      ],
+      "correct_answer": "C",
+      "explanation": "Không khí là chất ở thể khí."
+    },
+    {
+      "id": 7,
+      "question": "Khi đun nóng nước đến sôi, nước chuyển từ thể lỏng sang:",
+      "options": [
+        "A. Thể rắn",
+        "B. Thể lỏng",
+        "C. Thể khí",
+        "D. Thể đặc"
+      ],
+      "correct_answer": "C",
+      "explanation": "Nước sôi sẽ hóa hơi thành thể khí."
+    },
+    {
+      "id": 8,
+      "question": "Lực được hiểu là:",
+      "options": [
+        "A. Sự nóng lên của vật",
+        "B. Tác dụng đẩy hoặc kéo",
+        "C. Một dạng chất",
+        "D. Một loại năng lượng"
+      ],
+      "correct_answer": "B",
+      "explanation": "Lực là tác dụng đẩy hoặc kéo của vật này lên vật khác."
+    },
+    {
+      "id": 9,
+      "question": "Khi dùng tay đẩy một cánh cửa, tay đã tác dụng:",
+      "options": [
+        "A. Nhiệt",
+        "B. Ánh sáng",
+        "C. Lực",
+        "D. Điện"
+      ],
+      "correct_answer": "C",
+      "explanation": "Tay đã tác dụng lực đẩy lên cánh cửa."
+    },
+    {
+      "id": 10,
+      "question": "Lực có thể làm vật đang đứng yên:",
+      "options": [
+        "A. Phát sáng",
+        "B. Chuyển động",
+        "C. Nóng lên",
+        "D. Tan chảy"
+      ],
+      "correct_answer": "B",
+      "explanation": "Lực có thể làm vật đang đứng yên bắt đầu chuyển động."
+    },
+    {
+      "id": 11,
+      "question": "Khi bóp một quả bóng cao su, quả bóng sẽ:",
+      "options": [
+        "A. Bay hơi",
+        "B. Biến dạng",
+        "C. Tan chảy",
+        "D. Phát sáng"
+      ],
+      "correct_answer": "B",
+      "explanation": "Lực tác dụng có thể làm vật bị biến dạng."
+    },
+    {
+      "id": 12,
+      "question": "Nguồn năng lượng chính cung cấp ánh sáng và nhiệt cho Trái Đất là:",
+      "options": [
+        "A. Mặt Trăng",
+        "B. Gió",
+        "C. Mặt Trời",
+        "D. Núi lửa"
+      ],
+      "correct_answer": "C",
+      "explanation": "Mặt Trời là nguồn năng lượng chính của Trái Đất."
+    },
+    {
+      "id": 13,
+      "question": "Gió được tạo ra chủ yếu do:",
+      "options": [
+        "A. Trái Đất quay",
+        "B. Sự chênh lệch nhiệt độ không khí",
+        "C. Mưa lớn",
+        "D. Sóng biển"
+      ],
+      "correct_answer": "B",
+      "explanation": "Không khí nóng và lạnh khác nhau tạo ra sự chuyển động của không khí gọi là gió."
+    },
+    {
+      "id": 14,
+      "question": "Dạng năng lượng giúp ta nhìn thấy mọi vật là:",
+      "options": [
+        "A. Cơ năng",
+        "B. Nhiệt năng",
+        "C. Điện năng",
+        "D. Năng lượng ánh sáng"
+      ],
+      "correct_answer": "D",
+      "explanation": "Ánh sáng giúp mắt người nhìn thấy các vật."
+    },
+    {
+      "id": 15,
+      "question": "Đơn vị đo khối lượng là:",
+      "options": [
+        "A. Mét",
+        "B. Giây",
+        "C. Kilôgam",
+        "D. Độ C"
+      ],
+      "correct_answer": "C",
+      "explanation": "Kilôgam là đơn vị đo khối lượng."
+    },
+    {
+      "id": 16,
+      "question": "Thể lỏng có đặc điểm nào sau đây?",
+      "options": [
+        "A. Có hình dạng cố định",
+        "B. Không có thể tích",
+        "C. Có thể tích xác định",
+        "D. Không chảy được"
+      ],
+      "correct_answer": "C",
+      "explanation": "Thể lỏng có thể tích xác định nhưng hình dạng thay đổi."
+    },
+    {
+      "id": 17,
+      "question": "Khi thả một quả táo rơi xuống đất, lực nào tác dụng lên quả táo?",
+      "options": [
+        "A. Lực đẩy",
+        "B. Lực kéo tay",
+        "C. Lực đàn hồi",
+        "D. Lực hút của Trái Đất"
+      ],
+      "correct_answer": "D",
+      "explanation": "Trái Đất hút các vật về phía mình bằng trọng lực."
+    },
+    {
+      "id": 18,
+      "question": "Nhiệt độ dùng để đo:",
+      "options": [
+        "A. Độ dài",
+        "B. Độ nóng lạnh",
+        "C. Khối lượng",
+        "D. Thời gian"
+      ],
+      "correct_answer": "B",
+      "explanation": "Nhiệt độ cho biết mức độ nóng hay lạnh của vật."
+    },
+    {
+      "id": 19,
+      "question": "Quá trình nước đá tan thành nước gọi là:",
+      "options": [
+        "A. Đông đặc",
+        "B. Bay hơi",
+        "C. Nóng chảy",
+        "D. Ngưng tụ"
+      ],
+      "correct_answer": "C",
+      "explanation": "Rắn chuyển sang lỏng gọi là nóng chảy."
+    },
+    {
+      "id": 20,
+      "question": "Dụng cụ dùng để đo thời gian là:",
+      "options": [
+        "A. Thước",
+        "B. Cân",
+        "C. Nhiệt kế",
+        "D. Đồng hồ"
+      ],
+      "correct_answer": "D",
+      "explanation": "Đồng hồ dùng để đo thời gian."
+    },
+    {
+      "id": 21,
+      "question": "Lực có thể làm vật đang chuyển động:",
+      "options": [
+        "A. Đổi màu",
+        "B. Dừng lại hoặc đổi hướng",
+        "C. Phát sáng",
+        "D. Tan chảy"
+      ],
+      "correct_answer": "B",
+      "explanation": "Lực có thể làm vật thay đổi trạng thái chuyển động."
+    },
+    {
+      "id": 22,
+      "question": "Nguồn năng lượng nào sau đây là năng lượng tái tạo?",
+      "options": [
+        "A. Than đá",
+        "B. Dầu mỏ",
+        "C. Gió",
+        "D. Khí đốt"
+      ],
+      "correct_answer": "C",
+      "explanation": "Gió là nguồn năng lượng tái tạo."
+    },
+    {
+      "id": 23,
+      "question": "Khi Mặt Trời chiếu vào Trái Đất, Trái Đất nhận được:",
+      "options": [
+        "A. Âm thanh",
+        "B. Khối lượng",
+        "C. Lực",
+        "D. Ánh sáng và nhiệt"
+      ],
+      "correct_answer": "D",
+      "explanation": "Mặt Trời cung cấp ánh sáng và nhiệt cho Trái Đất."
+    },
+    {
+      "id": 24,
+      "question": "Không khí nóng so với không khí lạnh thì:",
+      "options": [
+        "A. Nặng hơn",
+        "B. Nhẹ hơn",
+        "C. Bằng nhau",
+        "D. Không xác định"
+      ],
+      "correct_answer": "B",
+      "explanation": "Không khí nóng nở ra nên nhẹ hơn."
+    },
+    {
+      "id": 25,
+      "question": "Nhiệt kế thường sử dụng thang đo nào?",
+      "options": [
+        "A. Mét",
+        "B. Kilôgam",
+        "C. Giây",
+        "D. Độ C"
+      ],
+      "correct_answer": "D",
+      "explanation": "Nhiệt độ thường được đo theo độ C."
+    },
+    {
+      "id": 26,
+      "question": "Khi kéo co, hai đội tác dụng lên dây một lực:",
+      "options": [
+        "A. Đẩy",
+        "B. Kéo",
+        "C. Ma sát",
+        "D. Đàn hồi"
+      ],
+      "correct_answer": "B",
+      "explanation": "Hai đội cùng kéo dây về phía mình."
+    },
+    {
+      "id": 27,
+      "question": "Năng lượng lấy từ bên trong Trái Đất gọi là:",
+      "options": [
+        "A. Năng lượng gió",
+        "B. Năng lượng mặt trời",
+        "C. Năng lượng địa nhiệt",
+        "D. Năng lượng nước"
+      ],
+      "correct_answer": "C",
+      "explanation": "Địa nhiệt là năng lượng từ lòng đất."
+    },
+    {
+      "id": 28,
+      "question": "Thể nào của chất không có hình dạng và thể tích xác định?",
+      "options": [
+        "A. Thể rắn",
+        "B. Thể lỏng",
+        "C. Thể khí",
+        "D. Thể đặc"
+      ],
+      "correct_answer": "C",
+      "explanation": "Chất khí không có hình dạng và thể tích xác định."
+    },
+    {
+      "id": 29,
+      "question": "Lực ma sát xuất hiện khi:",
+      "options": [
+        "A. Hai vật tiếp xúc và trượt lên nhau",
+        "B. Vật đứng yên",
+        "C. Vật phát sáng",
+        "D. Vật bay trong không khí"
+      ],
+      "correct_answer": "A",
+      "explanation": "Lực ma sát xuất hiện khi hai bề mặt tiếp xúc trượt lên nhau."
+    },
+    {
+      "id": 30,
+      "question": "Năng lượng giúp con người vận động cơ thể là:",
+      "options": [
+        "A. Điện năng",
+        "B. Cơ năng",
+        "C. Quang năng",
+        "D. Nhiệt năng"
+      ],
+      "correct_answer": "B",
+      "explanation": "Cơ năng liên quan đến chuyển động và vận động."
+    }
+  ],
+  "medium": [
+    {
+      "id": 31,
+      "question": "Khi đo chiều dài một cuốn sách bằng thước có giới hạn đo 20 cm, cuốn sách dài khoảng 23 cm. Cách đo nào là đúng?",
+      "options": [
+        "A. Đo hai lần rồi cộng kết quả",
+        "B. Ước lượng thêm 3 cm",
+        "C. Đo một lần rồi nhân đôi",
+        "D. Đổi sang thước khác bất kỳ"
+      ],
+      "correct_answer": "A",
+      "explanation": "Có thể đo nối tiếp nhiều lần rồi cộng các kết quả đo."
+    },
+    {
+      "id": 32,
+      "question": "Một vật đang nằm yên bắt đầu chuyển động khi:",
+      "options": [
+        "A. Không còn lực tác dụng",
+        "B. Trọng lực của vật giảm",
+        "C. Có lực tác dụng lên vật",
+        "D. Vật tự sinh ra lực"
+      ],
+      "correct_answer": "C",
+      "explanation": "Vật chỉ thay đổi trạng thái chuyển động khi có lực tác dụng."
+    },
+    {
+      "id": 33,
+      "question": "Trong các hiện tượng sau, hiện tượng nào liên quan đến sự ngưng tụ?",
+      "options": [
+        "A. Nước đá tan",
+        "B. Hơi nước đọng thành giọt trên kính",
+        "C. Nước sôi mạnh",
+        "D. Kim loại nóng chảy"
+      ],
+      "correct_answer": "B",
+      "explanation": "Ngưng tụ là quá trình từ thể khí sang thể lỏng."
+    },
+    {
+      "id": 34,
+      "question": "Đơn vị đo thể tích chất lỏng thường dùng là:",
+      "options": [
+        "A. Kilogam",
+        "B. Mét",
+        "C. Giây",
+        "D. Lít"
+      ],
+      "correct_answer": "D",
+      "explanation": "Lít là đơn vị thường dùng để đo thể tích chất lỏng."
+    },
+    {
+      "id": 35,
+      "question": "Lực nào sau đây làm quả táo rơi từ trên cây xuống?",
+      "options": [
+        "A. Trọng lực",
+        "B. Lực đàn hồi",
+        "C. Lực ma sát",
+        "D. Lực đẩy"
+      ],
+      "correct_answer": "A",
+      "explanation": "Trọng lực của Trái Đất hút quả táo xuống."
+    },
+    {
+      "id": 36,
+      "question": "Khi ta kéo giãn một lò xo, lực xuất hiện trong lò xo là:",
+      "options": [
+        "A. Lực hấp dẫn",
+        "B. Lực đàn hồi",
+        "C. Lực ma sát",
+        "D. Lực từ"
+      ],
+      "correct_answer": "B",
+      "explanation": "Lò xo bị biến dạng sinh ra lực đàn hồi."
+    },
+    {
+      "id": 37,
+      "question": "Nhiệt độ thấp nhất trong thang Celsius là:",
+      "options": [
+        "A. 100°C",
+        "B. 50°C",
+        "C. 10°C",
+        "D. 0°C"
+      ],
+      "correct_answer": "D",
+      "explanation": "Trong chương trình lớp 6, mốc nhiệt độ thấp nhất thường dùng là 0°C."
+    },
+    {
+      "id": 38,
+      "question": "Chất nào sau đây có hình dạng và thể tích không đổi?",
+      "options": [
+        "A. Không khí",
+        "B. Nước",
+        "C. Đá",
+        "D. Dầu ăn"
+      ],
+      "correct_answer": "C",
+      "explanation": "Chất rắn như đá có hình dạng và thể tích xác định."
+    },
+    {
+      "id": 39,
+      "question": "Khi đạp xe lên dốc, người đạp phải tác dụng lực lớn hơn là do:",
+      "options": [
+        "A. Trọng lực cản trở chuyển động",
+        "B. Ma sát giảm",
+        "C. Xe nhẹ hơn",
+        "D. Không khí nóng lên"
+      ],
+      "correct_answer": "A",
+      "explanation": "Thành phần trọng lực cản trở chuyển động khi lên dốc."
+    },
+    {
+      "id": 40,
+      "question": "Để đo thời gian một tiết học, đơn vị đo thích hợp nhất là:",
+      "options": [
+        "A. Giây",
+        "B. Phần trăm",
+        "C. Kilogam",
+        "D. Phút"
+      ],
+      "correct_answer": "D",
+      "explanation": "Thời gian một tiết học thường tính bằng phút."
+    },
+    {
+      "id": 41,
+      "question": "Khi trời lạnh, người ta thường mặc áo dày để:",
+      "options": [
+        "A. Tạo ra nhiệt mới",
+        "B. Hạn chế sự truyền nhiệt ra môi trường",
+        "C. Làm cơ thể nặng hơn",
+        "D. Giảm trọng lực"
+      ],
+      "correct_answer": "B",
+      "explanation": "Áo dày giúp hạn chế sự truyền nhiệt từ cơ thể ra ngoài."
+    },
+    {
+      "id": 42,
+      "question": "Dạng năng lượng tích trữ trong pin là:",
+      "options": [
+        "A. Nhiệt năng",
+        "B. Cơ năng",
+        "C. Hóa năng",
+        "D. Quang năng"
+      ],
+      "correct_answer": "C",
+      "explanation": "Pin tích trữ năng lượng dưới dạng hóa năng."
+    },
+    {
+      "id": 43,
+      "question": "Khi thả một quả bóng xuống đất, quả bóng bật lên là do:",
+      "options": [
+        "A. Lực đàn hồi của bóng",
+        "B. Trọng lực tăng",
+        "C. Ma sát biến mất",
+        "D. Không khí đẩy lên"
+      ],
+      "correct_answer": "A",
+      "explanation": "Bóng bị nén và lực đàn hồi làm bóng bật lên."
+    },
+    {
+      "id": 44,
+      "question": "Để đo thể tích của một hòn đá nhỏ, ta nên dùng:",
+      "options": [
+        "A. Thước mét",
+        "B. Cân",
+        "C. Nhiệt kế",
+        "D. Bình chia độ"
+      ],
+      "correct_answer": "D",
+      "explanation": "Dùng phương pháp dời chỗ nước trong bình chia độ."
+    },
+    {
+      "id": 45,
+      "question": "Lực ma sát có ích trong trường hợp nào sau đây?",
+      "options": [
+        "A. Làm mòn lốp xe",
+        "B. Giúp ta đi lại không bị trượt",
+        "C. Làm nóng máy móc",
+        "D. Cản trở chuyển động"
+      ],
+      "correct_answer": "B",
+      "explanation": "Ma sát giúp chân bám đất khi đi lại."
+    },
+    {
+      "id": 46,
+      "question": "Khi đun nước, nhiệt năng của nước tăng là do:",
+      "options": [
+        "A. Nước tự sinh nhiệt",
+        "B. Có lực tác dụng",
+        "C. Nước nhận nhiệt từ bếp",
+        "D. Nước đổi màu"
+      ],
+      "correct_answer": "C",
+      "explanation": "Nước nhận nhiệt từ nguồn nhiệt nên nhiệt năng tăng."
+    },
+    {
+      "id": 47,
+      "question": "Một vật chuyển động thẳng đều nghĩa là:",
+      "options": [
+        "A. Vận tốc không đổi",
+        "B. Vận tốc tăng dần",
+        "C. Vận tốc giảm dần",
+        "D. Đứng yên"
+      ],
+      "correct_answer": "A",
+      "explanation": "Chuyển động thẳng đều có vận tốc không đổi."
+    },
+    {
+      "id": 48,
+      "question": "Đơn vị đo khối lượng trong hệ SI là:",
+      "options": [
+        "A. Gam",
+        "B. Tấn",
+        "C. Miligam",
+        "D. Kilogam"
+      ],
+      "correct_answer": "D",
+      "explanation": "Kilogam là đơn vị khối lượng trong hệ SI."
+    },
+    {
+      "id": 49,
+      "question": "Khi kéo vật trên mặt bàn, lực ma sát phụ thuộc vào:",
+      "options": [
+        "A. Thể tích vật",
+        "B. Mặt tiếp xúc và lực ép",
+        "C. Nhiệt độ môi trường",
+        "D. Màu sắc vật"
+      ],
+      "correct_answer": "B",
+      "explanation": "Ma sát phụ thuộc vào bề mặt tiếp xúc và lực ép."
+    },
+    {
+      "id": 50,
+      "question": "Năng lượng giúp cây xanh sinh trưởng là:",
+      "options": [
+        "A. Điện năng",
+        "B. Cơ năng",
+        "C. Quang năng",
+        "D. Hóa năng"
+      ],
+      "correct_answer": "C",
+      "explanation": "Cây sử dụng ánh sáng Mặt Trời để quang hợp."
+    },
+    {
+      "id": 51,
+      "question": "Khi một vật bị nén, thể tích của vật thường:",
+      "options": [
+        "A. Giảm",
+        "B. Tăng",
+        "C. Không đổi",
+        "D. Biến mất"
+      ],
+      "correct_answer": "A",
+      "explanation": "Nén làm thể tích vật giảm."
+    },
+    {
+      "id": 52,
+      "question": "Hiện tượng sương đọng trên lá vào buổi sáng là do:",
+      "options": [
+        "A. Nóng chảy",
+        "B. Hóa hơi",
+        "C. Đông đặc",
+        "D. Ngưng tụ"
+      ],
+      "correct_answer": "D",
+      "explanation": "Hơi nước trong không khí ngưng tụ thành giọt nước."
+    },
+    {
+      "id": 53,
+      "question": "Lực nào sau đây không phải là lực tiếp xúc?",
+      "options": [
+        "A. Lực ma sát",
+        "B. Trọng lực",
+        "C. Lực đàn hồi",
+        "D. Lực đẩy"
+      ],
+      "correct_answer": "B",
+      "explanation": "Trọng lực tác dụng từ xa, không cần tiếp xúc."
+    },
+    {
+      "id": 54,
+      "question": "Để đo nhiệt độ không khí ngoài trời, ta dùng:",
+      "options": [
+        "A. Cân",
+        "B. Đồng hồ",
+        "C. Nhiệt kế",
+        "D. Thước"
+      ],
+      "correct_answer": "C",
+      "explanation": "Nhiệt kế dùng để đo nhiệt độ."
+    },
+    {
+      "id": 55,
+      "question": "Khi Mặt Trời lặn, bầu trời tối dần là do:",
+      "options": [
+        "A. Thiếu quang năng",
+        "B. Thiếu điện năng",
+        "C. Thiếu hóa năng",
+        "D. Thiếu cơ năng"
+      ],
+      "correct_answer": "A",
+      "explanation": "Không còn ánh sáng Mặt Trời chiếu tới."
+    },
+    {
+      "id": 56,
+      "question": "Một vật đứng yên trên mặt bàn nhẵn là do:",
+      "options": [
+        "A. Không chịu lực nào",
+        "B. Chỉ chịu lực ma sát",
+        "C. Chỉ chịu trọng lực",
+        "D. Các lực tác dụng cân bằng"
+      ],
+      "correct_answer": "D",
+      "explanation": "Trọng lực và lực đỡ cân bằng nhau."
+    },
+    {
+      "id": 57,
+      "question": "Chất nào sau đây dễ nén nhất?",
+      "options": [
+        "A. Nước",
+        "B. Không khí",
+        "C. Gỗ",
+        "D. Đá"
+      ],
+      "correct_answer": "B",
+      "explanation": "Chất khí dễ bị nén hơn chất lỏng và chất rắn."
+    },
+    {
+      "id": 58,
+      "question": "Khi kéo co, lực hai đội tác dụng lên dây là:",
+      "options": [
+        "A. Cùng phương, cùng chiều",
+        "B. Vuông góc nhau",
+        "C. Cùng phương, ngược chiều",
+        "D. Không xác định"
+      ],
+      "correct_answer": "C",
+      "explanation": "Hai lực cùng phương nhưng ngược chiều nhau."
+    },
+    {
+      "id": 59,
+      "question": "Đơn vị đo thời gian nhỏ hơn phút là:",
+      "options": [
+        "A. Giây",
+        "B. Giờ",
+        "C. Ngày",
+        "D. Tháng"
+      ],
+      "correct_answer": "A",
+      "explanation": "Giây là đơn vị nhỏ hơn phút."
+    },
+    {
+      "id": 60,
+      "question": "Nguồn năng lượng không tái tạo là:",
+      "options": [
+        "A. Năng lượng gió",
+        "B. Năng lượng Mặt Trời",
+        "C. Năng lượng nước chảy",
+        "D. Than đá"
+      ],
+      "correct_answer": "D",
+      "explanation": "Than đá là nguồn năng lượng không tái tạo."
+    }
+  ],
+  "hard": [
+    {
+      "id": 61,
+      "question": "Một thước có GHĐ 30 cm, ĐCNN 1 mm. Khi đo một vật, kết quả đọc được là 12,4 cm. Sai số dụng cụ lớn nhất của phép đo là:",
+      "options": [
+        "A. 0,01 cm",
+        "B. 0,05 cm",
+        "C. 0,1 cm",
+        "D. 1 cm"
+      ],
+      "correct_answer": "B",
+      "explanation": "Sai số dụng cụ lớn nhất bằng nửa ĐCNN: 1 mm = 0,1 cm ⇒ sai số = 0,05 cm."
+    },
+    {
+      "id": 62,
+      "question": "Hai lực cùng tác dụng lên một vật đang đứng yên. Vật vẫn đứng yên khi:",
+      "options": [
+        "A. Hai lực cùng chiều",
+        "B. Hai lực có độ lớn bằng nhau",
+        "C. Hai lực cân bằng nhau",
+        "D. Hai lực bất kỳ"
+      ],
+      "correct_answer": "C",
+      "explanation": "Hai lực cân bằng là hai lực cùng phương, ngược chiều và có độ lớn bằng nhau."
+    },
+    {
+      "id": 63,
+      "question": "Một vật có khối lượng 2 kg, thể tích 1 lít. Khối lượng riêng của vật là:",
+      "options": [
+        "A. 0,5 kg/l",
+        "B. 1 kg/l",
+        "C. 2 kg/l",
+        "D. 3 kg/l"
+      ],
+      "correct_answer": "C",
+      "explanation": "Khối lượng riêng = khối lượng / thể tích = 2 / 1 = 2 kg/l."
+    },
+    {
+      "id": 64,
+      "question": "Khi nhiệt độ của nước tăng từ 20°C lên 80°C thì:",
+      "options": [
+        "A. Khối lượng nước tăng",
+        "B. Thể tích nước giảm",
+        "C. Nhiệt năng của nước tăng",
+        "D. Nước chuyển sang thể khí"
+      ],
+      "correct_answer": "C",
+      "explanation": "Nhiệt độ tăng làm nhiệt năng của nước tăng."
+    },
+    {
+      "id": 65,
+      "question": "Một vật rơi từ trên cao xuống, trong quá trình rơi thì:",
+      "options": [
+        "A. Vận tốc giảm dần",
+        "B. Vận tốc không đổi",
+        "C. Vận tốc tăng dần",
+        "D. Vật đứng yên"
+      ],
+      "correct_answer": "C",
+      "explanation": "Do tác dụng của trọng lực, vật rơi nhanh dần."
+    },
+    {
+      "id": 66,
+      "question": "Đặt một cốc nước nóng trong phòng lạnh, hiện tượng truyền nhiệt chủ yếu xảy ra là:",
+      "options": [
+        "A. Dẫn nhiệt",
+        "B. Đối lưu",
+        "C. Bức xạ nhiệt",
+        "D. Không truyền nhiệt"
+      ],
+      "correct_answer": "B",
+      "explanation": "Trong chất lỏng và không khí, truyền nhiệt chủ yếu bằng đối lưu."
+    },
+    {
+      "id": 67,
+      "question": "Khi treo một vật vào lò xo, lò xo dãn ra. Lực gây ra sự dãn đó là:",
+      "options": [
+        "A. Lực đàn hồi",
+        "B. Lực ma sát",
+        "C. Trọng lực của vật",
+        "D. Lực đẩy Ác-si-mét"
+      ],
+      "correct_answer": "C",
+      "explanation": "Trọng lực của vật kéo lò xo dãn ra."
+    },
+    {
+      "id": 68,
+      "question": "Một vật chìm trong nước chứng tỏ:",
+      "options": [
+        "A. Khối lượng riêng của vật nhỏ hơn nước",
+        "B. Khối lượng riêng của vật bằng nước",
+        "C. Khối lượng riêng của vật lớn hơn nước",
+        "D. Vật không chịu lực đẩy"
+      ],
+      "correct_answer": "C",
+      "explanation": "Vật chìm khi khối lượng riêng lớn hơn chất lỏng."
+    },
+    {
+      "id": 69,
+      "question": "Dụng cụ nào sau đây không dùng để đo trực tiếp?",
+      "options": [
+        "A. Thước mét",
+        "B. Nhiệt kế",
+        "C. Bình chia độ",
+        "D. Đồng hồ treo tường"
+      ],
+      "correct_answer": "D",
+      "explanation": "Đồng hồ treo tường không phải dụng cụ đo chuyên dùng trong thí nghiệm."
+    },
+    {
+      "id": 70,
+      "question": "Khi đi xe đạp trên đường trơn, người ta thường đi chậm lại vì:",
+      "options": [
+        "A. Trọng lực tăng",
+        "B. Lực ma sát giảm",
+        "C. Xe nặng hơn",
+        "D. Không khí cản mạnh hơn"
+      ],
+      "correct_answer": "B",
+      "explanation": "Đường trơn làm ma sát giảm, dễ trượt ngã."
+    },
+    {
+      "id": 71,
+      "question": "Một vật có thể tích 2 lít, khối lượng 1 kg. Khối lượng riêng của vật là:",
+      "options": [
+        "A. 0,2 kg/l",
+        "B. 0,5 kg/l",
+        "C. 1 kg/l",
+        "D. 2 kg/l"
+      ],
+      "correct_answer": "B",
+      "explanation": "Khối lượng riêng = 1 / 2 = 0,5 kg/l."
+    },
+    {
+      "id": 72,
+      "question": "Khi đẩy một chiếc bàn trên sàn nhà, lực nào cản trở chuyển động của bàn?",
+      "options": [
+        "A. Trọng lực",
+        "B. Lực đỡ",
+        "C. Lực ma sát",
+        "D. Lực kéo"
+      ],
+      "correct_answer": "C",
+      "explanation": "Lực ma sát giữa bàn và sàn cản trở chuyển động."
+    },
+    {
+      "id": 73,
+      "question": "Trong các quá trình sau, quá trình nào làm giảm nhiệt năng của vật?",
+      "options": [
+        "A. Đun nóng",
+        "B. Cọ xát",
+        "C. Truyền nhiệt ra ngoài",
+        "D. Bị ép mạnh"
+      ],
+      "correct_answer": "C",
+      "explanation": "Khi truyền nhiệt ra ngoài, vật mất nhiệt năng."
+    },
+    {
+      "id": 74,
+      "question": "Một quả bóng đang nằm yên trên mặt đất. Lực nào tác dụng lên bóng?",
+      "options": [
+        "A. Chỉ có trọng lực",
+        "B. Chỉ có lực đỡ",
+        "C. Trọng lực và lực đỡ",
+        "D. Không chịu lực nào"
+      ],
+      "correct_answer": "C",
+      "explanation": "Bóng chịu trọng lực và lực đỡ của mặt đất."
+    },
+    {
+      "id": 75,
+      "question": "Khi gió thổi làm cánh buồm căng lên, gió đã:",
+      "options": [
+        "A. Làm buồm nóng lên",
+        "B. Làm thay đổi khối lượng buồm",
+        "C. Tác dụng lực làm buồm biến dạng",
+        "D. Làm buồm đứng yên"
+      ],
+      "correct_answer": "C",
+      "explanation": "Lực của gió làm buồm bị biến dạng."
+    },
+    {
+      "id": 76,
+      "question": "Nhiệt độ sôi của nước tinh khiết ở áp suất thường là:",
+      "options": [
+        "A. 0°C",
+        "B. 50°C",
+        "C. 80°C",
+        "D. 100°C"
+      ],
+      "correct_answer": "D",
+      "explanation": "Nước sôi ở 100°C trong điều kiện thường."
+    },
+    {
+      "id": 77,
+      "question": "Một vật nổi trên mặt nước khi:",
+      "options": [
+        "A. Khối lượng riêng của vật lớn hơn nước",
+        "B. Khối lượng riêng của vật bằng nước",
+        "C. Khối lượng riêng của vật nhỏ hơn nước",
+        "D. Vật không chịu trọng lực"
+      ],
+      "correct_answer": "C",
+      "explanation": "Vật nổi khi khối lượng riêng nhỏ hơn chất lỏng."
+    },
+    {
+      "id": 78,
+      "question": "Khi cầm một cốc nước đá, tay ta thấy lạnh là do:",
+      "options": [
+        "A. Tay truyền nhiệt cho cốc",
+        "B. Cốc truyền nhiệt cho tay",
+        "C. Không có sự truyền nhiệt",
+        "D. Tay tự sinh nhiệt"
+      ],
+      "correct_answer": "A",
+      "explanation": "Nhiệt truyền từ tay (nóng hơn) sang cốc (lạnh hơn)."
+    },
+    {
+      "id": 79,
+      "question": "Một lực được biểu diễn bằng mũi tên. Độ dài mũi tên cho biết:",
+      "options": [
+        "A. Phương của lực",
+        "B. Chiều của lực",
+        "C. Điểm đặt của lực",
+        "D. Độ lớn của lực"
+      ],
+      "correct_answer": "D",
+      "explanation": "Độ dài mũi tên biểu diễn độ lớn của lực."
+    },
+    {
+      "id": 80,
+      "question": "Khi thả tay khỏi một quả táo đang cầm, quả táo rơi xuống vì:",
+      "options": [
+        "A. Lực đẩy của tay",
+        "B. Lực đàn hồi",
+        "C. Trọng lực của Trái Đất",
+        "D. Lực ma sát"
+      ],
+      "correct_answer": "C",
+      "explanation": "Trọng lực của Trái Đất hút quả táo xuống."
+    },
+
+    {
+      "id": 81,
+      "question": "Hai vật có cùng thể tích nhưng khối lượng khác nhau. Vật nào nặng hơn thì:",
+      "options": [
+        "A. Có khối lượng riêng nhỏ hơn",
+        "B. Có khối lượng riêng lớn hơn",
+        "C. Có nhiệt độ cao hơn",
+        "D. Có lực ma sát lớn hơn"
+      ],
+      "correct_answer": "B",
+      "explanation": "Khối lượng riêng = khối lượng / thể tích."
+    },
+    {
+      "id": 82,
+      "question": "Khi kéo một thùng hàng trên sàn, muốn giảm lực kéo cần:",
+      "options": [
+        "A. Tăng khối lượng thùng",
+        "B. Làm sàn nhám hơn",
+        "C. Làm sàn trơn hơn",
+        "D. Kéo thẳng đứng lên"
+      ],
+      "correct_answer": "C",
+      "explanation": "Bề mặt trơn làm lực ma sát giảm."
+    },
+    {
+      "id": 83,
+      "question": "Một vật đang chuyển động mà không còn lực tác dụng thì vật sẽ:",
+      "options": [
+        "A. Dừng lại ngay",
+        "B. Chuyển động nhanh dần",
+        "C. Chuyển động chậm dần",
+        "D. Chuyển động thẳng đều"
+      ],
+      "correct_answer": "D",
+      "explanation": "Theo quán tính, vật chuyển động thẳng đều."
+    },
+    {
+      "id": 84,
+      "question": "Hiện tượng nào chứng tỏ không khí có thể tích?",
+      "options": [
+        "A. Không khí không nhìn thấy",
+        "B. Không khí có khối lượng",
+        "C. Không khí bị nén trong bơm",
+        "D. Không khí gây ra gió"
+      ],
+      "correct_answer": "C",
+      "explanation": "Không khí bị nén chứng tỏ có thể tích."
+    },
+    {
+      "id": 85,
+      "question": "Khi đun nóng một thanh kim loại, thanh kim loại dài ra là do:",
+      "options": [
+        "A. Kim loại tăng khối lượng",
+        "B. Kim loại nở vì nhiệt",
+        "C. Kim loại đổi chất",
+        "D. Kim loại nóng chảy"
+      ],
+      "correct_answer": "B",
+      "explanation": "Chất rắn nở ra khi nóng lên."
+    },
+    {
+      "id": 86,
+      "question": "Một vật có khối lượng riêng lớn hơn nước nhưng vẫn nổi trên mặt nước là vì:",
+      "options": [
+        "A. Vật có hình dạng rỗng",
+        "B. Nước đẩy yếu",
+        "C. Trọng lực nhỏ",
+        "D. Nước nhẹ hơn"
+      ],
+      "correct_answer": "A",
+      "explanation": "Vật rỗng có khối lượng riêng trung bình nhỏ hơn nước."
+    },
+    {
+      "id": 87,
+      "question": "Trong các dạng năng lượng sau, dạng nào gắn liền với chuyển động?",
+      "options": [
+        "A. Nhiệt năng",
+        "B. Hóa năng",
+        "C. Quang năng",
+        "D. Cơ năng"
+      ],
+      "correct_answer": "D",
+      "explanation": "Cơ năng liên quan trực tiếp đến chuyển động."
+    },
+    {
+      "id": 88,
+      "question": "Khi tay ta kéo một vật mà vật không chuyển động, điều đó chứng tỏ:",
+      "options": [
+        "A. Không có lực tác dụng",
+        "B. Lực kéo nhỏ hơn lực cản",
+        "C. Vật không chịu ma sát",
+        "D. Trọng lực biến mất"
+      ],
+      "correct_answer": "B",
+      "explanation": "Lực kéo chưa thắng được lực cản."
+    },
+    {
+      "id": 89,
+      "question": "Nhiệt kế hoạt động dựa trên hiện tượng:",
+      "options": [
+        "A. Hóa hơi",
+        "B. Đông đặc",
+        "C. Nở vì nhiệt",
+        "D. Ngưng tụ"
+      ],
+      "correct_answer": "C",
+      "explanation": "Chất lỏng trong nhiệt kế nở vì nhiệt."
+    },
+    {
+      "id": 90,
+      "question": "Khi đun nước trong ấm, hơi nước bay lên là do:",
+      "options": [
+        "A. Đông đặc",
+        "B. Nóng chảy",
+        "C. Ngưng tụ",
+        "D. Hóa hơi"
+      ],
+      "correct_answer": "D",
+      "explanation": "Nước chuyển từ thể lỏng sang thể khí."
+    },
+    {
+      "id": 91,
+      "question": "Một vật đứng yên trên mặt đất là do:",
+      "options": [
+        "A. Không chịu tác dụng lực",
+        "B. Các lực tác dụng cân bằng",
+        "C. Chỉ chịu trọng lực",
+        "D. Chỉ chịu lực đỡ"
+      ],
+      "correct_answer": "B",
+      "explanation": "Trọng lực và lực đỡ cân bằng nhau."
+    },
+    {
+      "id": 92,
+      "question": "Muốn đo thể tích của một vật không thấm nước, ta dùng:",
+      "options": [
+        "A. Thước mét",
+        "B. Cân",
+        "C. Bình chia độ",
+        "D. Đồng hồ"
+      ],
+      "correct_answer": "C",
+      "explanation": "Dùng phương pháp dời chỗ nước."
+    },
+    {
+      "id": 93,
+      "question": "Khi xe đang chạy mà phanh gấp, người trên xe bị chúi về phía trước là do:",
+      "options": [
+        "A. Trọng lực",
+        "B. Ma sát tăng",
+        "C. Quán tính",
+        "D. Lực đàn hồi"
+      ],
+      "correct_answer": "C",
+      "explanation": "Do quán tính, cơ thể có xu hướng giữ trạng thái chuyển động."
+    },
+    {
+      "id": 94,
+      "question": "Nhiệt năng của một vật phụ thuộc vào:",
+      "options": [
+        "A. Khối lượng và nhiệt độ",
+        "B. Chỉ khối lượng",
+        "C. Chỉ nhiệt độ",
+        "D. Màu sắc vật"
+      ],
+      "correct_answer": "A",
+      "explanation": "Nhiệt năng phụ thuộc vào khối lượng và nhiệt độ."
+    },
+    {
+      "id": 95,
+      "question": "Một vật chìm trong nước nhưng nổi trong dầu chứng tỏ:",
+      "options": [
+        "A. Khối lượng riêng của vật nhỏ hơn nước",
+        "B. Khối lượng riêng của vật lớn hơn dầu",
+        "C. Khối lượng riêng của vật lớn hơn nước nhưng nhỏ hơn dầu",
+        "D. Khối lượng riêng của vật bằng nước"
+      ],
+      "correct_answer": "C",
+      "explanation": "Điều kiện nổi – chìm phụ thuộc khối lượng riêng."
+    },
+    {
+      "id": 96,
+      "question": "Khi gió thổi làm lá cây rung động, gió đã:",
+      "options": [
+        "A. Truyền nhiệt",
+        "B. Tác dụng lực",
+        "C. Truyền ánh sáng",
+        "D. Truyền điện"
+      ],
+      "correct_answer": "B",
+      "explanation": "Gió tác dụng lực làm lá rung."
+    },
+    {
+      "id": 97,
+      "question": "Đơn vị đo công suất thường dùng là:",
+      "options": [
+        "A. Jun",
+        "B. Oát",
+        "C. Niutơn",
+        "D. Mét"
+      ],
+      "correct_answer": "B",
+      "explanation": "Công suất được đo bằng oát (W)."
+    },
+    {
+      "id": 98,
+      "question": "Một vật đang chuyển động tròn đều thì:",
+      "options": [
+        "A. Không chịu lực nào",
+        "B. Chỉ chịu trọng lực",
+        "C. Chỉ chịu lực ma sát",
+        "D. Luôn chịu lực tác dụng"
+      ],
+      "correct_answer": "D",
+      "explanation": "Chuyển động tròn cần lực hướng tâm."
+    },
+    {
+      "id": 99,
+      "question": "Khi đặt tay gần bếp lửa, ta vẫn thấy nóng dù không chạm vào lửa là do:",
+      "options": [
+        "A. Dẫn nhiệt",
+        "B. Đối lưu",
+        "C. Bức xạ nhiệt",
+        "D. Ma sát"
+      ],
+      "correct_answer": "C",
+      "explanation": "Nhiệt truyền bằng bức xạ không cần môi trường."
+    },
+    {
+      "id": 100,
+      "question": "Trong các nguồn năng lượng sau, nguồn nào là chủ yếu đối với Trái Đất?",
+      "options": [
+        "A. Than đá",
+        "B. Dầu mỏ",
+        "C. Năng lượng Mặt Trời",
+        "D. Điện năng"
+      ],
+      "correct_answer": "C",
+      "explanation": "Mặt Trời là nguồn năng lượng chính của Trái Đất."
+    }
+  ],
+  "extreme": [
+    {
+      "id": 101,
+      "question": "Hai bạn học sinh đo chiều dài cùng một cái bàn, bạn A đo được 120 cm, bạn B đo được 1,18 m. Kết luận nào sau đây là đúng nhất?",
+      "options": [
+        "A. Bạn A đo đúng hơn vì đơn vị cm nhỏ hơn.",
+        "B. Bạn B đo đúng hơn vì dùng đơn vị chuẩn.",
+        "C. Hai kết quả có thể đều đúng do sai số dụng cụ.",
+        "D. Một trong hai bạn chắc chắn đo sai."
+      ],
+      "correct_answer": "C",
+      "explanation": "Sai số dụng cụ và cách đặt thước có thể làm kết quả chênh lệch nhỏ."
+    },
+    {
+      "id": 102,
+      "question": "Một vật được đo khối lượng bằng cân lò xo và cân đòn. Khi nào kết quả hai phép đo có thể khác nhau?",
+      "options": [
+        "A. Khi vật đặt lệch tâm cân.",
+        "B. Khi cân ở nơi có gia tốc trọng trường khác.",
+        "C. Khi dùng đơn vị khác nhau.",
+        "D. Không bao giờ khác nhau."
+      ],
+      "correct_answer": "B",
+      "explanation": "Cân lò xo đo trọng lượng phụ thuộc g, cân đòn đo khối lượng."
+    },
+    {
+      "id": 103,
+      "question": "Một người đi bộ đều, trong 5 phút đi được 300 m. Nhận xét nào sau đây là chính xác?",
+      "options": [
+        "A. Người đó chuyển động nhanh dần.",
+        "B. Người đó chuyển động chậm dần.",
+        "C. Người đó chuyển động đều.",
+        "D. Không xác định được dạng chuyển động."
+      ],
+      "correct_answer": "C",
+      "explanation": "Quãng đường đi được tỉ lệ với thời gian → chuyển động đều."
+    },
+    {
+      "id": 104,
+      "question": "Một quả bóng đang nằm yên trên mặt đất. Khi đá vào bóng, lực tác dụng đã gây ra tác dụng nào?",
+      "options": [
+        "A. Chỉ làm bóng chuyển động.",
+        "B. Chỉ làm bóng biến dạng.",
+        "C. Vừa làm bóng chuyển động vừa biến dạng.",
+        "D. Không gây tác dụng gì."
+      ],
+      "correct_answer": "C",
+      "explanation": "Lực có thể đồng thời gây biến đổi chuyển động và biến dạng."
+    },
+    {
+      "id": 105,
+      "question": "Khi treo một vật vào lò xo, lò xo dãn ra. Điều này chứng tỏ lực có thể:",
+      "options": [
+        "A. Làm vật chuyển động.",
+        "B. Làm vật đứng yên.",
+        "C. Làm vật thay đổi hình dạng.",
+        "D. Làm vật thay đổi khối lượng."
+      ],
+      "correct_answer": "C",
+      "explanation": "Lò xo dãn ra là hiện tượng biến dạng."
+    },
+    {
+      "id": 106,
+      "question": "Một xe đạp đang chạy, nếu ngừng đạp thì xe vẫn tiếp tục chạy thêm một đoạn. Nguyên nhân chính là do:",
+      "options": [
+        "A. Lực đẩy của chân vẫn còn.",
+        "B. Lực quán tính của xe.",
+        "C. Lực cản không đáng kể.",
+        "D. Xe tự sinh lực."
+      ],
+      "correct_answer": "B",
+      "explanation": "Quán tính làm vật đang chuyển động tiếp tục chuyển động."
+    },
+    {
+      "id": 107,
+      "question": "Hai lực cân bằng là hai lực:",
+      "options": [
+        "A. Cùng phương, cùng chiều, cùng độ lớn.",
+        "B. Cùng phương, ngược chiều, cùng độ lớn, cùng tác dụng lên một vật.",
+        "C. Ngược phương, ngược chiều.",
+        "D. Cùng độ lớn nhưng tác dụng lên hai vật khác nhau."
+      ],
+      "correct_answer": "B",
+      "explanation": "Đây là định nghĩa chính xác của hai lực cân bằng."
+    },
+    {
+      "id": 108,
+      "question": "Một vật đang đứng yên chịu tác dụng của hai lực cân bằng thì vật sẽ:",
+      "options": [
+        "A. Chuyển động nhanh dần.",
+        "B. Chuyển động chậm dần.",
+        "C. Vẫn đứng yên.",
+        "D. Bị biến dạng."
+      ],
+      "correct_answer": "C",
+      "explanation": "Hai lực cân bằng không làm thay đổi trạng thái chuyển động."
+    },
+    {
+      "id": 109,
+      "question": "Khi nhiệt độ của một vật tăng thì:",
+      "options": [
+        "A. Khối lượng vật tăng.",
+        "B. Thể tích vật luôn tăng.",
+        "C. Các phân tử chuyển động nhanh hơn.",
+        "D. Vật chắc chắn nóng chảy."
+      ],
+      "correct_answer": "C",
+      "explanation": "Nhiệt độ phản ánh mức độ chuyển động của các phân tử."
+    },
+    {
+      "id": 110,
+      "question": "Hiện tượng nào sau đây là sự nóng chảy?",
+      "options": [
+        "A. Nước bay hơi.",
+        "B. Nước đông thành đá.",
+        "C. Băng tan thành nước.",
+        "D. Hơi nước ngưng tụ."
+      ],
+      "correct_answer": "C",
+      "explanation": "Nóng chảy là chuyển từ rắn sang lỏng."
+    },
+
+    {
+      "id": 111,
+      "question": "Một vật rơi từ trên cao xuống đất. Trong quá trình rơi, dạng năng lượng nào của vật tăng lên?",
+      "options": [
+        "A. Thế năng.",
+        "B. Nhiệt năng.",
+        "C. Động năng.",
+        "D. Hóa năng."
+      ],
+      "correct_answer": "C",
+      "explanation": "Vận tốc tăng → động năng tăng."
+    },
+    {
+      "id": 112,
+      "question": "Khi kéo một vật trượt trên mặt sàn, lực ma sát xuất hiện có tác dụng chính là:",
+      "options": [
+        "A. Làm vật chuyển động nhanh hơn.",
+        "B. Cản trở chuyển động của vật.",
+        "C. Làm vật nhẹ hơn.",
+        "D. Làm tăng khối lượng vật."
+      ],
+      "correct_answer": "B",
+      "explanation": "Ma sát luôn cản trở chuyển động tương đối."
+    },
+    {
+      "id": 113,
+      "question": "Trong các dạng năng lượng sau, dạng nào liên quan trực tiếp đến chuyển động?",
+      "options": [
+        "A. Nhiệt năng.",
+        "B. Thế năng.",
+        "C. Hóa năng.",
+        "D. Động năng."
+      ],
+      "correct_answer": "D",
+      "explanation": "Động năng là năng lượng của chuyển động."
+    },
+    {
+      "id": 114,
+      "question": "Một vật đang đứng yên bắt đầu chuyển động. Điều này chứng tỏ:",
+      "options": [
+        "A. Không có lực tác dụng.",
+        "B. Có lực tác dụng không cân bằng.",
+        "C. Có hai lực cân bằng.",
+        "D. Có ma sát."
+      ],
+      "correct_answer": "B",
+      "explanation": "Chuyển động thay đổi khi có lực không cân bằng."
+    },
+    {
+      "id": 115,
+      "question": "Khi đun nóng nước trong nồi, nhiệt truyền chủ yếu bằng hình thức nào?",
+      "options": [
+        "A. Bức xạ.",
+        "B. Dẫn nhiệt.",
+        "C. Đối lưu.",
+        "D. Phản xạ."
+      ],
+      "correct_answer": "C",
+      "explanation": "Chất lỏng truyền nhiệt chủ yếu bằng đối lưu."
+    },
+    {
+      "id": 116,
+      "question": "Khi sờ tay vào kim loại và gỗ ở cùng nhiệt độ, ta thấy kim loại lạnh hơn vì:",
+      "options": [
+        "A. Kim loại có nhiệt độ thấp hơn.",
+        "B. Kim loại dẫn nhiệt tốt hơn.",
+        "C. Gỗ giữ nhiệt kém.",
+        "D. Tay ta cảm giác sai."
+      ],
+      "correct_answer": "B",
+      "explanation": "Kim loại truyền nhiệt từ tay ra nhanh hơn."
+    },
+    {
+      "id": 117,
+      "question": "Đơn vị đo công cơ học trong hệ SI là:",
+      "options": [
+        "A. Oát (W).",
+        "B. Jun (J).",
+        "C. Niutơn (N).",
+        "D. Mét (m)."
+      ],
+      "correct_answer": "B",
+      "explanation": "Công được đo bằng Jun."
+    },
+    {
+      "id": 118,
+      "question": "Khi vật làm công thì:",
+      "options": [
+        "A. Chắc chắn có lực tác dụng và vật chuyển dời.",
+        "B. Chỉ cần có lực.",
+        "C. Chỉ cần có chuyển động.",
+        "D. Không cần lực."
+      ],
+      "correct_answer": "A",
+      "explanation": "Công cơ học cần lực và sự chuyển dời."
+    },
+    {
+      "id": 119,
+      "question": "Nguồn năng lượng nào sau đây là năng lượng tái tạo?",
+      "options": [
+        "A. Than đá.",
+        "B. Dầu mỏ.",
+        "C. Năng lượng Mặt Trời.",
+        "D. Khí đốt."
+      ],
+      "correct_answer": "C",
+      "explanation": "Năng lượng Mặt Trời không cạn kiệt."
+    },
+    {
+      "id": 120,
+      "question": "Trái Đất nhận được năng lượng chủ yếu từ:",
+      "options": [
+        "A. Lòng đất.",
+        "B. Các ngôi sao.",
+        "C. Mặt Trời.",
+        "D. Mặt Trăng."
+      ],
+      "correct_answer": "C",
+      "explanation": "Mặt Trời là nguồn năng lượng chính của Trái Đất."
+    }
+  ]
+}
+
+
+
