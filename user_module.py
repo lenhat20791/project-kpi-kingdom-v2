@@ -1498,9 +1498,15 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
         st.error("❌ Lỗi đọc file câu hỏi.")
         return
 
-    pool = all_quizzes.get("easy", []) + all_quizzes.get("medium", [])
+    # 🔥 [FIX 1] GOM TẤT CẢ ĐỘ KHÓ (Bao gồm cả extreme)
+    pool = []
+    # Duyệt qua mọi key trong file json (easy, medium, hard, extreme...)
+    for key in all_quizzes:
+        if isinstance(all_quizzes[key], list):
+            pool.extend(all_quizzes[key])
+            
     if not pool:
-        st.warning("⚠️ Không có câu hỏi nào trong kho dữ liệu.")
+        st.warning(f"⚠️ Không có câu hỏi nào trong file {file_name}.json")
         return
 
     # --- 2. LOGIC GAME ---
@@ -1547,8 +1553,16 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                     user_choice = opt
         
         if user_choice:
-            # A. ĐÚNG
-            if str(user_choice).strip().lower() == str(q['answer']).strip().lower():
+            # 🔥 [FIX 2] SO SÁNH ĐÁP ÁN THÔNG MINH HƠN
+            # Kiểm tra xem lựa chọn của user có "BẮT ĐẦU BẰNG" đáp án đúng không
+            # VD: user_choice="A. 10", q['answer']="A" -> True
+            # VD: user_choice="10", q['answer']="A" -> (Cần đảm bảo format JSON chuẩn)
+            
+            # Lấy ký tự đầu tiên của lựa chọn (A, B, C, D) để so sánh cho chắc
+            user_key = str(user_choice).strip()[0].upper() # Lấy chữ cái đầu (VD: 'A')
+            ans_key = str(q['answer']).strip()[0].upper()  # Lấy chữ cái đầu của đáp án
+            
+            if user_key == ans_key:
                 st.session_state.combo = st.session_state.get('combo', 0) + 1
                 he_so = 1 + (st.session_state.combo - 1) * 0.1
                 dmg = int(current_atk * he_so)
@@ -1562,12 +1576,9 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                 save_data_func(st.session_state.data)
                 st.success(f"🎯 Chính xác! Gây {dmg} sát thương!")
                 
-                # --- [FIX QUAN TRỌNG] GỌI TRỰC TIẾP HÀM XỬ LÝ THẮNG ---
                 if boss['hp_current'] <= 0:
-                    # Không dùng try-except nữa để đảm bảo code chạy thẳng vào hàm
                     xu_ly_boss_chet(user_id, all_data, save_data_func)
                 else:
-                    # Chuyển câu
                     del st.session_state.cau_hoi_active
                     del st.session_state.thoi_gian_bat_dau
                     time.sleep(1)
@@ -1581,7 +1592,6 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                 
                 st.error(f"❌ Sai rồi! Đáp án là: {q['answer']}")
                 
-                # Lưu
                 save_data_func(st.session_state.data)
                 
                 if player['hp'] <= 0:
@@ -1591,6 +1601,8 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                     del st.session_state.thoi_gian_bat_dau
                     time.sleep(1.5)
                     st.rerun()                    
+
+
 # --- HÀM PHỤ TRỢ (Để code gọn hơn) ---
 def xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data):
     # 1. Cập nhật thông tin trọng thương
