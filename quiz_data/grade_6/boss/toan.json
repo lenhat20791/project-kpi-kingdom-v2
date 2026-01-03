@@ -393,10 +393,10 @@
       "D. 17"
     ],
     "correct_answer": "C",
-    "explanation": "11 là nguyên tố n
+    "explanation": "11 là số nguyên tố nhỏ nhất có 2 chữ số."
   },
   {
-    "id": 34,
+	"id": 34,
     "question": "Tổng các ước khác 1 và chính nó của số 12 là:",
     "options": [
       "A. 9",
