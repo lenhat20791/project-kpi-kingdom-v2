@@ -3486,11 +3486,15 @@ from datetime import datetime
 
 def save_all_to_sheets(all_data):
     """
-    PHIÊN BẢN FINAL (ĐÃ FIX LỖI MẤT ADMIN):
-    1. Đã xóa 'admin' khỏi system_keys để không bị bỏ qua.
-    2. Vẫn giữ logic safe_int để sửa lỗi KPI lẻ.
-    3. Lưu đầy đủ Boss và Cấu hình.
+    PHIÊN BẢN FINAL (CẬP NHẬT ĐẦY ĐỦ):
+    1. Lưu Players (Bảo tồn Admin).
+    2. Lưu Settings & Boss.
+    3. Lưu Shop.
+    4. [MỚI] Lưu Admin Notices (Thông báo hệ thống).
     """
+    import streamlit as st
+    import json
+    from datetime import datetime
     
     # -----------------------------------------------------------
     # HÀM PHỤ TRỢ: CHUYỂN ĐỔI SỐ AN TOÀN
@@ -3546,15 +3550,15 @@ def save_all_to_sheets(all_data):
                 player_rows = [headers]
                 count_student = 0 
                 
-                # 🔥 [ĐÃ SỬA] Xóa 'admin' khỏi danh sách đen này
-                system_keys = ["rank_settings", "system_config", "shop_items", "temp_loot_table"]
+                # Các key hệ thống cần bỏ qua khi lưu vào danh sách học sinh
+                system_keys = ["rank_settings", "system_config", "shop_items", "temp_loot_table", "admin_notices"]
 
                 for uid, info in all_data.items():
                     # Bỏ qua nếu không phải dict hoặc là key hệ thống
                     if not isinstance(info, dict) or uid in system_keys:
                         continue
                         
-                    # Logic đếm: Chỉ đếm học sinh (để in thông báo cho đẹp)
+                    # Logic đếm: Chỉ đếm học sinh
                     if str(info.get('role')) != 'admin':
                         count_student += 1
                     
@@ -3581,8 +3585,8 @@ def save_all_to_sheets(all_data):
                         info.get('role', 'u3'),
                         str(info.get('password', '123456')), 
                         
-                        safe_int(info.get('kpi', 0)),   
-                        safe_int(info.get('exp', 0)),   
+                        safe_int(info.get('kpi', 0)),    
+                        safe_int(info.get('exp', 0)),    
                         safe_int(info.get('level', 1)), 
                         safe_int(info.get('hp', 100)),  
                         safe_int(info.get('hp_max', 100)), 
@@ -3661,7 +3665,39 @@ def save_all_to_sheets(all_data):
             except Exception as e:
                 st.warning(f"⚠️ Lỗi tab Shop: {e}")
 
-            # GHI LOG
+            # =========================================================
+            # --- 4. [MỚI] ĐỒNG BỘ ADMIN NOTICES (THÔNG BÁO) ---
+            # =========================================================
+            if 'admin_notices' in all_data:
+                try:
+                    wks_notices = sh.worksheet("admin_notices")
+                    
+                    # Chuẩn bị dữ liệu (Dòng 2 trở đi, giữ lại header dòng 1)
+                    rows_to_write = []
+                    for note in all_data['admin_notices']:
+                        row = [
+                            str(note.get('id', '')),
+                            note.get('content', ''),
+                            note.get('type', 'marquee'),
+                            note.get('time', '')
+                        ]
+                        rows_to_write.append(row)
+                    
+                    # Xóa dữ liệu cũ (chỉ xóa nội dung, giữ header)
+                    wks_notices.batch_clear(["A2:D1000"]) 
+                    
+                    # Ghi dữ liệu mới
+                    if rows_to_write:
+                        wks_notices.update(range_name="A2", values=rows_to_write)
+                        st.write(f"✅ Tab admin_notices: Đã lưu {len(rows_to_write)} thông báo.")
+                        
+                except Exception as e:
+                    # Lỗi này thường do chưa tạo tab admin_notices, báo nhẹ nhàng thôi
+                    st.caption(f"⚠️ Không thể lưu thông báo (Kiểm tra xem đã tạo tab 'admin_notices' chưa): {e}")
+
+            # =========================================================
+            # --- 5. GHI LOG ---
+            # =========================================================
             try:
                 try: wks_log = sh.worksheet("Logs")
                 except: wks_log = sh.worksheet("Log")
@@ -3681,10 +3717,10 @@ def load_data_from_sheets():
     1. Tab Players: Dữ liệu học sĩ.
     2. Tab Settings: Cấu hình hệ thống (Boss, Rank).
     3. Tab Shop: Vật phẩm tiệm tạp hóa.
+    4. [MỚI] Tab admin_notices: Thông báo hệ thống.
     """
     try:
         print("☁️ Đang kết nối tới Google Sheets...")
-        # Import thư viện cần thiết bên trong để tránh lỗi scope
         import json
         import streamlit as st
         from user_module import get_gspread_client
@@ -3704,7 +3740,8 @@ def load_data_from_sheets():
         loaded_data = {
             "system_config": {}, 
             "shop_items": {},
-            "rank_settings": [] # Khởi tạo sẵn để tránh lỗi
+            "rank_settings": [],
+            "admin_notices": [] # [MỚI] Khởi tạo list rỗng
         }
 
         # --- BẢNG MÃ KHỬ DẤU TIẾNG VIỆT ---
@@ -3748,7 +3785,7 @@ def load_data_from_sheets():
                 try: progress = json.loads(str(r.get('progress_json', '{}')))
                 except: progress = {}
 
-                # Hàm làm sạch số (Fix lỗi 170.1 -> 1701)
+                # Hàm làm sạch số
                 def clean_int(val):
                     try: return int(float(str(val).replace(',', '.')))
                     except: return 0
@@ -3781,12 +3818,11 @@ def load_data_from_sheets():
             print(f"⚠️ Lỗi đọc tab Players: {e}")
 
         # =========================================================
-        # 2. TẢI CẤU HÌNH (Tab Settings) - BOSS & RANK (ĐÃ SỬA)
+        # 2. TẢI CẤU HÌNH (Tab Settings) - BOSS & RANK
         # =========================================================
         try:
             sh_settings = spreadsheet.worksheet("Settings")
             settings_records = sh_settings.get_all_records()
-            print(f"⚙️ Đang quét {len(settings_records)} dòng cấu hình...")
 
             for row in settings_records:
                 key = str(row.get('Config_Key', '')).strip()
@@ -3803,14 +3839,9 @@ def load_data_from_sheets():
                             else:
                                     loaded_data['system_config']['active_boss'] = decoded_val
                         else:
-                            # 1. Lưu vào system_config (để tương thích các phần khác)
                             loaded_data['system_config'][key] = decoded_val
-                            
-                            # 2. 🔥 NẾU LÀ RANK SETTINGS -> LƯU RIÊNG VÀO BIẾN loaded_data
-                            # Đây là bước quan trọng để UI tìm thấy danh hiệu
                             if key == 'rank_settings':
                                 loaded_data['rank_settings'] = decoded_val
-                                print(f"🏆 Đã tìm thấy cấu hình danh hiệu ({len(decoded_val)} mốc)")
 
                     except Exception as json_error:
                         print(f"❌ Lỗi JSON Settings '{key}': {json_error}")
@@ -3847,15 +3878,38 @@ def load_data_from_sheets():
                      }
 
             loaded_data['shop_items'] = shop_dict
-            print(f"🏪 Đã tải {len(shop_dict)} vật phẩm Shop.")
 
         except Exception as e:
             print(f"ℹ️ Lỗi tải Shop: {e}")
 
+        # =========================================================
+        # 4. [MỚI] TẢI THÔNG BÁO (Tab admin_notices)
+        # =========================================================
+        try:
+            # Kiểm tra xem tab có tồn tại không trước khi đọc
+            try:
+                sh_notices = spreadsheet.worksheet("admin_notices")
+                notice_records = sh_notices.get_all_records()
+                
+                # Convert list of dicts thành list chuẩn
+                # Sheet trả về: [{'id': 123, 'content': 'abc', ...}, ...]
+                # Đúng format chúng ta cần luôn!
+                loaded_data['admin_notices'] = notice_records
+                print(f"📢 Đã tải {len(notice_records)} thông báo.")
+                
+            except:
+                # Nếu chưa có tab admin_notices thì thôi, không báo lỗi đỏ
+                loaded_data['admin_notices'] = []
+                print("ℹ️ Chưa có tab 'admin_notices', bỏ qua.")
+                
+        except Exception as e:
+            print(f"⚠️ Lỗi tải Admin Notices: {e}")
+
+
         # --- KẾT THÚC ---
         if not loaded_data: return None
 
-        # 4. 🔥 CẬP NHẬT SESSION STATE (BƯỚC QUYẾT ĐỊNH) 🔥
+        # 5. CẬP NHẬT SESSION STATE
         
         # Shop
         if 'shop_items' not in st.session_state: st.session_state.shop_items = {}
@@ -3865,9 +3919,11 @@ def load_data_from_sheets():
         if 'system_config' not in st.session_state: st.session_state.system_config = {}
         st.session_state.system_config = loaded_data['system_config']
         
-        # 🔥 QUAN TRỌNG: CẬP NHẬT RANK SETTINGS
-        # Đây là dòng mà code cũ của bạn bị thiếu, khiến UI không tìm thấy dữ liệu
+        # Rank Settings
         st.session_state.rank_settings = loaded_data['rank_settings']
+
+        # [MỚI] Admin Notices
+        # Không cần gán vào st.session_state riêng biệt vì nó nằm trong loaded_data (all_data) rồi
         
         return loaded_data
 

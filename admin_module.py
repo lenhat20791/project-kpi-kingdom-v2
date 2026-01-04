@@ -186,6 +186,33 @@ def giao_dien_thong_bao_admin():
         time.sleep(1)
         st.rerun()
 
+    ####CÔNG CỤ SỬA LỖI###
+    st.divider()
+    st.subheader("🛠️ CÔNG CỤ SỬA LỖI (DEBUG)")
+    
+    if st.button("test_save_button"): # Đặt tên nút lạ để tránh trùng key
+        st.write("1. Đang tạo dữ liệu giả lập...")
+        # Tạo dữ liệu mẫu
+        test_data = st.session_state.data
+        if 'admin_notices' not in test_data:
+            test_data['admin_notices'] = []
+            
+        test_data['admin_notices'].append({
+            "id": 9999,
+            "content": "Đây là dòng test kết nối Google Sheet",
+            "type": "marquee",
+            "time": "Test Time"
+        })
+        
+        st.write("2. Đang gọi hàm user_module.save_all_to_sheets...")
+        
+        # Gọi hàm lưu và bắt lỗi trực tiếp tại đây
+        try:
+            user_module.save_all_to_sheets(test_data)
+            st.success("3. Hàm báo chạy xong! Hãy mở Google Sheet kiểm tra dòng cuối cùng tab admin_notices.")
+        except Exception as e:
+            st.error(f"3. Lỗi toang rồi: {e}")
+            
 def hien_thi_thong_bao_he_thong():
     """
     Hàm hiển thị thông báo. Đọc trực tiếp từ st.session_state.data để đảm bảo
