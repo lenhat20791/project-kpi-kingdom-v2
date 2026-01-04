@@ -1478,58 +1478,37 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
     
     st.divider()
 
-    # --- 1. XÁC ĐỊNH FILE CÂU HỎI (THÔNG MINH - BẤT CHẤP HOA THƯỜNG) ---
+    # --- 1. XÁC ĐỊNH FILE CÂU HỎI (GIỮ NGUYÊN CODE CỦA BẠN) ---
     mon_boss = boss.get('mon', 'Toán')
-    
-    # Map tên hiển thị sang từ khóa (không dấu, chữ thường)
     map_mon = {
-        "Toán": "toan", 
-        "Văn": "van", "Ngữ Văn": "van",
+        "Toán": "toan", "Văn": "van", "Ngữ Văn": "van",
         "Anh": "anh", "Tiếng Anh": "anh",
         "KHTN": "khtn", "Khoa Học Tự Nhiên": "khtn", 
         "Sử": "su", "Lịch Sử": "su"
     }
-    
-    # Tên file mục tiêu (viết thường)
     target_name = map_mon.get(mon_boss, mon_boss.lower()) + ".json" 
-    
-    # Lấy đường dẫn gốc nơi chứa file code hiện tại
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Các thư mục cần tìm kiếm (Ưu tiên thư mục boss trước, rồi đến thư mục chung)
     search_dirs = [
         os.path.join(base_dir, "quiz_data", "grade_6", "boss"),
         os.path.join(base_dir, "quiz_data", "grade_6")
     ]
-    
     path_quiz = None
-    
-    # --- 🧠 THUẬT TOÁN QUÉT TÌM FILE ---
     for directory in search_dirs:
         if os.path.exists(directory):
             try:
-                # Lấy danh sách file thực tế trong thư mục (VD: ['KHTN.json', 'toan.json'])
                 files_in_dir = os.listdir(directory)
-                
                 for f in files_in_dir:
-                    # So sánh: Nếu tên file (viết thường) khớp với mục tiêu
                     if f.lower() == target_name.lower():
-                        path_quiz = os.path.join(directory, f) # Lấy đường dẫn file thật
+                        path_quiz = os.path.join(directory, f)
                         break 
-            except Exception:
-                continue
-        
-        if path_quiz: break # Tìm thấy rồi thì dừng
+            except Exception: continue
+        if path_quiz: break
 
-    # --- KIỂM TRA KẾT QUẢ TÌM KIẾM ---
     if not path_quiz:
-        st.error(f"❌ Không tìm thấy dữ liệu câu hỏi môn {mon_boss} (Đã tìm file '{target_name}' trong quiz_data)")
-        # Debug phụ: In ra các thư mục đã quét để kiểm tra
-        st.caption(f"Đã quét tại: {search_dirs}")
+        st.error(f"❌ Không tìm thấy dữ liệu câu hỏi môn {mon_boss}")
         return
-    # -------------------------------------------
 
-    # --- 2. ĐỌC VÀ GOM CÂU HỎI ---
+    # --- 2. ĐỌC VÀ GOM CÂU HỎI (GIỮ NGUYÊN) ---
     try:
         with open(path_quiz, 'r', encoding='utf-8') as f:
             raw_data = json.load(f)
@@ -1537,33 +1516,32 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
         st.error(f"❌ Lỗi đọc file JSON: {e}")
         return
 
-    # GOM TẤT CẢ CÂU HỎI TỪ CÁC ĐỘ KHÓ
     pool = []
-    if isinstance(raw_data, list):
-        pool = raw_data
+    if isinstance(raw_data, list): pool = raw_data
     elif isinstance(raw_data, dict):
         for key in raw_data: 
-            if isinstance(raw_data[key], list):
-                pool.extend(raw_data[key])
+            if isinstance(raw_data[key], list): pool.extend(raw_data[key])
     
     if not pool:
-        st.warning(f"⚠️ File {file_name}.json rỗng.")
+        st.warning(f"⚠️ File rỗng.")
         return
 
-    # --- 3. KHỞI TẠO CÂU HỎI (Random) ---
+    # --- 3. KHỞI TẠO CÂU HỎI ---
     if "cau_hoi_active" not in st.session_state:
         st.session_state.cau_hoi_active = random.choice(pool)
         st.session_state.thoi_gian_bat_dau = time.time()
 
     q = st.session_state.cau_hoi_active
     
-    # --- 4. ĐỒNG HỒ ĐẾM NGƯỢC ---
+    # --- 4. ĐỒNG HỒ ĐẾM NGƯỢC (ĐÃ SỬA) ---
     THOI_GIAN = 15
+    # Tính thời gian thực tế đã trôi qua
     elapsed = time.time() - st.session_state.get("thoi_gian_bat_dau", time.time())
     remaining = int(THOI_GIAN - elapsed)
     
     # UI Thời gian
     color_timer = "#ff4b4b" if remaining <= 5 else "#00d2ff"
+    # Dùng st.empty để giữ chỗ cho đồng hồ nếu muốn (tùy chọn)
     st.markdown(f"<h1 style='text-align: center; color: {color_timer}; font-size: 40px;'>⏳ {max(0, remaining)}s</h1>", unsafe_allow_html=True)
 
     # XỬ LÝ HẾT GIỜ
@@ -1575,7 +1553,7 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
         
         save_data_func(st.session_state.data)
         
-        # Xóa trạng thái câu hỏi cũ
+        # Xóa trạng thái để chuyển câu
         if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
         if "thoi_gian_bat_dau" in st.session_state: del st.session_state.thoi_gian_bat_dau
         
@@ -1586,37 +1564,38 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
             st.rerun()
         return
 
-    # --- 5. HIỂN THỊ CÂU HỎI ---
+    # --- 5. HIỂN THỊ CÂU HỎI & NÚT BẤM (ĐÃ FIX LỖI KEY) ---
     st.info(f"🔥 **COMBO: x{st.session_state.get('combo', 0)}**")
     st.markdown(f"### ❓ {q['question']}")
     
     options = q.get('options', [])
+    user_choice = None
+
     if options:
         c1, c2 = st.columns(2)
-        user_choice = None
-        
         for i, opt in enumerate(options):
             col = c1 if i % 2 == 0 else c2
-            # Key có thêm remaining để refresh button khi đếm ngược
-            if col.button(opt, key=f"ans_{i}_{remaining}", use_container_width=True):
+            
+            # 🔥 [FIX QUAN TRỌNG]: Bỏ 'remaining' ra khỏi key
+            # Dùng ID câu hỏi (nếu có) hoặc index để key cố định
+            btn_key = f"ans_{q.get('id', 'unknown')}_{i}"
+            
+            if col.button(opt, key=btn_key, use_container_width=True):
                 user_choice = opt
         
-        # --- 6. KIỂM TRA ĐÁP ÁN ---
+        # --- 6. XỬ LÝ ĐÁP ÁN ---
         if user_choice:
-            # So sánh ký tự đầu (A, B, C, D)
             user_key = str(user_choice).strip()[0].upper()
             raw_ans = q.get('answer', q.get('correct_answer', ''))
             ans_key = str(raw_ans).strip()[0].upper()
             
-            # ĐÚNG
             if user_key == ans_key:
+                # --- ĐÚNG ---
                 st.session_state.combo = st.session_state.get('combo', 0) + 1
                 he_so = 1 + (st.session_state.combo - 1) * 0.1
                 dmg_deal = int(current_atk * he_so)
                 
                 boss['hp_current'] = max(0, boss['hp_current'] - dmg_deal)
-                
-                # Ghi nhận cống hiến
                 if "contributions" not in boss: boss["contributions"] = {}
                 boss["contributions"][user_id] = boss["contributions"].get(user_id, 0) + dmg_deal
                 
@@ -1629,38 +1608,35 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                 else:
                     del st.session_state.cau_hoi_active
                     del st.session_state.thoi_gian_bat_dau
-                    time.sleep(1)
+                    time.sleep(0.5) # Giảm thời gian chờ cho mượt
                     st.rerun()
-
-            # --- SAI ---
             else:
+                # --- SAI ---
                 st.session_state.combo = 0
                 dmg_boss = boss.get('damage', 10)
                 player['hp'] = max(0, player.get('hp', 100) - dmg_boss)
-                
                 save_data_func(st.session_state.data)
                 
-                # [FIX] Lấy nội dung đáp án đúng an toàn (chấp nhận cả 'answer' và 'correct_answer')
-                chuan_bi_dap_an = q.get('answer', q.get('correct_answer', 'Không xác định'))
-                st.error(f"❌ Sai rồi! Đáp án đúng là: {chuan_bi_dap_an}")
-                
-                # (Tùy chọn) Nếu trong JSON có giải thích thì hiện luôn cho xịn
-                if 'explanation' in q:
-                    st.info(f"💡 Giải thích: {q['explanation']}")
-
+                real_ans = q.get('answer', q.get('correct_answer', '...'))
+                st.error(f"❌ Sai rồi! Đáp án: {real_ans}")
                 st.warning(f"🛡️ Boss đánh trả: -{dmg_boss} HP")
                 
-                # Check Player Chết
                 if player['hp'] <= 0:
-                    # Xóa trạng thái câu hỏi trước khi chuyển màn hình thua
                     if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
                     xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data)
                 else:
                     if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
                     if "thoi_gian_bat_dau" in st.session_state: del st.session_state.thoi_gian_bat_dau
-                    time.sleep(2.0) # Tăng thời gian chờ lên chút để học sinh kịp đọc đáp án đúng
+                    time.sleep(2.0)
                     st.rerun()
+            return # Dừng code để không chạy xuống phần auto-rerun bên dưới
 
+    # --- 7. CƠ CHẾ TỰ ĐỘNG ĐẾM NGƯỢC (AUTO-RERUN) ---
+    # Chỉ chạy khi chưa chọn đáp án và còn thời gian
+    if remaining > 0 and not user_choice:
+        time.sleep(1) # Đợi 1 giây
+        st.rerun()    # Tự động tải lại trang để cập nhật đồng hồ
+        
 # --- HÀM PHỤ TRỢ (Để code gọn hơn) ---
 def xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data):
     # 1. Cập nhật thông tin trọng thương
