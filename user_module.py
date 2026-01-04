@@ -1470,12 +1470,6 @@ import json
 import time
 import random
 
-import streamlit as st
-import os
-import json
-import time
-import random
-
 def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_data):
     st.divider()
 
@@ -1496,8 +1490,18 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
     file_name = map_mon.get(mon_boss, mon_boss.lower())
     
     # ĐƯỜNG DẪN CỐ ĐỊNH: quiz_data/grade_6/boss/
-    primary_path = f"quiz_data/grade_6/boss/{file_name}.json"
-    fallback_path = f"quiz_data/grade_6/{file_name}.json" 
+    # --- FIX LỖI ĐƯỜNG DẪN (QUAN TRỌNG) ---
+    import os # Đảm bảo đã import os
+    
+    # Lấy đường dẫn gốc nơi chứa file code hiện tại (kpi_kingdom_v2.py)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Tạo đường dẫn tuyệt đối (Chắc chắn 100% đúng đường dẫn)
+    primary_path = os.path.join(base_dir, "quiz_data", "grade_6", "boss", f"{file_name}.json")
+    fallback_path = os.path.join(base_dir, "quiz_data", "grade_6", f"{file_name}.json")
+    
+    # In ra terminal để debug xem nó đang tìm ở đâu (Nếu vẫn lỗi thì chụp màn hình terminal cho mình xem)
+    print(f"🔍 Đang tìm file tại: {primary_path}")
 
     path_quiz = primary_path if os.path.exists(primary_path) else fallback_path
 
