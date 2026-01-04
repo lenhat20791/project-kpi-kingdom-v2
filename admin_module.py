@@ -161,7 +161,7 @@ def giao_dien_thong_bao_admin():
         for i, note in enumerate(current_notices):
             with st.expander(f"{note['time']} - {note['type'].upper()}", expanded=True):
                 st.write(note['content'])
-                if st.button("Xóa tin này", key=f"del_note_{note['id']}"):
+                if st.button("Xóa tin này", key=f"del_note_{note['id']}_{i}"):
                     current_notices.pop(i)
                     st.session_state.data['admin_notices'] = current_notices
                     user_module.save_all_to_sheets(st.session_state.data) # Lưu lại sau khi xóa lẻ
