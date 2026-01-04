@@ -1478,7 +1478,7 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
     
     st.divider()
 
-    # --- 1. XÁC ĐỊNH FILE CÂU HỎI (GIỮ NGUYÊN CODE CỦA BẠN) ---
+    # --- 1. XÁC ĐỊNH FILE CÂU HỎI (THÔNG MINH) ---
     mon_boss = boss.get('mon', 'Toán')
     map_mon = {
         "Toán": "toan", "Văn": "van", "Ngữ Văn": "van",
@@ -1508,7 +1508,7 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
         st.error(f"❌ Không tìm thấy dữ liệu câu hỏi môn {mon_boss}")
         return
 
-    # --- 2. ĐỌC VÀ GOM CÂU HỎI (GIỮ NGUYÊN) ---
+    # --- 2. ĐỌC VÀ GOM CÂU HỎI ---
     try:
         with open(path_quiz, 'r', encoding='utf-8') as f:
             raw_data = json.load(f)
@@ -1533,15 +1533,15 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
 
     q = st.session_state.cau_hoi_active
     
-    # --- 4. ĐỒNG HỒ ĐẾM NGƯỢC (ĐÃ SỬA) ---
-    THOI_GIAN = 15
-    # Tính thời gian thực tế đã trôi qua
+    # --- 4. ĐỒNG HỒ ĐẾM NGƯỢC (ĐÃ CHỈNH 30S) ---
+    THOI_GIAN = 30  # <--- 🔥 Đã sửa thành 30 giây
     elapsed = time.time() - st.session_state.get("thoi_gian_bat_dau", time.time())
     remaining = int(THOI_GIAN - elapsed)
     
     # UI Thời gian
-    color_timer = "#ff4b4b" if remaining <= 5 else "#00d2ff"
-    # Dùng st.empty để giữ chỗ cho đồng hồ nếu muốn (tùy chọn)
+    # Sắp hết giờ (dưới 10s) thì chuyển màu đỏ cho kịch tính
+    color_timer = "#ff4b4b" if remaining <= 10 else "#00d2ff"
+    
     st.markdown(f"<h1 style='text-align: center; color: {color_timer}; font-size: 40px;'>⏳ {max(0, remaining)}s</h1>", unsafe_allow_html=True)
 
     # XỬ LÝ HẾT GIỜ
@@ -1553,7 +1553,6 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
         
         save_data_func(st.session_state.data)
         
-        # Xóa trạng thái để chuyển câu
         if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
         if "thoi_gian_bat_dau" in st.session_state: del st.session_state.thoi_gian_bat_dau
         
@@ -1564,7 +1563,7 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
             st.rerun()
         return
 
-    # --- 5. HIỂN THỊ CÂU HỎI & NÚT BẤM (ĐÃ FIX LỖI KEY) ---
+    # --- 5. HIỂN THỊ CÂU HỎI & NÚT BẤM ---
     st.info(f"🔥 **COMBO: x{st.session_state.get('combo', 0)}**")
     st.markdown(f"### ❓ {q['question']}")
     
@@ -1576,8 +1575,7 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
         for i, opt in enumerate(options):
             col = c1 if i % 2 == 0 else c2
             
-            # 🔥 [FIX QUAN TRỌNG]: Bỏ 'remaining' ra khỏi key
-            # Dùng ID câu hỏi (nếu có) hoặc index để key cố định
+            # Key cố định theo ID câu hỏi hoặc index (Không dùng remaining để tránh lỗi nút)
             btn_key = f"ans_{q.get('id', 'unknown')}_{i}"
             
             if col.button(opt, key=btn_key, use_container_width=True):
@@ -1608,7 +1606,7 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                 else:
                     del st.session_state.cau_hoi_active
                     del st.session_state.thoi_gian_bat_dau
-                    time.sleep(0.5) # Giảm thời gian chờ cho mượt
+                    time.sleep(0.5) 
                     st.rerun()
             else:
                 # --- SAI ---
@@ -1629,14 +1627,12 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                     if "thoi_gian_bat_dau" in st.session_state: del st.session_state.thoi_gian_bat_dau
                     time.sleep(2.0)
                     st.rerun()
-            return # Dừng code để không chạy xuống phần auto-rerun bên dưới
+            return
 
     # --- 7. CƠ CHẾ TỰ ĐỘNG ĐẾM NGƯỢC (AUTO-RERUN) ---
-    # Chỉ chạy khi chưa chọn đáp án và còn thời gian
     if remaining > 0 and not user_choice:
-        time.sleep(1) # Đợi 1 giây
-        st.rerun()    # Tự động tải lại trang để cập nhật đồng hồ
-        
+        time.sleep(1) 
+        st.rerun()        
 # --- HÀM PHỤ TRỢ (Để code gọn hơn) ---
 def xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data):
     # 1. Cập nhật thông tin trọng thương
