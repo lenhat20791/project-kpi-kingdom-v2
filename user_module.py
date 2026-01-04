@@ -1471,59 +1471,61 @@ import time
 import random
 
 def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_data):
+    import os
+    import json
+    import time
+    import random
+    
     st.divider()
 
-    # --- 1. XÁC ĐỊNH FILE CÂU HỎI ---
+    # --- 1. XÁC ĐỊNH FILE CÂU HỎI (THÔNG MINH - BẤT CHẤP HOA THƯỜNG) ---
     mon_boss = boss.get('mon', 'Toán')
     
-    # Map tên hiển thị sang tên file (không dấu, chữ thường)
-    # Đã cập nhật: Bỏ Lý/Hóa/Sinh, thêm KHTN
+    # Map tên hiển thị sang từ khóa (không dấu, chữ thường)
     map_mon = {
         "Toán": "toan", 
         "Văn": "van", "Ngữ Văn": "van",
         "Anh": "anh", "Tiếng Anh": "anh",
         "KHTN": "khtn", "Khoa Học Tự Nhiên": "khtn", 
         "Sử": "su", "Lịch Sử": "su"
-        
     }
     
-    file_name = map_mon.get(mon_boss, mon_boss.lower())
+    # Tên file mục tiêu (viết thường)
+    target_name = map_mon.get(mon_boss, mon_boss.lower()) + ".json" 
     
-    # ĐƯỜNG DẪN CỐ ĐỊNH: quiz_data/grade_6/boss/
-    # --- FIX LỖI ĐƯỜNG DẪN (QUAN TRỌNG) ---
-    import os # Đảm bảo đã import os
-    
-    # Lấy đường dẫn gốc nơi chứa file code hiện tại (kpi_kingdom_v2.py)
+    # Lấy đường dẫn gốc nơi chứa file code hiện tại
     base_dir = os.path.dirname(os.path.abspath(__file__))
     
-    # Tạo đường dẫn tuyệt đối (Chắc chắn 100% đúng đường dẫn)
-    primary_path = os.path.join(base_dir, "quiz_data", "grade_6", "boss", f"{file_name}.json")
-    fallback_path = os.path.join(base_dir, "quiz_data", "grade_6", f"{file_name}.json")
+    # Các thư mục cần tìm kiếm (Ưu tiên thư mục boss trước, rồi đến thư mục chung)
+    search_dirs = [
+        os.path.join(base_dir, "quiz_data", "grade_6", "boss"),
+        os.path.join(base_dir, "quiz_data", "grade_6")
+    ]
     
-    # In ra terminal để debug xem nó đang tìm ở đâu (Nếu vẫn lỗi thì chụp màn hình terminal cho mình xem)
-    print(f"🔍 Đang tìm file tại: {primary_path}")
-
-    path_quiz = primary_path if os.path.exists(primary_path) else fallback_path
-
-    # ... (Code xác định path_quiz ở trên giữ nguyên) ...
-
-    # --- ĐOẠN DEBUG (SẼ HIỆN LÊN MÀN HÌNH) ---
-    if not os.path.exists(path_quiz):
-        st.error(f"❌ Server không tìm thấy file: {path_quiz}")
+    path_quiz = None
+    
+    # --- 🧠 THUẬT TOÁN QUÉT TÌM FILE ---
+    for directory in search_dirs:
+        if os.path.exists(directory):
+            try:
+                # Lấy danh sách file thực tế trong thư mục (VD: ['KHTN.json', 'toan.json'])
+                files_in_dir = os.listdir(directory)
+                
+                for f in files_in_dir:
+                    # So sánh: Nếu tên file (viết thường) khớp với mục tiêu
+                    if f.lower() == target_name.lower():
+                        path_quiz = os.path.join(directory, f) # Lấy đường dẫn file thật
+                        break 
+            except Exception:
+                continue
         
-        # 1. Kiểm tra xem thư mục cha có tồn tại không
-        parent_dir = os.path.dirname(primary_path)
-        if os.path.exists(parent_dir):
-            st.warning(f"📂 Danh sách các file ĐANG CÓ trong thư mục `{os.path.basename(parent_dir)}` trên Server:")
-            # In danh sách file ra màn hình để kiểm tra
-            files_on_server = os.listdir(parent_dir)
-            st.code(files_on_server) 
-            
-            if "khtn.json" not in files_on_server:
-                st.error("👉 KẾT LUẬN: File 'khtn.json' CHƯA CÓ trên Server! (Bạn đã git push chưa?)")
-        else:
-            st.error(f"❌ Thư mục chứa file cũng không tồn tại: {parent_dir}")
-            
+        if path_quiz: break # Tìm thấy rồi thì dừng
+
+    # --- KIỂM TRA KẾT QUẢ TÌM KIẾM ---
+    if not path_quiz:
+        st.error(f"❌ Không tìm thấy dữ liệu câu hỏi môn {mon_boss} (Đã tìm file '{target_name}' trong quiz_data)")
+        # Debug phụ: In ra các thư mục đã quét để kiểm tra
+        st.caption(f"Đã quét tại: {search_dirs}")
         return
     # -------------------------------------------
 
