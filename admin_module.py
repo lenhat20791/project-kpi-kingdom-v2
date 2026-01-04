@@ -215,37 +215,48 @@ def giao_dien_thong_bao_admin():
             
 def hien_thi_thong_bao_he_thong():
     """
-    Hàm hiển thị thông báo. Đọc trực tiếp từ st.session_state.data để đảm bảo
-    đồng bộ với dữ liệu đã tải từ Google Sheet về.
+    Hàm hiển thị thông báo. Đọc trực tiếp từ st.session_state.data.
+    [FIX LỖI]: Chỉ hiển thị 1 Popup tại một thời điểm để tránh sập Streamlit.
     """
     import streamlit as st
     
-    # Lấy danh sách thông báo từ dữ liệu tổng (đã load từ sheet khi vào app)
-    # Nếu chưa có thì lấy list rỗng
+    # Lấy danh sách thông báo
     notices = st.session_state.data.get('admin_notices', [])
     
     if not notices:
         return
 
+    # Biến cờ để kiểm soát việc mở Popup
+    popup_shown = False
+
     # Duyệt qua các thông báo
     for n in notices:
         # 1. Hiển thị POPUP KHẨN CẤP
         if n.get('type') == 'popup':
-            # Tạo key duy nhất để không hiện lại nếu đã tắt
+            # Nếu đã có 1 popup đang hiện rồi thì bỏ qua các popup sau
+            if popup_shown:
+                continue
+
             popup_key = f"seen_popup_{n.get('id')}"
             
+            # Nếu chưa xem thì hiện lên
             if not st.session_state.get(popup_key, False):
                 @st.dialog("📢 THÔNG BÁO TỪ BAN QUẢN TRỊ")
                 def show_notice_popup(content, time_sent):
                     st.warning(f"🕒 *Gửi lúc: {time_sent}*")
                     st.markdown(f"### {content}")
+                    
+                    # Nút đóng
                     if st.button("Đã hiểu và Đóng", key=f"btn_cls_{n.get('id')}"):
                         st.session_state[popup_key] = True
                         st.rerun()
                 
                 show_notice_popup(n.get('content'), n.get('time'))
+                
+                # 🔥 QUAN TRỌNG: Đánh dấu đã hiện popup để không mở thêm cái nào nữa trong lượt này
+                popup_shown = True 
 
-        # 2. Hiển thị CHẠY CHỮ (MARQUEE)
+        # 2. Hiển thị CHẠY CHỮ (MARQUEE) - Cái này hiện nhiều cái cùng lúc được
         elif n.get('type') == 'marquee':
             st.markdown(f"""
                 <div style="
