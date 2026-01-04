@@ -1,0 +1,730 @@
+{
+  "easy": [
+    {
+      "question": "My mother _______ a nurse.",
+      "options": ["A. am", "B. is", "C. are", "D. be"],
+      "answer": "B. is",
+      "explanation": "Chủ ngữ 'My mother' tương đương với ngôi thứ 3 số ít (she), nên động từ to-be là 'is'."
+    },
+    {
+      "question": "I _______ a student at Nguyen Du Secondary School.",
+      "options": ["A. is", "B. are", "C. am", "D. be"],
+      "answer": "C. am",
+      "explanation": "Chủ ngữ là 'I' thì luôn đi kèm với động từ to-be là 'am'."
+    },
+    {
+      "question": "They _______ playing football in the schoolyard.",
+      "options": ["A. am", "B. is", "C. are", "D. be"],
+      "answer": "C. are",
+      "explanation": "Chủ ngữ 'They' là số nhiều, nên động từ to-be là 'are'."
+    },
+    {
+      "question": "This is my father. _______ is a doctor.",
+      "options": ["A. He", "B. She", "C. It", "D. I"],
+      "answer": "A. He",
+      "explanation": "'Father' (bố) là nam giới nên ta dùng đại từ nhân xưng 'He' để thay thế."
+    },
+    {
+      "question": "What is _______ name? - My name is Lan.",
+      "options": ["A. my", "B. his", "C. her", "D. your"],
+      "answer": "D. your",
+      "explanation": "Câu hỏi tên của người đối diện, ta dùng tính từ sở hữu 'your' (của bạn)."
+    },
+    {
+      "question": "There _______ twenty classrooms in my school.",
+      "options": ["A. is", "B. are", "C. am", "D. be"],
+      "answer": "B. are",
+      "explanation": "Danh từ 'twenty classrooms' là số nhiều nên dùng cấu trúc 'There are'."
+    },
+    {
+      "question": "She _______ to school every morning.",
+      "options": ["A. go", "B. goes", "C. going", "D. is go"],
+      "answer": "B. goes",
+      "explanation": "Thì hiện tại đơn, chủ ngữ 'She' là ngôi thứ 3 số ít nên động từ 'go' thêm 'es' thành 'goes'."
+    },
+    {
+      "question": "My brother and I _______ TV in the evening.",
+      "options": ["A. watch", "B. watches", "C. watching", "D. is watch"],
+      "answer": "A. watch",
+      "explanation": "Chủ ngữ 'My brother and I' (Anh tôi và tôi) tương đương với 'We' (số nhiều), nên động từ 'watch' giữ nguyên."
+    },
+    {
+      "question": "_______ your house big?",
+      "options": ["A. Is", "B. Are", "C. Am", "D. Do"],
+      "answer": "A. Is",
+      "explanation": "Chủ ngữ 'your house' là số ít, câu hỏi với tính từ 'big' nên đảo to-be 'Is' lên đầu."
+    },
+    {
+      "question": "We _______ study History on Mondays.",
+      "options": ["A. not", "B. aren't", "C. don't", "D. doesn't"],
+      "answer": "C. don't",
+      "explanation": "Câu phủ định thì hiện tại đơn với động từ thường 'study', chủ ngữ 'We' dùng trợ động từ 'don't'."
+    },
+    {
+      "question": "My sister's son is my _______.",
+      "options": ["A. uncle", "B. nephew", "C. cousin", "D. aunt"],
+      "answer": "B. nephew",
+      "explanation": "Con trai của chị/em gái mình thì gọi là 'nephew' (cháu trai)."
+    },
+    {
+      "question": "The teacher is _______ the classroom.",
+      "options": ["A. on", "B. at", "C. in", "D. under"],
+      "answer": "C. in",
+      "explanation": "Dùng giới từ 'in' để chỉ vị trí bên trong không gian phòng học ('in the classroom')."
+    },
+    {
+      "question": "_______ does your father do? - He is an engineer.",
+      "options": ["A. Who", "B. Where", "C. How", "D. What"],
+      "answer": "D. What",
+      "explanation": "Câu hỏi về nghề nghiệp dùng từ để hỏi 'What' (What does... do?)."
+    },
+    {
+      "question": "Is this your pencil? - Yes, it _______.",
+      "options": ["A. is", "B. are", "C. am", "D. be"],
+      "answer": "A. is",
+      "explanation": "Câu trả lời ngắn cho câu hỏi 'Is this...?' là 'Yes, it is'."
+    },
+    {
+      "question": "Mr. Tan _______ teach Math. He teaches English.",
+      "options": ["A. don't", "B. doesn't", "C. isn't", "D. aren't"],
+      "answer": "B. doesn't",
+      "explanation": "Câu phủ định thì hiện tại đơn, chủ ngữ 'Mr. Tan' số ít nên dùng trợ động từ 'doesn't'."
+    },
+    {
+      "question": "How many _______ are there in your family?",
+      "options": ["A. people", "B. person", "C. peoples", "D. persons"],
+      "answer": "A. people",
+      "explanation": "Sau 'How many' dùng danh từ số nhiều. Số nhiều của 'person' là 'people'."
+    },
+    {
+      "question": "My school bag is _______ the desk.",
+      "options": ["A. on", "B. in", "C. at", "D. to"],
+      "answer": "A. on",
+      "explanation": "Cặp sách thường để trên mặt bàn, dùng giới từ 'on'."
+    },
+    {
+      "question": "Lan and Mai _______ best friends.",
+      "options": ["A. is", "B. am", "C. be", "D. are"],
+      "answer": "D. are",
+      "explanation": "Chủ ngữ 'Lan and Mai' là 2 người (số nhiều) nên dùng to-be 'are'."
+    },
+    {
+      "question": "_______ you live in a house or an apartment?",
+      "options": ["A. Are", "B. Is", "C. Do", "D. Does"],
+      "answer": "C. Do",
+      "explanation": "Câu hỏi thì hiện tại đơn với động từ thường 'live', chủ ngữ 'you' dùng trợ động từ 'Do'."
+    },
+    {
+      "question": "My grandfather is old, but he _______ very strong.",
+      "options": ["A. is", "B. are", "C. am", "D. be"],
+      "answer": "A. is",
+      "explanation": "Chủ ngữ 'he' đi với động từ to-be 'is'."
+    },
+    {
+      "question": "We use a _______ to write.",
+      "options": ["A. ruler", "B. pen", "C. eraser", "D. book"],
+      "answer": "B. pen",
+      "explanation": "'Pen' (cái bút) là dụng cụ dùng để viết (write)."
+    },
+    {
+      "question": "My father's brother is my _______.",
+      "options": ["A. aunt", "B. uncle", "C. cousin", "D. grandfather"],
+      "answer": "B. uncle",
+      "explanation": "Anh/em trai của bố được gọi là 'uncle' (chú/bác)."
+    },
+    {
+      "question": "They usually _______ breakfast at 6:30 a.m.",
+      "options": ["A. has", "B. have", "C. having", "D. haves"],
+      "answer": "B. have",
+      "explanation": "Cụm từ 'have breakfast' (ăn sáng). Chủ ngữ 'They' số nhiều nên dùng 'have'."
+    },
+    {
+      "question": "Is your school big? - No, it _______ small.",
+      "options": ["A. is", "B. are", "C. isn't", "D. aren't"],
+      "answer": "A. is",
+      "explanation": "Câu trả lời khẳng định 'nó thì nhỏ' (it is small) cho vế sau."
+    },
+    {
+      "question": "_______ she play the piano?",
+      "options": ["A. Do", "B. Does", "C. Is", "D. Are"],
+      "answer": "B. Does",
+      "explanation": "Câu hỏi thì hiện tại đơn với động từ thường 'play', chủ ngữ 'she' dùng trợ động từ 'Does'."
+    },
+    {
+      "question": "This is my classroom. It _______ very nice.",
+      "options": ["A. are", "B. am", "C. is", "D. be"],
+      "answer": "C. is",
+      "explanation": "Chủ ngữ 'It' thay thế cho 'classroom' (số ít) nên dùng to-be 'is'."
+    },
+    {
+      "question": "I have two _______ : a brother and a sister.",
+      "options": ["A. siblings", "B. parents", "C. cousins", "D. uncles"],
+      "answer": "A. siblings",
+      "explanation": "'Siblings' nghĩa là anh chị em ruột. Brother và sister là anh chị em."
+    },
+    {
+      "question": "Do you like _______ school?",
+      "options": ["A. you", "B. your", "C. yours", "D. me"],
+      "answer": "B. your",
+      "explanation": "Cần tính từ sở hữu đứng trước danh từ 'school'. 'Your' nghĩa là 'của bạn'."
+    },
+    {
+      "question": "He _______ homework in the evening.",
+      "options": ["A. do", "B. does", "C. doing", "D. is do"],
+      "answer": "B. does",
+      "explanation": "Cụm từ 'do homework'. Chủ ngữ 'He' số ít nên 'do' chuyển thành 'does'."
+    },
+    {
+      "question": "My mother is a teacher. She _______ at a primary school.",
+      "options": ["A. work", "B. works", "C. working", "D. is work"],
+      "answer": "B. works",
+      "explanation": "Thì hiện tại đơn, chủ ngữ 'She' số ít nên động từ 'work' thêm 's' thành 'works'."
+    }
+  ],
+  "medium": [
+    {
+      "question": "What time _______ your classes start every morning?",
+      "options": ["A. does", "B. do", "C. is", "D. are"],
+      "answer": "B. do",
+      "explanation": "Chủ ngữ 'your classes' là số nhiều, động từ thường 'start', nên trợ động từ là 'do'."
+    },
+    {
+      "question": "My father usually _______ up at 6 o'clock, but today he is late.",
+      "options": ["A. get", "B. gets", "C. is getting", "D. getting"],
+      "answer": "B. gets",
+      "explanation": "Có trạng từ 'usually' (thường xuyên) nên chia thì hiện tại đơn. 'My father' là ngôi thứ 3 số ít -> 'gets'."
+    },
+    {
+      "question": "_______ does she go to the library? - Twice a week.",
+      "options": ["A. How long", "B. When", "C. How often", "D. What time"],
+      "answer": "C. How often",
+      "explanation": "Câu trả lời 'Twice a week' (2 lần 1 tuần) chỉ tần suất, nên câu hỏi phải dùng 'How often'."
+    },
+    {
+      "question": "Nga acts very well. She wants to be _______.",
+      "options": ["A. a actress", "B. an actor", "C. an actress", "D. actress"],
+      "answer": "C. an actress",
+      "explanation": "Nga là nữ nên dùng 'actress'. Từ này bắt đầu bằng nguyên âm nên dùng mạo từ 'an'."
+    },
+    {
+      "question": "There _______ any milk in the fridge.",
+      "options": ["A. isn't", "B. aren't", "C. is", "D. are"],
+      "answer": "A. isn't",
+      "explanation": "'Milk' là danh từ không đếm được nên dùng to-be số ít. Câu có 'any' thường là phủ định -> 'isn't'."
+    },
+    {
+      "question": "Where _______ Mr. Ba live?",
+      "options": ["A. do", "B. does", "C. is", "D. are"],
+      "answer": "B. does",
+      "explanation": "Câu hỏi với động từ thường 'live', chủ ngữ 'Mr. Ba' (số ít) cần trợ động từ 'does'."
+    },
+    {
+      "question": "The children _______ in the playground right now.",
+      "options": ["A. are", "B. is", "C. am", "D. be"],
+      "answer": "A. are",
+      "explanation": "Chủ ngữ 'The children' (những đứa trẻ) là danh từ số nhiều bất quy tắc của 'child', nên dùng 'are'."
+    },
+    {
+      "question": "Ba is good at fixing things. He is an _______.",
+      "options": ["A. author", "B. engineer", "C. artist", "D. doctor"],
+      "answer": "B. engineer",
+      "explanation": "Dựa vào ngữ cảnh 'giỏi sửa chữa đồ đạc', nghề nghiệp phù hợp nhất là kỹ sư (engineer)."
+    },
+    {
+      "question": "Does your brother play soccer? - No, he _______.",
+      "options": ["A. don't", "B. doesn't", "C. isn't", "D. aren't"],
+      "answer": "B. doesn't",
+      "explanation": "Câu hỏi bắt đầu bằng 'Does', câu trả lời phủ định ngắn gọn là 'No, he doesn't'."
+    },
+    {
+      "question": "Our classroom is on the _______ floor.",
+      "options": ["A. one", "B. two", "C. second", "D. twice"],
+      "answer": "C. second",
+      "explanation": "Khi nói về số tầng của tòa nhà, ta dùng số thứ tự (first, second, third...). Đáp án là 'second'."
+    },
+    {
+      "question": "This is _______ book.",
+      "options": ["A. Nam's", "B. Nams'", "C. of Nam", "D. Nam"],
+      "answer": "A. Nam's",
+      "explanation": "Sở hữu cách với tên riêng: Thêm 's vào sau tên. (Sách của Nam)."
+    },
+    {
+      "question": "_______ school bag is this? - It's Lan's.",
+      "options": ["A. Who", "B. Who's", "C. Whose", "D. Which"],
+      "answer": "C. Whose",
+      "explanation": "Để hỏi về sự sở hữu (Của ai?), ta dùng từ để hỏi 'Whose'."
+    },
+    {
+      "question": "Minh _______ late for school.",
+      "options": ["A. never is", "B. is never", "C. never be", "D. be never"],
+      "answer": "B. is never",
+      "explanation": "Vị trí của trạng từ chỉ tần suất (never): Đứng SAU động từ to-be. -> 'is never'."
+    },
+    {
+      "question": "Hung _______ his homework in the evening.",
+      "options": ["A. do usually", "B. usually do", "C. does usually", "D. usually does"],
+      "answer": "D. usually does",
+      "explanation": "Vị trí trạng từ tần suất: Đứng TRƯỚC động từ thường. Hung số ít nên 'do' -> 'does'. -> 'usually does'."
+    },
+    {
+      "question": "Which grade _______ you in?",
+      "options": ["A. are", "B. am", "C. is", "D. do"],
+      "answer": "A. are",
+      "explanation": "Câu hỏi về khối lớp: 'Which grade are you in?'. Chủ ngữ 'you' đi với 'are'."
+    },
+    {
+      "question": "My father works in a hospital. He is a _______.",
+      "options": ["A. teacher", "B. farmer", "C. doctor", "D. worker"],
+      "answer": "C. doctor",
+      "explanation": "Làm việc trong bệnh viện (hospital) thì nghề nghiệp phù hợp là bác sĩ (doctor)."
+    },
+    {
+      "question": "_______ do you have English? - On Monday and Thursday.",
+      "options": ["A. What", "B. Where", "C. When", "D. Which"],
+      "answer": "C. When",
+      "explanation": "Câu trả lời chỉ thời gian (Thứ 2 và thứ 5), nên dùng từ để hỏi 'When' (Khi nào)."
+    },
+    {
+      "question": "Mr. Hai _______ his teeth after every meal.",
+      "options": ["A. brush", "B. brushs", "C. brushes", "D. is brushing"],
+      "answer": "C. brushes",
+      "explanation": "Thì hiện tại đơn, chủ ngữ số ít. Động từ 'brush' kết thúc bằng 'sh' nên thêm 'es' -> 'brushes'."
+    },
+    {
+      "question": "Is _______ house large? - No, it isn't.",
+      "options": ["A. Miss Nga", "B. Miss Nga's", "C. Miss Ngas", "D. Miss's Nga"],
+      "answer": "B. Miss Nga's",
+      "explanation": "Cần dạng sở hữu cách 'Nhà của cô Nga' -> Thêm 's vào sau tên riêng -> 'Miss Nga's'."
+    },
+    {
+      "question": "How many floors _______ your school have?",
+      "options": ["A. does", "B. do", "C. is", "D. are"],
+      "answer": "A. does",
+      "explanation": "Câu hỏi với động từ thường 'have', chủ ngữ 'your school' (số ít) cần trợ động từ 'does'."
+    },
+    {
+      "question": "My brother goes to work _______ 7:15.",
+      "options": ["A. on", "B. in", "C. at", "D. to"],
+      "answer": "C. at",
+      "explanation": "Trước giờ giấc cụ thể (7:15) ta luôn dùng giới từ 'at'."
+    },
+    {
+      "question": "Does she _______ to music in her free time?",
+      "options": ["A. listens", "B. listen", "C. listening", "D. to listen"],
+      "answer": "B. listen",
+      "explanation": "Trong câu hỏi có trợ động từ 'Does', động từ chính 'listen' phải trở về dạng nguyên mẫu."
+    },
+    {
+      "question": "Physics, Biology and Chemistry are my favorite _______.",
+      "options": ["A. subjects", "B. objects", "C. games", "D. sports"],
+      "answer": "A. subjects",
+      "explanation": "Lý, Sinh, Hóa là các môn học, từ vựng đúng là 'subjects'."
+    },
+    {
+      "question": "We usually read books in the _______.",
+      "options": ["A. bookstore", "B. factory", "C. library", "D. stadium"],
+      "answer": "C. library",
+      "explanation": "Địa điểm thường dùng để đọc sách trong trường học là thư viện (library)."
+    },
+    {
+      "question": "What time does Hanh _______ History class?",
+      "options": ["A. have", "B. has", "C. haves", "D. having"],
+      "answer": "A. have",
+      "explanation": "Sau trợ động từ 'does', động từ 'have' phải ở dạng nguyên mẫu (không chia)."
+    },
+    {
+      "question": "There are four _______ in my family.",
+      "options": ["A. person", "B. peoples", "C. people", "D. members"],
+      "answer": "C. people",
+      "explanation": "Sau số đếm (four) dùng danh từ số nhiều. 'People' là số nhiều của 'person'. 'Members' cũng đúng ngữ pháp nhưng 'people' phổ biến hơn khi nói về số lượng người chung chung."
+    },
+    {
+      "question": "Her sister is a nurse. She takes care _______ sick people.",
+      "options": ["A. for", "B. about", "C. of", "D. with"],
+      "answer": "C. of",
+      "explanation": "Cụm động từ 'take care of' nghĩa là chăm sóc ai đó."
+    },
+    {
+      "question": "Every day, I go to school _______ bus.",
+      "options": ["A. by", "B. on", "C. in", "D. with"],
+      "answer": "A. by",
+      "explanation": "Dùng giới từ 'by' trước phương tiện đi lại (by bus, by car, by bike)."
+    },
+    {
+      "question": "Is there a photocopy store near your house? - Yes, _______.",
+      "options": ["A. there is", "B. there are", "C. it is", "D. it does"],
+      "answer": "A. there is",
+      "explanation": "Câu hỏi 'Is there...?' thì câu trả lời khẳng định là 'Yes, there is'."
+    },
+    {
+      "question": "My father _______ coffee, but he likes tea.",
+      "options": ["A. don't like", "B. doesn't like", "C. don't likes", "D. doesn't likes"],
+      "answer": "B. doesn't like",
+      "explanation": "Câu phủ định thì hiện tại đơn, chủ ngữ số ít 'My father' dùng 'doesn't + V nguyên mẫu'."
+    }
+  ],
+  "hard": [
+    {
+      "question": "My brother and I _______ students at the same school.",
+      "options": ["A. am", "B. are", "C. is", "D. be"],
+      "answer": "B. are",
+      "explanation": "Nhiều học sinh thấy 'I' liền chọn 'am', nhưng chủ ngữ là 'My brother and I' (2 người = We) nên phải dùng 'are'."
+    },
+    {
+      "question": "What time _______ Lan's classes finish?",
+      "options": ["A. does", "B. do", "C. is", "D. are"],
+      "answer": "B. do",
+      "explanation": "Chủ ngữ là 'Lan's classes' (các tiết học - số nhiều), không phải 'Lan'. Do đó trợ động từ phải là 'do'."
+    },
+    {
+      "question": "_______ does Nga live with? - She lives with her grandparents.",
+      "options": ["A. Who", "B. What", "C. Which", "D. Where"],
+      "answer": "A. Who",
+      "explanation": "Câu hỏi 'sống với ai' dùng cấu trúc 'Who... with?'. Câu trả lời chỉ người (grandparents)."
+    },
+    {
+      "question": "Mr. Hung is a doctor. He works in a hospital _______ the city center.",
+      "options": ["A. on", "B. in", "C. at", "D. to"],
+      "answer": "B. in",
+      "explanation": "Cụm từ chỉ vị trí địa lý: 'in the city center' (ở trung tâm thành phố)."
+    },
+    {
+      "question": "There is a well to the left _______ the house.",
+      "options": ["A. in", "B. at", "C. of", "D. on"],
+      "answer": "C. of",
+      "explanation": "Cấu trúc giới từ chỉ vị trí: 'to the left of' (bên trái của cái gì đó)."
+    },
+    {
+      "question": "_______ your house have a yard?",
+      "options": ["A. Do", "B. Does", "C. Is", "D. Are"],
+      "answer": "B. Does",
+      "explanation": "Chủ ngữ là 'your house' (số ít - it), động từ thường 'have', nên đảo trợ động từ 'Does' lên đầu."
+    },
+    {
+      "question": "How far is it from your house _______ school?",
+      "options": ["A. at", "B. to", "C. in", "D. with"],
+      "answer": "B. to",
+      "explanation": "Cấu trúc hỏi khoảng cách: 'How far is it from [A] to [B]?'."
+    },
+    {
+      "question": "He drives _______ work every day.",
+      "options": ["A. at", "B. to", "C. in", "D. for"],
+      "answer": "B. to",
+      "explanation": "Cụm từ 'drive to work' (lái xe đi làm). Dùng giới từ 'to' chỉ hướng đi đến đích."
+    },
+    {
+      "question": "Lan's brother _______ volleyball strictly.",
+      "options": ["A. don't play", "B. not play", "C. doesn't play", "D. doesn't plays"],
+      "answer": "C. doesn't play",
+      "explanation": "Phủ định thì hiện tại đơn với chủ ngữ số ít (brother): 'doesn't' + động từ nguyên mẫu (bỏ 's'). Đáp án D sai vì thừa 's'."
+    },
+    {
+      "question": "Which sentence is correct?",
+      "options": ["A. The house of Mr. Ha is big.", "B. Mr. Ha house is big.", "C. Mr. Ha's house is big.", "D. Mr. Ha's house are big."],
+      "answer": "C. Mr. Ha's house is big.",
+      "explanation": "Cách dùng sở hữu cách đúng nhất: [Chủ sở hữu] + 's + [Vật]. Động từ 'is' chia theo 'house' (số ít)."
+    },
+    {
+      "question": "Classes end _______ 11:15.",
+      "options": ["A. on", "B. in", "C. at", "D. about"],
+      "answer": "C. at",
+      "explanation": "Giới từ chỉ mốc thời gian cụ thể (giờ) luôn là 'at'."
+    },
+    {
+      "question": "What does your sister _______? - She goes to school.",
+      "options": ["A. do", "B. does", "C. doing", "D. works"],
+      "answer": "A. do",
+      "explanation": "Cấu trúc 'What does + S + do?'. Sau trợ động từ 'does', động từ chính phải về nguyên mẫu 'do'."
+    },
+    {
+      "question": "There are _______ interesting books in the library.",
+      "options": ["A. any", "B. a", "C. an", "D. many"],
+      "answer": "D. many",
+      "explanation": "Câu khẳng định dùng 'many' cho danh từ đếm được số nhiều. 'Any' dùng cho câu phủ định/nghi vấn. 'A/An' dùng cho số ít."
+    },
+    {
+      "question": "Ba _______ lunch at school.",
+      "options": ["A. have", "B. has", "C. eat", "D. to eat"],
+      "answer": "B. has",
+      "explanation": "Cụm 'have lunch' (ăn trưa). Chủ ngữ 'Ba' số ít nên 'have' biến đổi thành 'has'."
+    },
+    {
+      "question": "Every morning, Lan _______ teeth and _______ her face.",
+      "options": ["A. brush/wash", "B. brushes/washes", "C. brushs/washs", "D. brushes/wash"],
+      "answer": "B. brushes/washes",
+      "explanation": "Cả hai động từ đều chia theo chủ ngữ 'Lan' (số ít). Tận cùng là 'sh' nên thêm 'es' cho cả hai."
+    },
+    {
+      "question": "Where are my books? - _______ on the table.",
+      "options": ["A. It is", "B. They are", "C. There are", "D. They're"],
+      "answer": "D. They're",
+      "explanation": "Chủ ngữ 'my books' (số nhiều) được thay thế bằng 'They'. Viết tắt 'They are' -> 'They're'."
+    },
+    {
+      "question": "How many _______ does your school have?",
+      "options": ["A. floor", "B. floors", "C. bench", "D. class"],
+      "answer": "B. floors",
+      "explanation": "Sau 'How many' bắt buộc là danh từ đếm được số NHIỀU (floors). Các đáp án khác đều ở dạng số ít."
+    },
+    {
+      "question": "My father is an engineer. He works in a _______.",
+      "options": ["A. school", "B. factory", "C. hospital", "D. drugstore"],
+      "answer": "B. factory",
+      "explanation": "Kỹ sư (engineer) thường làm việc ở nhà máy (factory). Các địa điểm khác không phù hợp ngữ cảnh phổ thông lớp 6."
+    },
+    {
+      "question": "Is Ho Chi Minh City _______ than Hanoi?",
+      "options": ["A. big", "B. biger", "C. bigger", "D. biggest"],
+      "answer": "C. bigger",
+      "explanation": "So sánh hơn với tính từ ngắn 'big' -> gấp đôi phụ âm cuối + er -> 'bigger'. (Câu này hơi nâng cao một chút về ngữ pháp so sánh)."
+    },
+    {
+      "question": "Are there any flowers in the garden? - _______.",
+      "options": ["A. Yes, they are", "B. No, there aren't", "C. No, they aren't", "D. Yes, there isn't"],
+      "answer": "B. No, there aren't",
+      "explanation": "Câu hỏi bắt đầu bằng 'Are there...?' thì trả lời phải dùng chủ ngữ giả 'there'. Phủ định là 'No, there aren't'."
+    },
+    {
+      "question": "My classroom is on the _______ floor.",
+      "options": ["A. three", "B. third", "C. thirth", "D. threeth"],
+      "answer": "B. third",
+      "explanation": "Số thứ tự của 3 là 'third'. 'Threeth' hay 'thirth' là từ không có nghĩa."
+    },
+    {
+      "question": "Does Nam play sports? - Yes, he _______ soccer.",
+      "options": ["A. play", "B. plays", "C. is playing", "D. playing"],
+      "answer": "B. plays",
+      "explanation": "Vế sau là câu khẳng định thì hiện tại đơn. Nam (số ít) -> 'plays'."
+    },
+    {
+      "question": "Nga and Mai _______ to the movies tonight.",
+      "options": ["A. go", "B. goes", "C. are going", "D. going"],
+      "answer": "C. are going",
+      "explanation": "Dùng thì hiện tại tiếp diễn để diễn tả một kế hoạch/dự định trong tương lai gần (tonight). Chủ ngữ số nhiều -> 'are going'."
+    },
+    {
+      "question": "What is _______ sister's name?",
+      "options": ["A. you", "B. he", "C. your", "D. she"],
+      "answer": "C. your",
+      "explanation": "Cần tính từ sở hữu bổ nghĩa cho cụm danh từ 'sister's name'. 'Tên của chị gái BẠN'."
+    },
+    {
+      "question": "He _______ his homework immediately after school.",
+      "options": ["A. doesn't do", "B. don't do", "C. doesn't does", "D. not do"],
+      "answer": "A. doesn't do",
+      "explanation": "Phủ định: Trợ động từ 'doesn't' + Động từ chính nguyên mẫu 'do'. Đáp án C sai vì chia động từ chính."
+    },
+    {
+      "question": "Choose the word that has the underlined part pronounced differently: A. l<u>i</u>ve, B. h<u>i</u>story, C. t<u>i</u>me, D. f<u>i</u>nish",
+      "options": ["A. live", "B. history", "C. time", "D. finish"],
+      "answer": "C. time",
+      "explanation": "Phát âm: 'time' là /ai/, các từ còn lại (live, history, finish) là /i/."
+    },
+    {
+      "question": "We have English classes _______ Tuesday and Thursday.",
+      "options": ["A. in", "B. at", "C. on", "D. from"],
+      "answer": "C. on",
+      "explanation": "Giới từ chỉ ngày trong tuần luôn là 'on'."
+    },
+    {
+      "question": "_______ walk to school?",
+      "options": ["A. Do you usually", "B. Usually do you", "C. Do usually you", "D. You usually do"],
+      "answer": "A. Do you usually",
+      "explanation": "Trật tự câu nghi vấn: Trợ từ (Do) + Chủ ngữ (you) + Trạng từ tần suất (usually) + Động từ (walk)."
+    },
+    {
+      "question": "Miss Lan has _______ lips and small white teeth.",
+      "options": ["A. long", "B. full", "C. heavy", "D. tall"],
+      "answer": "B. full",
+      "explanation": "Collocation (cụm từ cố định): 'full lips' (đôi môi đầy đặn). Các tính từ khác không dùng tả môi."
+    },
+    {
+      "question": "Is your school _______ the country or _______ the city?",
+      "options": ["A. in/on", "B. in/in", "C. at/in", "D. on/at"],
+      "answer": "B. in/in",
+      "explanation": "Cả 'country' (nông thôn) và 'city' (thành phố) đều dùng giới từ 'in'."
+    }
+  ],
+  "extreme": [
+    {
+      "question": "Which word has the underlined part pronounced differently? A. t<u>ea</u>cher, B. r<u>ea</u>dy, C. sp<u>ea</u>k, D. <u>ea</u>t",
+      "options": ["A. teacher", "B. ready", "C. speak", "D. eat"],
+      "answer": "B. ready",
+      "explanation": "Phần gạch chân của 'ready' phát âm là /e/, trong khi các từ còn lại (teacher, speak, eat) phát âm là /i:/."
+    },
+    {
+      "question": "Choose the incorrect sentence:",
+      "options": ["A. My brother lives in an apartment.", "B. Does your father works in a factory?", "C. There are four people in my family.", "D. Is her school big?"],
+      "answer": "B. Does your father works in a factory?",
+      "explanation": "Sai ngữ pháp. Khi đã có trợ động từ 'Does' đứng đầu câu, động từ chính 'work' phải bỏ 's' (về nguyên mẫu). Câu đúng: 'Does your father work...'."
+    },
+    {
+      "question": "Every day, my father _______ to work at 7.00 and _______ home at 5.00.",
+      "options": ["A. go/come", "B. goes/comes", "C. goes/come", "D. go/comes"],
+      "answer": "B. goes/comes",
+      "explanation": "Cả 2 vế đều có chủ ngữ là 'my father' (số ít), nên cả 2 động từ đều phải chia thêm 'es/s'."
+    },
+    {
+      "question": "What is the opposite of 'noisy'?",
+      "options": ["A. big", "B. small", "C. quiet", "D. fine"],
+      "answer": "C. quiet",
+      "explanation": "Từ vựng nâng cao: 'Noisy' là ồn ào, trái nghĩa với nó là 'Quiet' (yên tĩnh)."
+    },
+    {
+      "question": "_______ car is that? - It is Mr. Hai's.",
+      "options": ["A. Who", "B. Who's", "C. Whose", "D. Which"],
+      "answer": "C. Whose",
+      "explanation": "Phân biệt 'Who's' (Who is) và 'Whose' (Của ai). Câu hỏi về quyền sở hữu phải dùng 'Whose'."
+    },
+    {
+      "question": "Choose the word with the stress pattern different from the others: A. geography, B. history, C. literature, D. music",
+      "options": ["A. geography", "B. history", "C. literature", "D. music"],
+      "answer": "A. geography",
+      "explanation": "Trọng âm: 'Geography' nhấn âm 2. Các từ còn lại (History, Literature, Music) nhấn âm 1."
+    },
+    {
+      "question": "My father often spends his free time _______ doing the housework.",
+      "options": ["A. in", "B. at", "C. on", "D. for"],
+      "answer": "C. on",
+      "explanation": "Cấu trúc nâng cao: 'spend time on doing something' (dành thời gian làm việc gì)."
+    },
+    {
+      "question": "Does Nam's mother _______ in a hospital?",
+      "options": ["A. work", "B. works", "C. is working", "D. working"],
+      "answer": "A. work",
+      "explanation": "Rất nhiều bạn thấy 'mother' (số ít) liền chọn 'works'. Nhưng đây là câu hỏi có 'Does', động từ phải nguyên mẫu 'work'."
+    },
+    {
+      "question": "Mr. Lam lives in the country. He has a big garden. He grows _______ vegetables.",
+      "options": ["A. any", "B. some", "C. a", "D. an"],
+      "answer": "B. some",
+      "explanation": "Câu khẳng định dùng 'some' với danh từ số nhiều 'vegetables'. 'Any' dùng cho phủ định/nghi vấn."
+    },
+    {
+      "question": "Arrange the words to make a correct sentence: school / to / Ba / goes / bus / by /.",
+      "options": ["A. Ba goes by bus to school.", "B. Ba goes to school by bus.", "C. Ba by bus goes to school.", "D. Ba to school goes by bus."],
+      "answer": "B. Ba goes to school by bus.",
+      "explanation": "Trật tự từ đúng: Chủ ngữ + Động từ + Địa điểm + Phương tiện (S + V + to place + by vehicle)."
+    },
+    {
+      "question": "Find the mistake: 'There are a living room, two bedrooms and a kitchen in my house.'",
+      "options": ["A. There are", "B. bedrooms", "C. a kitchen", "D. in"],
+      "answer": "A. There are",
+      "explanation": "Quy tắc 'Proximity' (Cận kề) với 'There is/are': Động từ chia theo danh từ ĐẦU TIÊN được liệt kê. 'A living room' là số ít, nên phải dùng 'There is' (dù đằng sau còn nhiều phòng khác)."
+    },
+    {
+      "question": "Classes start at seven in the morning and _______ at half past eleven.",
+      "options": ["A. end", "B. ends", "C. ending", "D. is end"],
+      "answer": "A. end",
+      "explanation": "Chủ ngữ là 'Classes' (số nhiều), nên động từ thứ 2 cũng phải giữ nguyên 'end' (đồng dạng với động từ 'start' ở vế trước)."
+    },
+    {
+      "question": "How many _______ does he have? - Only one.",
+      "options": ["A. child", "B. childs", "C. children", "D. childrens"],
+      "answer": "C. children",
+      "explanation": "Danh từ số nhiều bất quy tắc: 1 child -> nhiều children. Sau 'How many' luôn dùng số nhiều."
+    },
+    {
+      "question": "Is there a yard _______ your school?",
+      "options": ["A. in front", "B. front of", "C. in front of", "D. to the front"],
+      "answer": "C. in front of",
+      "explanation": "Cụm giới từ đầy đủ và chính xác là 'in front of' (ở phía trước)."
+    },
+    {
+      "question": "Odd one out (Tìm từ khác loại):",
+      "options": ["A. uncle", "B. aunt", "C. friend", "D. cousin"],
+      "answer": "C. friend",
+      "explanation": "Uncle, aunt, cousin là từ chỉ quan hệ huyết thống (gia đình). 'Friend' là người ngoài (bạn bè)."
+    },
+    {
+      "question": "_______ do you go to bed? - At 10 o'clock.",
+      "options": ["A. What time", "B. When", "C. How", "D. A & B are correct"],
+      "answer": "D. A & B are correct",
+      "explanation": "Để hỏi về thời gian, cả 'What time' (mấy giờ) và 'When' (khi nào) đều chấp nhận được trong ngữ cảnh này."
+    },
+    {
+      "question": "My classroom is on the _______ floor, and hers is on the _______ floor.",
+      "options": ["A. two / four", "B. second / fourth", "C. twice / four", "D. second / four"],
+      "answer": "B. second / fourth",
+      "explanation": "Cả hai vế đều nói về tầng của tòa nhà, bắt buộc dùng số thứ tự (second, fourth) cho cả hai."
+    },
+    {
+      "question": "Which verb adds 'es' in the third person singular?",
+      "options": ["A. play", "B. watch", "C. look", "D. sleep"],
+      "answer": "B. watch",
+      "explanation": "Quy tắc chính tả: Các động từ kết thúc bằng o, s, x, z, ch, sh (Ông Sáu Xuống Zườn Chọn SH) thì thêm 'es'. 'Watch' kết thúc bằng 'ch' -> 'watches'."
+    },
+    {
+      "question": "My mother works _______ a local hospital.",
+      "options": ["A. for", "B. at", "C. in", "D. B & C are correct"],
+      "answer": "D. B & C are correct",
+      "explanation": "Làm việc tại một địa điểm cụ thể dùng 'work at' hoặc 'work in' đều đúng."
+    },
+    {
+      "question": "Look at the man over there. He is _______ father.",
+      "options": ["A. Ann's and Peter's", "B. Ann and Peter's", "C. Ann's and Peter", "D. Ann and Peter"],
+      "answer": "B. Ann and Peter's",
+      "explanation": "Sở hữu cách kép (chung 1 đối tượng): Nếu Ann và Peter là anh em (chung 1 bố), chỉ thêm 's vào người đứng cuối -> 'Ann and Peter's father'."
+    },
+    {
+      "question": "What does he do? - He is a businessman. He travels _______.",
+      "options": ["A. a lot of", "B. a lot", "C. many", "D. much"],
+      "answer": "B. a lot",
+      "explanation": "'Travel' là động từ. Để bổ nghĩa cho động từ (đi nhiều), ta dùng trạng từ 'a lot' đứng cuối câu. 'A lot of' + danh từ."
+    },
+    {
+      "question": "_______ school is very beautiful.",
+      "options": ["A. The children's", "B. The childrens'", "C. The childrens", "D. The children"],
+      "answer": "A. The children's",
+      "explanation": "'Children' đã là số nhiều, sở hữu cách của danh từ số nhiều không có 's' tận cùng thì thêm 's bình thường -> The children's."
+    },
+    {
+      "question": "My house is near a park, so it is very _______.",
+      "options": ["A. noisy", "B. quiet", "C. busy", "D. tall"],
+      "answer": "B. quiet",
+      "explanation": "Suy luận ngữ cảnh: Gần công viên thường yên tĩnh (quiet). Các đáp án khác không hợp lý về logic."
+    },
+    {
+      "question": "Is this her _______?",
+      "options": ["A. eraser", "B. pencils", "C. rulers", "D. books"],
+      "answer": "A. eraser",
+      "explanation": "Động từ 'Is this' chỉ dùng cho danh từ số ít. Các đáp án B, C, D đều là số nhiều (có s). Chỉ có 'eraser' là số ít."
+    },
+    {
+      "question": "We live in a house _______ a big yard.",
+      "options": ["A. have", "B. has", "C. with", "D. and"],
+      "answer": "C. with",
+      "explanation": "Dùng giới từ 'with' để chỉ đặc điểm đi kèm (ngôi nhà VỚI một cái sân rộng). Không dùng động từ 'have/has' vì câu đã có động từ chính 'live'."
+    },
+    {
+      "question": "Identify the subject in this sentence: 'On the table are three books.'",
+      "options": ["A. On the table", "B. three books", "C. are", "D. table"],
+      "answer": "B. three books",
+      "explanation": "Cấu trúc đảo ngữ: 'Trên bàn là 3 quyển sách'. Chủ ngữ thực sự là 'three books' (vật được nhắc đến), không phải 'On the table'."
+    },
+    {
+      "question": "Nam and I _______ our homework at 8 p.m.",
+      "options": ["A. do", "B. does", "C. doing", "D. are doing"],
+      "answer": "A. do",
+      "explanation": "Chủ ngữ 'Nam and I' = We. Trong thì hiện tại đơn (chỉ thói quen/lịch trình), dùng động từ nguyên mẫu 'do'."
+    },
+    {
+      "question": "Choose the correct sentence structure:",
+      "options": ["A. What time does she get dressed?", "B. What time she gets dressed?", "C. What time does she gets dressed?", "D. What time she get dressed?"],
+      "answer": "A. What time does she get dressed?",
+      "explanation": "Cấu trúc câu hỏi Wh-: Từ để hỏi + Trợ động từ + Chủ ngữ + Động từ nguyên mẫu."
+    },
+    {
+      "question": "There are _______ eggs in the fridge.",
+      "options": ["A. a dozen", "B. dozen", "C. a dozen of", "D. dozen of"],
+      "answer": "A. a dozen",
+      "explanation": "Cụm từ chỉ định lượng: 'a dozen' (một tá/12 cái) đi trực tiếp với danh từ, không cần 'of' ở giữa (trừ khi dùng a dozen of them/these...)."
+    },
+    {
+      "question": "Mr. Pike is _______ engineer.",
+      "options": ["A. a", "B. an", "C. the", "D. any"],
+      "answer": "B. an",
+      "explanation": "Trước danh từ chỉ nghề nghiệp bắt đầu bằng nguyên âm 'e' (engineer), ta dùng mạo từ 'an'."
+    }
+  ]
+}
