@@ -100,68 +100,142 @@ def gui_thong_bao_admin(loai, noi_dung):
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 def giao_dien_thong_bao_admin():
+    import time
+    from datetime import datetime
+    import user_module  # Import module chứa hàm lưu sheet
+    import json
+    import os
+
     st.subheader("📢 TRUNG TÂM PHÁT THANH ADMIN")
     
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        msg_content = st.text_area("Nội dung thông báo:", placeholder="Nhập nội dung cập nhật hoặc thông báo...")
-    with col2:
-        msg_type = st.radio("Hình thức:", ["Chạy chữ (Marquee)", "Popup Khẩn cấp"])
+    # --- KHU VỰC NHẬP LIỆU ---
+    with st.container(border=True):
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            # Dùng key để có thể clear sau khi gửi
+            msg_content = st.text_area("Nội dung thông báo:", height=100, key="input_msg_content", placeholder="Nhập nội dung cập nhật hoặc thông báo...")
+        with c2:
+            msg_type = st.radio("Hình thức:", ["marquee", "popup"], 
+                                format_func=lambda x: "🏃 Chạy chữ" if x == "marquee" else "🚨 Popup Khẩn")
+        
+        # --- NÚT GỬI THÔNG BÁO (MỚI THÊM) ---
+        if st.button("📡 PHÁT THANH NGAY", type="primary", use_container_width=True):
+            if not msg_content:
+                st.error("❌ Nội dung thông báo không được để trống!")
+            else:
+                # 1. Tạo cấu trúc thông báo mới
+                new_notice = {
+                    "id": int(time.time()), # ID duy nhất dựa theo thời gian
+                    "content": msg_content,
+                    "type": msg_type,
+                    "time": datetime.now().strftime("%H:%M %d/%m")
+                }
+
+                # 2. Lưu vào Session State (Bộ nhớ tạm)
+                if 'admin_notices' not in st.session_state.data:
+                    st.session_state.data['admin_notices'] = []
+                
+                # Thêm vào đầu danh sách
+                st.session_state.data['admin_notices'].insert(0, new_notice)
+
+                # 3. Lưu vào File JSON (Backup cục bộ - tùy chọn)
+                try:
+                    with open('data/admin_notices.json', 'w', encoding='utf-8') as f:
+                        json.dump(st.session_state.data['admin_notices'], f, ensure_ascii=False)
+                except: pass
+
+                # 4. 🔥 QUAN TRỌNG: LƯU LÊN GOOGLE SHEET 🔥
+                with st.spinner("Đang gửi tín hiệu lên vệ tinh..."):
+                    user_module.save_all_to_sheets(st.session_state.data)
+                
+                st.success("✅ Đã phát thông báo thành công!")
+                time.sleep(1)
+                st.rerun()
+
+    # --- HIỂN THỊ DANH SÁCH THÔNG BÁO ĐANG CHẠY ---
+    st.divider()
+    st.write("📋 **Danh sách thông báo đang treo:**")
+    current_notices = st.session_state.data.get('admin_notices', [])
     
-    if st.button("🗑️ XÓA TẤT CẢ THÔNG BÁO (ADMIN & WORLD CHAT)"):
-        # 1. Xóa thông báo của Admin
+    if current_notices:
+        for i, note in enumerate(current_notices):
+            with st.expander(f"{note['time']} - {note['type'].upper()}", expanded=True):
+                st.write(note['content'])
+                if st.button("Xóa tin này", key=f"del_note_{note['id']}"):
+                    current_notices.pop(i)
+                    st.session_state.data['admin_notices'] = current_notices
+                    user_module.save_all_to_sheets(st.session_state.data) # Lưu lại sau khi xóa lẻ
+                    st.rerun()
+    else:
+        st.info("Chưa có thông báo nào.")
+
+    # --- NÚT XÓA TẤT CẢ ---
+    st.divider()
+    if st.button("🗑️ XÓA TOÀN BỘ THÔNG BÁO HỆ THỐNG"):
+        # 1. Xóa trong dữ liệu chính
+        st.session_state.data['admin_notices'] = []
+        
+        # 2. Xóa file cục bộ
         if os.path.exists('data/admin_notices.json'):
             os.remove('data/admin_notices.json')
             
-        # 2. Xóa luôn tin nhắn Loa phát thanh của người dùng
-        if os.path.exists('data/world_announcements.json'):
-            # Thay vì xóa file, ta ghi đè bằng một danh sách rỗng để tránh lỗi đọc file ở UI khách
-            with open('data/world_announcements.json', 'w', encoding='utf-8') as f:
-                json.dump([], f)
+        # 3. Lưu lên Sheet
+        user_module.save_all_to_sheets(st.session_state.data)
         
-        st.info("🧹 Đã dọn dẹp sạch sẽ toàn bộ thông báo trên Server!")
+        st.success("🧹 Đã dọn dẹp sạch sẽ!")
+        time.sleep(1)
         st.rerun()
-
 
 def hien_thi_thong_bao_he_thong():
     """
-    Hàm hiển thị thông báo chạy chữ (Marquee) hoặc Popup cho người dùng.
+    Hàm hiển thị thông báo. Đọc trực tiếp từ st.session_state.data để đảm bảo
+    đồng bộ với dữ liệu đã tải từ Google Sheet về.
     """
-    import os, json
     import streamlit as st
     
-    if os.path.exists('data/admin_notices.json'):
-        with open('data/admin_notices.json', 'r', encoding='utf-8') as f:
-            try: 
-                notices = json.load(f)
-            except: 
-                notices = []
+    # Lấy danh sách thông báo từ dữ liệu tổng (đã load từ sheet khi vào app)
+    # Nếu chưa có thì lấy list rỗng
+    notices = st.session_state.data.get('admin_notices', [])
+    
+    if not notices:
+        return
+
+    # Duyệt qua các thông báo
+    for n in notices:
+        # 1. Hiển thị POPUP KHẨN CẤP
+        if n.get('type') == 'popup':
+            # Tạo key duy nhất để không hiện lại nếu đã tắt
+            popup_key = f"seen_popup_{n.get('id')}"
             
-        for n in notices:
-            # 1. Hiển thị POPUP KHẨN CẤP
-            if n['type'] == 'popup':
-                popup_key = f"seen_popup_{n['id']}"
-                if popup_key not in st.session_state:
-                    @st.dialog("📢 THÔNG BÁO TỪ BAN QUẢN TRỊ")
-                    def show_notice_popup(content, time):
-                        st.warning(f"🕒 *Gửi lúc: {time}*")
-                        st.markdown(f"### {content}")
-                        if st.button("Đã hiểu và Đóng"):
-                            st.session_state[popup_key] = True
-                            st.rerun()
-                    
-                    show_notice_popup(n['content'], n['time'])
+            if not st.session_state.get(popup_key, False):
+                @st.dialog("📢 THÔNG BÁO TỪ BAN QUẢN TRỊ")
+                def show_notice_popup(content, time_sent):
+                    st.warning(f"🕒 *Gửi lúc: {time_sent}*")
+                    st.markdown(f"### {content}")
+                    if st.button("Đã hiểu và Đóng", key=f"btn_cls_{n.get('id')}"):
+                        st.session_state[popup_key] = True
+                        st.rerun()
+                
+                show_notice_popup(n.get('content'), n.get('time'))
 
-            # 2. Hiển thị CHẠY CHỮ (MARQUEE)
-            elif n['type'] == 'marquee':
-                st.markdown(f"""
-                    <div style="background: #9c27b0; color: white; padding: 5px; font-weight: bold; border-radius: 5px; margin-bottom: 10px; border: 1px solid #ba68c8;">
-                        <marquee behavior="scroll" direction="left" scrollamount="7">
-                            🚀 [THÔNG BÁO ADMIN - {n['time']}]: {n['content']} 🚀
-                        </marquee>
-                    </div>
-                """, unsafe_allow_html=True)
-
+        # 2. Hiển thị CHẠY CHỮ (MARQUEE)
+        elif n.get('type') == 'marquee':
+            st.markdown(f"""
+                <div style="
+                    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+                    color: white; 
+                    padding: 8px; 
+                    font-weight: bold; 
+                    border-radius: 8px; 
+                    margin-bottom: 10px; 
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    border: 1px solid #fff;">
+                    <marquee behavior="scroll" direction="left" scrollamount="8">
+                        🔔 [THÔNG BÁO - {n.get('time')}]: {n.get('content')} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                    </marquee>
+                </div>
+            """, unsafe_allow_html=True)
+            
 def get_reward_options_list():
     """
     Hàm lấy danh sách vật phẩm để nạp vào Drop Table của Boss/Phó bản.
