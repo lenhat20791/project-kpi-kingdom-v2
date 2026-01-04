@@ -1505,9 +1505,27 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
 
     path_quiz = primary_path if os.path.exists(primary_path) else fallback_path
 
+    # ... (Code xác định path_quiz ở trên giữ nguyên) ...
+
+    # --- ĐOẠN DEBUG (SẼ HIỆN LÊN MÀN HÌNH) ---
     if not os.path.exists(path_quiz):
-        st.error(f"❌ Không tìm thấy dữ liệu câu hỏi môn {mon_boss} (File: {file_name}.json)")
+        st.error(f"❌ Server không tìm thấy file: {path_quiz}")
+        
+        # 1. Kiểm tra xem thư mục cha có tồn tại không
+        parent_dir = os.path.dirname(primary_path)
+        if os.path.exists(parent_dir):
+            st.warning(f"📂 Danh sách các file ĐANG CÓ trong thư mục `{os.path.basename(parent_dir)}` trên Server:")
+            # In danh sách file ra màn hình để kiểm tra
+            files_on_server = os.listdir(parent_dir)
+            st.code(files_on_server) 
+            
+            if "khtn.json" not in files_on_server:
+                st.error("👉 KẾT LUẬN: File 'khtn.json' CHƯA CÓ trên Server! (Bạn đã git push chưa?)")
+        else:
+            st.error(f"❌ Thư mục chứa file cũng không tồn tại: {parent_dir}")
+            
         return
+    # -------------------------------------------
 
     # --- 2. ĐỌC VÀ GOM CÂU HỎI ---
     try:
