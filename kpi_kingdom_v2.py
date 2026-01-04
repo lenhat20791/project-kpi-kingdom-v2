@@ -1954,8 +1954,9 @@ else:
                 .list-container {{ overflow-y: auto; flex-grow: 1; }}
                 
                 /* Ẩn thanh cuộn cho đẹp */
-                .list-container::-webkit-scrollbar { width: 5px; }
-                .list-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.5); border-radius: 10px; }
+                /* Phải nhân đôi ngoặc lên */
+                .list-container::-webkit-scrollbar {{ width: 5px; }}
+                .list-container::-webkit-scrollbar-thumb {{ background: rgba(255,255,255,0.5); border-radius: 10px; }}
             </style>
 
             <div class="boss-card">
