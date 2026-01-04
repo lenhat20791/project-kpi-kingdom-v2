@@ -622,7 +622,7 @@ def admin_quan_ly_boss():
             def_name = boss_hien_tai.get('ten', "Giáo Viên Mới") if boss_hien_tai else "Giáo Viên Mới"
             def_hp = boss_hien_tai.get('hp_max', 1000) if boss_hien_tai else 1000
             def_dmg = boss_hien_tai.get('damage', 30) if boss_hien_tai else 30
-            def_img = boss_hien_tai.get('anh', "") if boss_hien_tai else 
+            def_img = boss_hien_tai.get('anh', "") if boss_hien_tai else "" 
             
             with c1:
                 ten_boss = st.text_input("Tên Boss:", value=def_name)
