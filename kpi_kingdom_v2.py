@@ -220,8 +220,12 @@ def show_arena_info_popup():
 def show_land_info_popup(land_name, land_id):
     import user_module
     
-    # Lấy log từ dữ liệu người chơi hiện tại (đã sync từ Sheets)
-    logs = user_module.get_dungeon_logs(land_id)
+    # 1. Gọi hàm bạn vừa viết để lấy dữ liệu
+    try:
+        logs = user_module.get_dungeon_logs(land_id)
+    except Exception as e:
+        st.error(f"Lỗi đọc dữ liệu: {e}")
+        return
     
     if not logs:
         st.info(f"🌀 Vùng đất **{land_name}** còn rất hoang sơ, chưa ai đặt chân tới.")
@@ -230,11 +234,12 @@ def show_land_info_popup(land_name, land_id):
     # --- TOP 3 VINH DANH ---
     st.markdown(f"### 🏆 BẢNG VÀNG: {land_name.upper()}")
     
-    # Sắp xếp: Phase cao nhất -> Thời gian mới nhất (nếu có)
-    # Lưu ý: 'time' ở đây là timestamp, càng lớn là càng mới. Nhưng rank thì ai đạt trước thường xếp trên.
-    # Logic chuẩn: Phase cao nhất -> Ai đạt được trước (time nhỏ hơn) thì xếp trên (nếu lưu time đạt được).
-    # Tuy nhiên dữ liệu 'last_run' là lần chạy cuối, nên ta cứ sort theo Phase giảm dần.
-    top_3 = sorted(logs, key=lambda x: x['phase'], reverse=True)[:3]
+    # 🔥 LOGIC SẮP XẾP CHUẨN:
+    # 1. Phase cao xếp trước (reverse=True của phase)
+    # 2. Nếu cùng Phase, ai có 'time' nhỏ hơn (đạt được trước) xếp trên? 
+    #    Nhưng code log của bạn lưu 'last_run' (thời điểm chạy cuối).
+    #    Nên logic hợp lý nhất là: Phase cao nhất -> Thời gian mới nhất (time lớn nhất).
+    top_3 = sorted(logs, key=lambda x: (x['phase'], x['time']), reverse=True)[:3]
     
     cols = st.columns(len(top_3))
     ranks = ["🥇 HẠNG 1", "🥈 HẠNG 2", "🥉 HẠNG 3"]
@@ -242,12 +247,13 @@ def show_land_info_popup(land_name, land_id):
     
     for i, player in enumerate(top_3):
         with cols[i]:
+            icon_rank = ['👑', '⚔️', '🛡️'][i] if i < 3 else '🎖️'
             st.markdown(f"""
-                <div style="text-align:center; border:2px solid {colors[i]}; border-radius:12px; padding:10px; background: #fffdf0; color: #333;">
-                    <div style="font-size:24px;">{['👑', '⚔️', '🛡️'][i]}</div>
+                <div style="text-align:center; border:2px solid {colors[i]}; border-radius:12px; padding:10px; background: #fffdf0; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div style="font-size:24px;">{icon_rank}</div>
                     <b style="color:{colors[i]}; font-size: 14px;">{ranks[i]}</b><br>
                     <span style="font-weight:bold; font-size: 16px;">{player['name']}</span><br>
-                    <span style="color: #555; font-size: 12px;">Đã đạt: Phase {player['phase']}</span>
+                    <span style="color: #7f8c8d; font-size: 12px;">Đã đạt: Phase {player['phase']}</span>
                 </div>
             """, unsafe_allow_html=True)
 
@@ -256,21 +262,26 @@ def show_land_info_popup(land_name, land_id):
     # --- 10 HOẠT ĐỘNG GẦN ĐÂY ---
     st.markdown("### 🕒 CÁC NHÀ THÁM HIỂM GẦN ĐÂY")
     
-    # Sắp xếp theo thời gian chạy gần nhất (nếu có dữ liệu time)
+    # Sắp xếp theo thời gian mới nhất (Time lớn nhất lên đầu)
     recent_logs = sorted(logs, key=lambda x: x['time'], reverse=True)[:10]
     
     for entry in recent_logs:
+        # Xử lý hiển thị quà cho gọn
+        reward_str = str(entry['reward_recent'])
+        if len(reward_str) > 25: reward_str = reward_str[:22] + "..."
+
         st.markdown(f"""
-            <div style="background:#f1f8ff; border-radius:8px; padding:8px 12px; margin-bottom:8px; border-left:4px solid #3498db; display: flex; justify-content: space-between; align-items: center;">
+            <div style="background:#f8f9fa; border-radius:8px; padding:8px 12px; margin-bottom:8px; border-left:4px solid #3498db; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                 <div>
                     <span style="font-size: 16px;">🏃 <b>{entry['name']}</b></span>
-                    <span style="font-size: 14px; color: #555; margin-left: 10px;">đang ở <b>Phase {entry['phase']}</b></span>
+                    <span style="font-size: 14px; color: #555; margin-left: 8px;">đang ở <b>Phase {entry['phase']}</b></span>
                 </div>
-                <div style="font-size: 14px; color:#27ae60; font-weight: bold;">
-                    🎁 {entry['reward_recent']}
+                <div style="font-size: 13px; color:#27ae60; font-weight: bold; background: #eafaef; padding: 4px 8px; border-radius: 4px;">
+                    🎁 {reward_str}
                 </div>
             </div>
-        """, unsafe_allow_html=True) 
+        """, unsafe_allow_html=True)
+        
 def hien_thi_bang_vang_diem_so():
     """Hiển thị Top 10 học sinh (Phiên bản Emerald High Contrast)"""
     
@@ -2054,11 +2065,11 @@ else:
         # Danh sách dữ liệu 6 vùng đất (Bạn có thể thay đổi link ảnh nền tương ứng)
         vung_dat_data = [
             {"name": "Thung Lũng Số Học", "icon": "📐", "bg_url": "https://i.ibb.co/Nd0b47RD/khuvuontoanhoc.png"},
-            {"name": "Hang Động Ngôn Ngữ", "icon": "🇬🇧", "bg_url": "https://i.ibb.co/99ppBGf3/hangdongngonngu.png"},
-            {"name": "Thung Lũng Văn Chương", "icon": "📖", "bg_url": "https://i.ibb.co/k6kTjVmv/thunglungvanchuong.png"},
-            {"name": "Ngọn Núi Vật Lý", "icon": "⚡", "bg_url": "https://i.ibb.co/CsVxQ9R1/ngonnuivatly.png"},
-            {"name": "Hồ Nước Hóa Học", "icon": "🧪", "bg_url": "https://i.ibb.co/rX37KRR/honuochoahoc.png"},
-            {"name": "Vườn Sinh Học", "icon": "🌿", "bg_url": "https://i.ibb.co/nZmMd2B/vuonsinhhoc.png"}
+            {"name": "Thung Lũng Alphabet", "icon": "🇬🇧", "bg_url": "https://i.ibb.co/99ppBGf3/hangdongngonngu.png"},
+            {"name": "Cánh Đồng Giấy Trắng", "icon": "📖", "bg_url": "https://i.ibb.co/k6kTjVmv/thunglungvanchuong.png"},
+            {"name": "Trạm Không Gian Newton", "icon": "⚡", "bg_url": "https://i.ibb.co/CsVxQ9R1/ngonnuivatly.png"},
+            {"name": "Hầm Ngục Thủy Tinh", "icon": "🧪", "bg_url": "https://i.ibb.co/rX37KRR/honuochoahoc.png"},
+            {"name": "Đại Dương Tế Bào Chất", "icon": "🌿", "bg_url": "https://i.ibb.co/nZmMd2B/vuonsinhhoc.png"}
         ]
 
         # --- ĐOẠN CODE HIỂN THỊ PHÓ BẢN HOÀN CHỈNH ---
@@ -2067,11 +2078,11 @@ else:
         # Định nghĩa dữ liệu hiển thị cố định để ánh xạ chính xác vào land_id trong data.json
         display_data = [
             ("Thung Lũng Số Học", "toan", vung_dat_data[0]['bg_url'], vung_dat_data[0]['icon']),
-            ("Hang Động Ngôn Ngữ", "anh", vung_dat_data[1]['bg_url'], vung_dat_data[1]['icon']),
-            ("Thung Lũng Văn Chương", "van", vung_dat_data[2]['bg_url'], vung_dat_data[2]['icon']),
-            ("Ngọn Núi Vật Lý", "ly", vung_dat_data[3]['bg_url'], vung_dat_data[3]['icon']),
-            ("Hồ Nước Hóa Học", "hoa", vung_dat_data[4]['bg_url'], vung_dat_data[4]['icon']),
-            ("Vườn Sinh Học", "sinh", vung_dat_data[5]['bg_url'], vung_dat_data[5]['icon']),
+            ("Thung Lũng Alphabet", "anh", vung_dat_data[1]['bg_url'], vung_dat_data[1]['icon']),
+            ("Cánh Đồng Giấy Trắng", "van", vung_dat_data[2]['bg_url'], vung_dat_data[2]['icon']),
+            ("Trạm Không Gian Newton", "ly", vung_dat_data[3]['bg_url'], vung_dat_data[3]['icon']),
+            ("Hầm Ngục Thủy Tinh", "hoa", vung_dat_data[4]['bg_url'], vung_dat_data[4]['icon']),
+            ("Đại Dương Tế Bào Chất", "sinh", vung_dat_data[5]['bg_url'], vung_dat_data[5]['icon']),
         ]
 
         for i in range(0, len(display_data), 3):
