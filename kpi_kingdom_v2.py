@@ -579,8 +579,8 @@ def show_tutorial():
     </ul>
 </div>
 """
-    # Tăng height lên một chút để hiển thị đủ nội dung mới thêm
-    st.components.v1.html(noidung_khuvuc, height=1500, scrolling=True)
+        # Tăng height lên một chút để hiển thị đủ nội dung mới thêm
+        st.components.v1.html(noidung_khuvuc, height=1500, scrolling=True)
 
     with tab4:
         st.warning("🚨 **QUY TẮC VÀNG:** Luôn đổi mật khẩu sau lần đầu đăng nhập!")
