@@ -1760,13 +1760,23 @@ def xu_ly_boss_chet(user_id, all_data, save_data_func):
 def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
 
 
-    # --- 1. KHỞI TẠO TRẠNG THÁI (Quản lý lượt chơi) ---
-    # Nếu là trận mới hoặc lần đầu vào, reset lại điểm và câu hỏi
-    if "match_id_active" not in st.session_state or st.session_state.get("last_match_id") != match_id:
+    # --- 1. KHỞI TẠO TRẠNG THÁI (FIX LỖI TEST TRÊN 1 MÁY) ---
+    # Điều kiện reset: 
+    # 1. Chưa có ID trận đấu active.
+    # 2. Hoặc ID trận đấu đã thay đổi.
+    # 3. [MỚI] Hoặc NGƯỜI CHƠI đã thay đổi (Khắc phục lỗi login ra vào bị nhớ trạng thái cũ).
+    if ("match_id_active" not in st.session_state or 
+        st.session_state.get("last_match_id") != match_id or 
+        st.session_state.get("last_user_id") != current_user_id):
+        
+        # Reset toàn bộ về 0 cho người mới
         st.session_state.current_q = 0
         st.session_state.user_score = 0
         st.session_state.start_time = time.time()
+        
+        # Lưu lại dấu vết để kiểm tra cho lần sau
         st.session_state.last_match_id = match_id
+        st.session_state.last_user_id = current_user_id # <--- Quan trọng
         st.session_state.match_id_active = match_id
 
     # Đảm bảo biến thời gian luôn tồn tại
