@@ -2073,7 +2073,7 @@ else:
         ]
 
         # --- ĐOẠN CODE HIỂN THỊ PHÓ BẢN HOÀN CHỈNH ---
-        st.markdown("## 🗺️ KHÁM PHÁ CÁC VÙNG ĐẤT PHÓ BẢN")
+        st.markdown("## 🗺️ Vinh Danh Sĩ Tử Vượt Phó Bản")
         
         # Định nghĩa dữ liệu hiển thị cố định để ánh xạ chính xác vào land_id trong data.json
         display_data = [
