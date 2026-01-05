@@ -61,7 +61,7 @@ import streamlit as st
 
 # --- CẤU HÌNH BẢO TRÌ ---
 # Đổi thành True khi muốn đóng cửa bảo trì
-CHE_DO_BAO_TRI = False  
+CHE_DO_BAO_TRI = True  
 # Mật khẩu để Admin vẫn vào được khi đang bảo trì
 MAT_KHAU_ADMIN = "admin123" 
 
