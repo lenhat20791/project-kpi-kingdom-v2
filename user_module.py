@@ -191,25 +191,89 @@ def save_json_data(filepath, data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 def ghi_log_boss(user_id, boss_name, damage, rewards):
+    """
+    Ghi lại lịch sử đánh Boss vào cả JSON (local) và Google Sheets (Cloud).
+    """
+    import json
+    import os
+    from datetime import datetime
+    import streamlit as st
+    
+    # Chuẩn bị dữ liệu thời gian và phần thưởng
+    thoi_gian = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Xử lý phần thưởng thành chuỗi văn bản đẹp mắt
+    if isinstance(rewards, list):
+        rewards_str = ", ".join(str(x) for x in rewards)
+    elif isinstance(rewards, dict):
+        # Ví dụ: {"kpi": 10, "exp": 50} -> "kpi: 10, exp: 50"
+        rewards_str = ", ".join([f"{k}: {v}" for k, v in rewards.items()])
+    else:
+        rewards_str = str(rewards)
+
+    # --- 1. LƯU VÀO FILE JSON (BACKUP DỰ PHÒNG) ---
     log_file = 'data/boss_logs.json'
     new_log = {
         "boss_name": boss_name,
         "user_id": user_id,
         "damage": int(damage),
-        "rewards": ", ".join(rewards) if isinstance(rewards, list) else str(rewards),
-        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "rewards": rewards_str,
+        "time": thoi_gian
     }
     
     logs = []
     if os.path.exists(log_file):
-        with open(log_file, 'r', encoding='utf-8') as f:
-            try:
+        try:
+            with open(log_file, 'r', encoding='utf-8') as f:
                 logs = json.load(f)
-            except: logs = []
+        except: logs = []
             
     logs.append(new_log)
-    with open(log_file, 'w', encoding='utf-8') as f:
-        json.dump(logs, f, indent=4, ensure_ascii=False)
+    try:
+        with open(log_file, 'w', encoding='utf-8') as f:
+            json.dump(logs, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"Lỗi ghi JSON: {e}")
+
+    # --- 2. LƯU LÊN GOOGLE SHEETS (QUAN TRỌNG) ---
+    try:
+        # Import hàm lấy client gspread từ user_module (đảm bảo bạn đã có hàm này)
+        from user_module import get_gspread_client 
+        client = get_gspread_client()
+        
+        # Kết nối tới Spreadsheet
+        secrets_gcp = st.secrets.get("gcp_service_account", {})
+        if "spreadsheet_id" in secrets_gcp: 
+            sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+        elif "spreadsheet_url" in secrets_gcp: 
+            sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
+        else: 
+            sh = client.openall()[0]
+
+        # Tìm Tab BossLogs
+        try:
+            wks = sh.worksheet("BossLogs")
+        except:
+            # Nếu chưa có thì tạo mới luôn (Optional)
+            wks = sh.add_worksheet(title="BossLogs", rows=1000, cols=10)
+            wks.append_row(["Thời gian", "Tên Boss", "User ID", "Sát thương", "Phần thưởng"])
+
+        # Ghi dòng mới vào cuối bảng
+        # Thứ tự cột: [Thời gian, Boss, User, Damage, Rewards]
+        row_data = [
+            thoi_gian,
+            str(boss_name),
+            str(user_id),
+            int(damage),
+            rewards_str
+        ]
+        
+        wks.append_row(row_data)
+        # print("✅ Đã ghi log Boss lên Google Sheet.")
+        
+    except Exception as e:
+        # Nếu lỗi mạng hoặc lỗi Sheet thì chỉ báo lỗi ở server log, không làm crash game
+        print(f"⚠️ Không thể ghi log lên Google Sheet: {e}")
         
 # ------------------------------------------------------------------------------
 # CÁC HÀM HỖ TRỢ CHỢ ĐEN (MARKET) - GOOGLE SHEETS SYNC
@@ -1464,11 +1528,6 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
         # Gọi hàm xử lý trận đấu
         trien_khai_tran_dau(boss, player, atk_p, save_data_func, user_id, all_data)        
 
-import streamlit as st
-import os
-import json
-import time
-import random
 
 def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_data):
     import os
@@ -1696,11 +1755,10 @@ def xu_ly_boss_chet(user_id, all_data, save_data_func):
     st.rerun()    
 
 def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
-    import os
-    import json
-    import time
-    
-    # --- 1. KHỞI TẠO TRẠNG THÁI ---
+
+
+    # --- 1. KHỞI TẠO TRẠNG THÁI (Quản lý lượt chơi) ---
+    # Nếu là trận mới hoặc lần đầu vào, reset lại điểm và câu hỏi
     if "match_id_active" not in st.session_state or st.session_state.get("last_match_id") != match_id:
         st.session_state.current_q = 0
         st.session_state.user_score = 0
@@ -1708,155 +1766,220 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         st.session_state.last_match_id = match_id
         st.session_state.match_id_active = match_id
 
+    # Đảm bảo biến thời gian luôn tồn tại
     if "start_time" not in st.session_state:
         st.session_state.start_time = time.time()
 
-    # --- 2. XỬ LÝ ĐƯỜNG DẪN FILE (FIX LỖI TẠI ĐÂY) ---
+    # --- 2. XỬ LÝ ĐƯỜNG DẪN FILE (THÔNG MINH) ---
     grade = match_info.get('grade', 'grade_6')
-    raw_subject = match_info.get('subject', 'toan') # Ví dụ: "Toán", "Văn"
+    raw_subject = match_info.get('subject', 'toan') 
     
-    # [QUAN TRỌNG] Bộ từ điển chuyển đổi tên hiển thị -> tên file
-    # Giúp hệ thống hiểu: "Toán" chính là file "toan.json"
+    # Bộ từ điển map tên môn -> tên file (Bất chấp có dấu/không dấu)
     file_map = {
-        "Toán": "toan", "toan": "toan",
-        "Lý": "ly",     "ly": "ly",
-        "Hóa": "hoa",   "hoa": "hoa",
-        "Văn": "van",   "van": "van",
-        "Anh": "anh",   "anh": "anh",
-        "Sinh": "sinh", "sinh": "sinh",
-        "Sử": "su",     "su": "su",
-        "Địa": "dia",   "dia": "dia"
+        "toán": "toan", "toan": "toan",
+        "lý": "ly",     "ly": "ly", "vật lý": "ly",
+        "hóa": "hoa",   "hoa": "hoa", "hóa học": "hoa",
+        "văn": "van",   "van": "van", "ngữ văn": "van",
+        "anh": "anh",   "anh": "anh", "tiếng anh": "anh",
+        "sinh": "sinh", "sinh": "sinh", "sinh học": "sinh",
+        "sử": "su",     "su": "su", "lịch sử": "su",
+        "địa": "dia",   "dia": "dia", "địa lý": "dia",
+        "gdcd": "gdcd", "giáo dục công dân": "gdcd",
+        "khtn": "khtn", "khoa học tự nhiên": "khtn"
     }
     
-    # Lấy tên file chuẩn (nếu không có trong map thì dùng lower() làm phao cứu sinh)
-    file_name = file_map.get(raw_subject, raw_subject.lower())
+    # Chuyển tên môn về chữ thường để tra cứu
+    subject_key = raw_subject.lower().strip()
+    file_name = file_map.get(subject_key, subject_key) # Nếu không tìm thấy thì dùng luôn tên gốc
     
-    # Tạo đường dẫn chuẩn
-    path = f"quiz_data/{grade}/{file_name}.json"
+    # Tạo đường dẫn tuyệt đối (Tránh lỗi không tìm thấy file trên Server)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(base_dir, "quiz_data", grade, f"{file_name}.json")
     
-    # --- 3. ĐỌC FILE TRỰC TIẾP ---
+    # --- 3. ĐỌC FILE CÂU HỎI ---
     if not os.path.exists(path):
-        st.error(f"❌ **LỖI FILE:** Không tìm thấy file đề thi!")
-        st.code(f"Đường dẫn hệ thống đang tìm: {path}")
-        st.warning(f"👉 Môn thi là **{raw_subject}**, hệ thống đã chuyển thành tên file **{file_name}.json**")
-        st.info("Hãy kiểm tra lại xem bạn đã upload file vào đúng thư mục `quiz_data/grade_6/` chưa?")
-        return # Dừng chương trình để bạn sửa lỗi
+        st.error(f"❌ **LỖI HỆ THỐNG:** Không tìm thấy bộ đề thi!")
+        st.code(f"Thiếu file: {path}")
+        st.warning(f"Vui lòng báo Admin kiểm tra file: `quiz_data/{grade}/{file_name}.json`")
+        if st.button("🔙 Quay lại sảnh"):
+             del st.session_state.match_id_active
+             st.rerun()
+        return
 
     try:
         with open(path, "r", encoding='utf-8') as f:
             all_questions = json.load(f)
     except Exception as e:
-        st.error(f"❌ File `{file_name}.json` bị lỗi cú pháp JSON: {e}")
+        st.error(f"❌ File dữ liệu bị lỗi cấu trúc JSON: {e}")
         return
 
-    # Lấy câu hỏi theo độ khó
-    level = match_info.get('level', 'easy')
-    questions = all_questions.get(level, [])[:5]
+    # --- LẤY CÂU HỎI THEO ĐỘ KHÓ ---
+    # Lấy độ khó từ thông tin trận đấu (Mặc định là Medium)
+    raw_level = match_info.get('difficulty', 'Medium') 
+    level = raw_level.lower() # Chuyển về chữ thường: "Medium" -> "medium"
+    
+    # Logic dự phòng: Nếu chọn Extreme mà chưa có file thì lấy tạm Hard
+    if level not in all_questions and level == 'extreme':
+         level = 'hard'
+    
+    questions = all_questions.get(level, [])
+    
+    # Trộn câu hỏi để mỗi lần thi khác nhau (Tùy chọn)
+    # import random
+    # random.shuffle(questions) 
+    
+    # Lấy 5 câu hỏi đầu tiên
+    questions = questions[:5]
     
     if not questions:
-        st.error(f"⚠️ File `{file_name}.json` không có câu hỏi nào thuộc mức độ `{level}`.")
+        st.error(f"⚠️ Bộ đề `{file_name}` chưa có câu hỏi mức độ `{raw_level}`.")
+        if st.button("🔙 Quay lại sảnh"):
+             del st.session_state.match_id_active
+             st.rerun()
         return
 
+    # Thời gian giới hạn mỗi câu theo độ khó
     limit_map = {"easy": 15, "medium": 20, "hard": 25, "extreme": 30}
-    time_limit = limit_map.get(level, 15)
+    time_limit = limit_map.get(level, 20)
 
-    # --- 4. GIAO DIỆN LÀM BÀI (ĐÃ FIX) ---
+    # --- 4. GIAO DIỆN LÀM BÀI ---
     q_idx = st.session_state.current_q
+    
     if q_idx < len(questions):
         q = questions[q_idx]
-        st.subheader(f"⚔️ CÂU HỎI {q_idx + 1}/5")
         
-        st.info(q['question'])
+        # Thanh tiến độ
+        progress = (q_idx / len(questions))
+        st.progress(progress, text=f"Tiến độ: Câu {q_idx + 1}/{len(questions)}")
         
-        # ĐỒNG HỒ ĐẾM NGƯỢC
+        st.subheader(f"⚔️ CÂU HỎI {q_idx + 1}")
+        st.caption(f"🔥 Độ khó: {raw_level} | 📚 Môn: {raw_subject}")
+        
+        # Hiển thị nội dung câu hỏi đẹp hơn
+        st.info(f"❓ {q['question']}")
+        
+        # --- ĐỒNG HỒ ĐẾM NGƯỢC ---
         elapsed = time.time() - st.session_state.start_time
-        remaining = max(0, time_limit - int(elapsed))
+        remaining = max(0, int(time_limit - elapsed))
         
-        # Thêm biến 'force_submit' để xử lý khi hết giờ tự động nộp
+        # Cờ kiểm tra tự nộp bài
         force_submit = False
         if remaining <= 0:
             force_submit = True
         
-        color = "#e74c3c" if remaining < 5 else "#2ecc71"
-        # Dùng container rỗng để update thời gian mượt hơn (nếu cần)
-        st.markdown(f"<h2 style='text-align: center; color: {color};'>⏳ {remaining}s</h2>", unsafe_allow_html=True)
+        # Màu sắc đồng hồ (Đỏ khi sắp hết giờ)
+        timer_color = "#e74c3c" if remaining <= 5 else "#2ecc71" 
+        st.markdown(
+            f"""<div style="text-align: center; font-size: 24px; font-weight: bold; color: {timer_color}; 
+            border: 2px solid {timer_color}; padding: 10px; border-radius: 10px; margin-bottom: 20px;">
+            ⏳ Thời gian còn lại: {remaining}s
+            </div>""", 
+            unsafe_allow_html=True
+        )
 
-        # Form câu hỏi
-        with st.form(key=f"quiz_form_{q_idx}_{current_user_id}"):
-            ans = st.radio("Chọn đáp án:", q['options'], index=None)
-            submitted = st.form_submit_button("XÁC NHẬN")
+        # Form trả lời (Dùng key unique để tránh lỗi state)
+        with st.form(key=f"quiz_form_{match_id}_{q_idx}_{current_user_id}"):
+            ans = st.radio("Lựa chọn của bạn:", q['options'], index=None)
+            submitted = st.form_submit_button("CHỐT ĐÁP ÁN 🚀", type="primary", use_container_width=True)
 
-        # --- XỬ LÝ LOGIC KIỂM TRA ---
+        # --- XỬ LÝ KẾT QUẢ ---
         if submitted or force_submit:
-            # 1. Chuẩn bị đáp án đúng (Hỗ trợ cả 'answer' và 'correct_answer')
+            # 1. Lấy đáp án đúng (Hỗ trợ cả key 'answer' và 'correct_answer')
             raw_correct_ans = q.get('answer', q.get('correct_answer', ''))
             
-            # 2. Xử lý logic so sánh (Lấy ký tự đầu A, B, C, D)
+            # 2. Chuẩn hóa để so sánh (Lấy ký tự đầu A,B,C,D và viết hoa)
             user_key = str(ans).strip()[0].upper() if ans else ""
             ans_key = str(raw_correct_ans).strip()[0].upper()
             
-            # 3. Thông báo kết quả
+            # 3. Kiểm tra đúng sai
+            is_correct = (user_key == ans_key)
+            
             if force_submit and not ans:
-                st.error(f"⏰ HẾT GIỜ! Đáp án đúng là: {raw_correct_ans}")
-            elif user_key == ans_key:
-                st.balloons() # Hoặc st.toast cho nhẹ
-                st.success("🎉 CHÍNH XÁC!")
+                 st.warning(f"⏰ HẾT GIỜ! Bạn chưa kịp chọn đáp án.")
+                 st.error(f"✅ Đáp án đúng là: {raw_correct_ans}")
+            elif is_correct:
+                st.balloons()
+                st.success("🎉 CHÍNH XÁC! +1 Điểm")
                 st.session_state.user_score += 1
             else:
-                st.error(f"❌ SAI RỒI! Đáp án đúng là: {raw_correct_ans}")
+                st.error("❌ SAI RỒI!")
+                st.info(f"✅ Đáp án đúng là: {raw_correct_ans}")
             
-            # 4. Tạm dừng một chút để người chơi đọc kết quả rồi mới qua câu
-            time.sleep(2) 
+            # Hiển thị giải thích (Nếu có trong data)
+            if 'explanation' in q:
+                with st.expander("💡 Xem giải thích chi tiết"):
+                    st.write(q['explanation'])
+            
+            # 4. Tạm dừng để học sinh đọc kết quả
+            with st.spinner("Đang chuyển câu hỏi tiếp theo..."):
+                time.sleep(2.5) 
             
             # 5. Chuyển câu
             st.session_state.current_q += 1
-            st.session_state.start_time = time.time() # Reset giờ
+            st.session_state.start_time = time.time() # Reset đồng hồ
             st.rerun()
         
-        # Refresh để chạy đồng hồ (chỉ chạy khi chưa nộp bài)
+        # Tự động refresh để chạy đồng hồ (chỉ khi chưa nộp)
         if remaining > 0:
             time.sleep(1)
             st.rerun()
-        
+            
     else:
         # --- 5. KẾT THÚC BÀI THI ---
-        st.success(f"🎉 Hoàn thành! Điểm số: {st.session_state.user_score}/5")
+        st.balloons()
+        final_score = st.session_state.user_score
+        total_q = len(questions)
         
-        # Tải lại dữ liệu lôi đài mới nhất từ Cloud (để tránh ghi đè người khác)
-        ld_data = load_loi_dai()
+        st.success(f"🎉 BẠN ĐÃ HOÀN THÀNH BÀI THI!")
         
-        # Kiểm tra xem trận đấu còn tồn tại không
-        if match_id in ld_data['matches']:
-            m = ld_data['matches'][match_id]
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Điểm số", f"{final_score}/{total_q}")
+        col2.metric("Độ khó", raw_level)
+        col3.metric("Môn thi", raw_subject)
+        
+        # --- LƯU KẾT QUẢ (QUAN TRỌNG) ---
+        with st.spinner("💾 Đang lưu kết quả lên hệ thống..."):
+            # Import lại hàm load để tránh lỗi vòng lặp import
+            from admin_module import load_loi_dai, trong_tai_tong_ket, save_loi_dai 
             
-            # Lưu điểm cá nhân
-            m[f"score_{current_user_id}"] = st.session_state.user_score
+            # Tải lại dữ liệu mới nhất từ Cloud để tránh ghi đè
+            ld_data = load_loi_dai()
             
-            # Kiểm tra đủ người chưa
-            c_team = m.get('challenger_team', []) or [m.get('challenger')]
-            o_team = m.get('opponent_team', []) or [m.get('opponent')]
-            all_p = c_team + o_team
-            
-            finished_p = [uid for uid in all_p if f"score_{uid}" in m]
-            
-            if len(finished_p) >= len(all_p):
-                # ĐỦ NGƯỜI -> GỌI TRỌNG TÀI
-                trong_tai_tong_ket(match_id, ld_data, save_data_func)
-                st.balloons()
-                st.info("🏁 Đã có kết quả chung cuộc! Hãy xem bảng tổng sắp.")
+            if match_id in ld_data['matches']:
+                m = ld_data['matches'][match_id]
+                
+                # Lưu điểm cá nhân
+                m[f"score_{current_user_id}"] = final_score
+                
+                # Kiểm tra xem mọi người đã thi xong chưa
+                challengers = m.get('challenger_team', []) or [m.get('challenger')]
+                opponents = m.get('opponent_team', []) or [m.get('opponent')]
+                all_players = challengers + opponents
+                
+                # Lọc danh sách những người đã có điểm
+                finished_players = [uid for uid in all_players if f"score_{uid}" in m]
+                
+                if len(finished_players) >= len(all_players):
+                    # TẤT CẢ ĐÃ XONG -> GỌI TRỌNG TÀI TỔNG KẾT
+                    trong_tai_tong_ket(match_id, ld_data, save_data_func)
+                    st.success("🏁 TẤT CẢ ĐÃ THI XONG! ĐÃ CÓ KẾT QUẢ CHUNG CUỘC.")
+                else:
+                    # CHƯA XONG HẾT -> LƯU TẠM THỜI
+                    save_loi_dai(ld_data)
+                    remaining_players = len(all_players) - len(finished_players)
+                    st.info(f"⏳ Đã lưu điểm của bạn. Đang chờ {remaining_players} người chơi khác hoàn thành...")
             else:
-                # CHƯA ĐỦ -> LƯU TẠM
-                save_loi_dai(ld_data)
-                st.warning(f"⏳ Đã lưu điểm của bạn. Đợi {len(all_p) - len(finished_p)} người nữa...")
-        else:
-            st.error("⚠️ Trận đấu này đã bị hủy hoặc không còn tồn tại.")
+                st.error("⚠️ Trận đấu không tồn tại hoặc đã bị hủy.")
 
         # Nút thoát
-        if st.button("QUAY LẠI SẢNH", type="primary"):
-            for k in ["current_q", "user_score", "start_time", "match_id_active", "last_match_id"]:
+        st.divider()
+        if st.button("🔙 QUAY VỀ SẢNH LÔI ĐÀI", type="primary", use_container_width=True):
+            # Dọn dẹp session state
+            keys_to_clear = ["current_q", "user_score", "start_time", "match_id_active", "last_match_id"]
+            for k in keys_to_clear:
                 if k in st.session_state: del st.session_state[k]
             st.rerun()
-
+            
 @st.cache_data(ttl=60, show_spinner=False)
 def load_loi_dai():
     """
@@ -2078,6 +2201,9 @@ def trong_tai_tong_ket(match_id, ld_data, save_data_func):
     # 2. Lưu dữ liệu NGƯỜI CHƠI (KPI) lên tab Players
     save_data_func(data)    
 def hien_thi_loi_dai(current_user_id, save_data_func):
+    import pandas as pd
+    from datetime import datetime
+    
     # --- BỔ SUNG: KIỂM TRA VÀ TỰ PHỤC HỒI DỮ LIỆU RỖNG ---
     ld_data = load_loi_dai() 
     if not isinstance(ld_data, dict):
@@ -2094,7 +2220,7 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
     # --- BƯỚC 2: VẼ GIAO DIỆN LÔI ĐÀI CHÍNH ---
     st.subheader("🏟️ ĐẤU TRƯỜNG LÔI ĐÀI") 
     
-    # 1. THÔNG BÁO TOAST & TỰ ĐỘNG XỬ THUA (Giữ nguyên logic của bạn)
+    # 1. THÔNG BÁO TOAST & TỰ ĐỘNG XỬ THUA
     for mid, m in list(ld_data['matches'].items()): 
         all_players = m.get('challenger_team', []) + m.get('opponent_team', []) 
         if not all_players: all_players = [m.get('challenger'), m.get('opponent')] 
@@ -2114,20 +2240,27 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
                     trong_tai_tong_ket(mid, ld_data, save_data_func) 
             except: pass 
 
-    # --- BƯỚC 3: XỬ LÝ LỜI MỜI THÁCH ĐẤU (FIX KEYERROR TẠI ĐÂY) ---
+    # --- BƯỚC 3: XỬ LÝ LỜI MỜI THÁCH ĐẤU ---
     for mid, m in ld_data['matches'].items():
         if m.get('status') == 'pending' and m.get('opponent') == current_user_id:
             challenger_id = m.get('challenger') 
-            # Sửa lỗi lấy tên an toàn
             challenger_info = st.session_state.data.get(challenger_id, {}) 
             challenger_name = challenger_info.get('name', 'Một Cao Thủ').upper()
+            
+            # [CẬP NHẬT] Hiển thị thêm Độ khó trong lời mời
+            difficulty_badge = {
+                "Easy": "#4caf50", "Medium": "#ff9800", "Hard": "#f44336", "Extreme": "#9c27b0"
+            }.get(m.get('difficulty', 'Medium'), "#333")
 
             notification_html = f"""
             <div style="background-color: #ffffff; border: 4px solid #d32f2f; border-radius: 15px; padding: 25px; margin-bottom: 25px; text-align: center; color: #333333;">
                 <h2 style="color: #d32f2f; font-size: 30px; font-weight: 900; margin-top: 0;">🔥 CÓ LỜI TUYÊN CHIẾN! 🔥</h2>
                 <p style="font-size: 20px;">Cao thủ <b>{challenger_name}</b> muốn so tài!</p>
                 <div style="display: inline-block; background-color: #fff8e1; padding: 15px 40px; border-radius: 10px; border: 2px dashed #ff8f00;">
-                    <div style="font-size: 18px; font-weight: bold;">📚 Môn: {m.get('subject')} | 💎 Cược: {m.get('bet')} KPI</div>
+                    <div style="font-size: 18px; font-weight: bold;">
+                        📚 Môn: {m.get('subject')} | 💎 Cược: {m.get('bet')} KPI <br>
+                        <span style="color: {difficulty_badge}">🔥 Độ khó: {m.get('difficulty', 'Medium').upper()}</span>
+                    </div>
                 </div>
             </div>""" 
             st.markdown(notification_html, unsafe_allow_html=True)
@@ -2159,7 +2292,9 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
             m = ld_data['matches'][mid]
             all_players = m.get('challenger_team', [m.get('challenger')]) + m.get('opponent_team', [m.get('opponent')]) 
             if current_user_id in all_players:
-                with st.expander(f"⚔️ Trận đấu môn {m['subject'].upper()}"):
+                # [CẬP NHẬT] Hiển thị độ khó trên tiêu đề
+                diff_label = m.get('difficulty', 'Medium')
+                with st.expander(f"⚔️ Trận đấu môn {m['subject'].upper()} ({diff_label})"):
                     if f"score_{current_user_id}" in m:
                         st.success("✅ Bạn đã hoàn thành phần thi.") 
                     else:
@@ -2167,12 +2302,12 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
                             st.session_state.match_id_active = mid 
                             st.rerun()
 
-    # --- BƯỚC 5: GIAO DIỆN GỬI CHIẾN THƯ (FIX KEYERROR DÒNG 1551) ---
+    # --- BƯỚC 5: GIAO DIỆN GỬI CHIẾN THƯ (ĐÃ THÊM CHỌN ĐỘ KHÓ) ---
     st.divider() 
     with st.expander("✉️ GỬI CHIẾN THƯ / LẬP TỔ ĐỘI", expanded=False): 
         c1, c2 = st.columns(2) 
         
-        # --- 🛡️ FIX TRIỆT ĐỂ: Lọc danh sách học sinh an toàn ---
+        # Lọc danh sách học sinh an toàn
         list_opps = {}
         for uid, info in st.session_state.data.items(): 
             if isinstance(info, dict) and 'name' in info and uid != current_user_id and uid not in ['admin', 'system_config']: 
@@ -2181,15 +2316,20 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
         with c1:
             the_thuc = st.selectbox("Thể thức:", ["1 vs 1", "2 vs 2", "3 vs 3"], key="mode_sel")
             is_team = the_thuc != "1 vs 1" 
-            # Sử dụng list_opps đã lọc sạch
             target_name = st.selectbox("Chọn đối thủ:", 
                                      ["--- Đấu Đội ---"] + list(list_opps.values()) if is_team else list(list_opps.values()), 
                                      disabled=is_team) 
-            sub = st.selectbox("Môn thi:", ["Toán", "Lý", "Hóa", "Văn", "Anh", "Sinh"], key="sub_sel")
+            sub = st.selectbox("Môn thi:", ["Toán", "Lý", "Hóa", "Văn", "Anh", "Sinh", "Sử", "Địa", "GDCD", "KHTN"], key="sub_sel")
             
         with c2:
             hinh_thuc = st.radio("Hình thức:", ["Giải đề trắc nghiệm", "So điểm tăng trưởng"])
             bet = st.number_input("Cược KPI:", min_value=1, max_value=5, value=1) 
+            
+            # 🔥 [MỚI] Thêm phần chọn Độ khó
+            do_kho = st.select_slider("🔥 Chọn cấp độ:", 
+                                     options=["Easy", "Medium", "Hard", "Extreme"],
+                                     value="Medium")
+            
             st.markdown(f"📅 Thời hạn: **{'24 Giờ' if hinh_thuc == 'Giải đề trắc nghiệm' else '7 Ngày'}**")
 
         if st.button("🚀 THÀNH LẬP PHÒNG CHỜ", use_container_width=True):
@@ -2202,30 +2342,37 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
                 "bet": bet,
                 "mode": the_thuc,
                 "type": hinh_thuc,
+                "difficulty": do_kho, # <--- Lưu độ khó vào đây
                 "status": "waiting",
                 "created_at": datetime.now().strftime("%d/%m/%Y %H:%M")
             }
             if not is_team:
-                target_id = [uid for uid, name in list_opps.items() if name == target_name][0]
-                match_data.update({"opponent": target_id, "opponent_team": [target_id], "status": "pending"})
+                # Nếu đấu đơn thì target người cụ thể
+                target_ids = [uid for uid, name in list_opps.items() if name == target_name]
+                if target_ids:
+                    target_id = target_ids[0]
+                    match_data.update({"opponent": target_id, "opponent_team": [target_id], "status": "pending"})
+                else:
+                    st.error("Chưa chọn đối thủ!")
+                    return
             
             ld_data['matches'][new_id] = match_data
             save_loi_dai(ld_data)
             st.rerun()
 
-    # --- BƯỚC 6: PHÒNG CHỜ TỔ ĐỘI (GIA CỐ AN TOÀN) ---
+    # --- BƯỚC 6: PHÒNG CHỜ TỔ ĐỘI ---
     st.divider()
     st.markdown("### 🏟️ PHÒNG CHỜ TỔ ĐỘI")
     for mid, m in list(ld_data['matches'].items()):
         if m.get('status') == 'waiting':
             num_required = 2 if m['mode'] == "2 vs 2" else 3
-            st.info(f"Phòng: {m['mode']} - {m['type']} - Môn {m['subject'].upper()} - Cược: {m['bet']} KPI")
+            # [CẬP NHẬT] Hiển thị thêm độ khó
+            st.info(f"Phòng: {m['mode']} - {m['type']} - Môn {m['subject'].upper()} ({m.get('difficulty', 'Medium')}) - Cược: {m['bet']} KPI")
             
             col_a, col_b = st.columns(2)
             with col_a:
                 st.write(f"**Đội Thách Đấu ({len(m.get('challenger_team', []))}/{num_required})**")
                 for uid in m.get('challenger_team', []):
-                    # Sửa lỗi: Lấy tên an toàn bằng .get()
                     u_name = st.session_state.data.get(uid, {}).get('name', 'Học sĩ ẩn danh')
                     st.write(f"👤 {u_name}")
                 
@@ -2239,7 +2386,6 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
             with col_b:
                 st.write(f"**Đội Nhận Kèo ({len(m.get('opponent_team', []))}/{num_required})**")
                 for uid in m.get('opponent_team', []):
-                    # Sửa lỗi: Lấy tên an toàn bằng .get()
                     u_name = st.session_state.data.get(uid, {}).get('name', 'Học sĩ ẩn danh')
                     st.write(f"👤 {u_name}")
                 
@@ -2256,13 +2402,12 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
                 m['start_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 m['challenger'] = m['challenger_team'][0] 
                 m['opponent'] = m['opponent_team'][0]
-                # Lưu KPI gốc an toàn
                 m['start_kpi_dict'] = {uid: st.session_state.data.get(uid, {}).get('kpi', 0) for uid in m['challenger_team'] + m['opponent_team']}
                 save_loi_dai(ld_data)
                 st.success("🔥 ĐỦ NGƯỜI! TRẬN ĐẤU BẮT ĐẦU!")
                 st.rerun()
 
-    # --- BƯỚC 7: NHẬT KÝ LÔI ĐÀI (TỐI ƯU HÓA & FIX LỖI) ---
+    # --- BƯỚC 7: NHẬT KÝ LÔI ĐÀI ---
     st.divider()
     st.markdown("### 📜 NHẬT KÝ LÔI ĐÀI (20 trận gần nhất)")
     
@@ -2277,7 +2422,6 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
         if current_user_id in all_participants:
             is_chal = current_user_id in challengers
             
-            # Xác định tên đối thủ hiển thị an toàn
             if m.get('mode') == "1 vs 1":
                 opp_id = m.get('opponent') if is_chal else m.get('challenger')
                 opp_name = st.session_state.data.get(opp_id, {}).get('name', 'Học sĩ ẩn danh')
@@ -2301,9 +2445,9 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
 
             my_matches.append({
                 "Ngày": m.get('created_at', '---'),
-                "Thể thức": f"{m.get('mode', '1 vs 1')} ({m.get('type', 'Giải đề')})",
+                "Môn": f"{m.get('subject', 'N/A').capitalize()} ({m.get('difficulty', 'M')})", # Hiển thị ngắn gọn độ khó
+                "Thể thức": f"{m.get('mode', '1 vs 1')}",
                 "Đối thủ": opp_name,
-                "Môn": m.get('subject', 'N/A').capitalize(),
                 "Cược": f"{m.get('bet', 0)} KPI",
                 "Trạng thái": kq
             })
@@ -2313,7 +2457,6 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
         st.table(pd.DataFrame(my_matches))
     else:
         st.caption("Bạn chưa tham gia trận lôi đài nào.")
-
 def hien_thi_giao_dien_hoc_si(user_id, save_data_func):
     page = st.session_state.get("page")
     # Lấy thông tin người dùng từ data (Sửa lỗi NameError)
