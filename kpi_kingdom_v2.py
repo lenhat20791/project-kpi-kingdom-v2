@@ -543,7 +543,7 @@ def show_tutorial():
         st.components.v1.html(noidung_chiso, height=950, scrolling=True)
 
     with tab3:
-        noidung_khuvuc = """
+    noidung_khuvuc = """
 <div style="font-size: 28px; line-height: 1.6; font-family: sans-serif; text-align: left; padding: 10px;">
     <h2 style='color: #4CAF50; font-size: 40px; margin: 0 0 20px 0;'>🏰 CÁC ĐỊA DANH TẠI VƯƠNG QUỐC</h2>
     
@@ -569,9 +569,18 @@ def show_tutorial():
         <li>🛡️ <b>Sinh tồn (QUAN TRỌNG):</b> Boss có sát thương cực lớn. Bạn <b>nên dùng thêm thuốc phụ trợ/Bùa</b> (mua tại Tiệm Tạp Hóa) để tăng cao năng lực bản thân để có thể chịu đòn.</li>
         <li>💀 <b>Hình phạt:</b> Nếu để HP về 0, bạn sẽ bị "Trọng Thương" và phải nghỉ ngơi trong <b>30 phút</b>.</li>
     </ul>
+    <br>
+
+    ⚖️ <b>CHỢ ĐEN (KHU GIAO DỊCH):</b> Khu vực giao thương sầm uất, nơi duy nhất cho phép các Sĩ tử tự do trao đổi vật phẩm với nhau.
+    <ul style="margin-top: 10px;">
+        <li>🤝 <b>Tự do buôn bán:</b> Bạn có thể đăng bán các vật phẩm dư thừa hoặc không dùng đến trong <b>Kho đồ</b> của mình lên chợ.</li>
+        <li>💰 <b>Làm giàu:</b> Giá bán (KPI) hoàn toàn do bạn quyết định. Hãy trở thành một thương nhân tài ba để gia tăng tài sản!</li>
+        <li>🔍 <b>Săn đồ hiếm:</b> Nơi bạn có thể tìm mua những món vật phẩm/nguyên liệu hỗ trợ từ bạn bè mà Shop hệ thống không bán.</li>
+    </ul>
 </div>
 """
-        st.components.v1.html(noidung_khuvuc, height=1200, scrolling=True)
+    # Tăng height lên một chút để hiển thị đủ nội dung mới thêm
+    st.components.v1.html(noidung_khuvuc, height=1500, scrolling=True)
 
     with tab4:
         st.warning("🚨 **QUY TẮC VÀNG:** Luôn đổi mật khẩu sau lần đầu đăng nhập!")
