@@ -1265,101 +1265,116 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 try:
                     df = pd.read_excel(uploaded_file)
                     selected_grade = st.selectbox("📌 Chọn Khối lớp cho danh sách này:", 
-                                                  options=["Khối 6", "Khối 7", "Khối 8", "Khối 9"])
+                                                options=["Khối 6", "Khối 7", "Khối 8", "Khối 9"])
                     grade_folder = f"grade_{selected_grade.split()[-1]}"
-                    # 1. Tự động tìm cột chứa tên (không phân biệt hoa thường, có dấu hay không)
+                    
+                    # 1. Tự động tìm cột chứa tên
                     name_col = next((c for c in df.columns if 'tên' in str(c).lower()), None)
                     
                     if not name_col:
                         st.error("❌ Không tìm thấy cột nào chứa thông tin 'Tên' học sinh trong file.")
                     else:
-                        st.write(f"✅ Đã nhận diện danh sách tại cột: **{name_col}**")
+                        st.success(f"✅ Đã nhận diện cột tên: {name_col}")
                         
-                        # Hiển thị bản xem trước dữ liệu sẽ được khởi tạo
-                        if st.button("🔥 KHỞI TẠO VƯƠNG QUỐC NGAY", use_container_width=True):
+                        if st.button("🔥 KHỞI TẠO / CẬP NHẬT DANH SÁCH", use_container_width=True):
                             
-                            # --- [BƯỚC 1] SAO LƯU ADMIN & CẤU HÌNH CŨ (QUAN TRỌNG) ---
-                            current_data = st.session_state.data if 'data' in st.session_state else {}
+                            # --- [BƯỚC 1] CHUẨN BỊ DỮ LIỆU ---
+                            if 'data' not in st.session_state: st.session_state.data = {}
                             
-                            # Lấy Admin cũ (nếu có), nếu không có thì dùng mặc định
-                            preserved_admin = current_data.get('admin', {
-                                "name": "Administrator", "password": "admin", "role": "admin",
-                                "grade": "Hệ thống", "team": "Quản trị", "kpi": 0.0, "level": 99
-                            })
+                            # Copy dữ liệu hiện tại để cập nhật đè lên (Upsert)
+                            # Nếu muốn XÓA HẾT làm lại từ đầu, hãy dùng: new_data = {}
+                            new_data = st.session_state.data.copy() 
                             
-                            # Lấy Cấu hình danh hiệu cũ (nếu có)
-                            preserved_ranks = current_data.get('rank_settings', [])
-                            # -----------------------------------------------------------
+                            count_new = 0
+                            count_update = 0
 
-                            # [BƯỚC 2] TẠO DỮ LIỆU MỚI (CHỈ CHỨA HỌC SINH TỪ EXCEL)
-                            new_data = st.session_state.data.copy() if 'data' in st.session_state else {}
+                            # --- [BƯỚC 2] DUYỆT FILE EXCEL & TẠO USER ---
+                            import unidecode # Import tại chỗ để tránh lỗi
                             
                             for i, row in df.iterrows():
-                                # Tự động tạo ID theo STT (bắt đầu từ 1) - Hoặc logic cũ của bạn
-                                full_name = str(row.get('Họ và tên', row.get('name', 'Học Sĩ'))).strip()
-                                
-                                # Nếu có hàm generate_username thì dùng, ko thì tạo tạm
-                                try:
-                                    u_id = user_module.generate_username(full_name)
-                                except:                                   
-                                    name_unsign = unidecode.unidecode(full_name).lower().replace(" ", "")
-                                    u_id = f"{name_unsign}"
+                                full_name = str(row.get(name_col, 'Học Sĩ')).strip()
+                                if not full_name or full_name.lower() == 'nan': continue
 
-                                # Gán giá trị: Ưu tiên lấy từ file (nếu có), không thì dùng mặc định
-                                existing_user = new_data.get(u_id, {})
-                                new_data[u_id] = {
+                                # Tạo ID
+                                try:
+                                    # Nếu bạn có hàm tạo ID riêng thì dùng, không thì dùng logic dưới
+                                    name_unsign = unidecode.unidecode(full_name).lower().replace(" ", "")
+                                    u_id = f"{name_unsign}" 
+                                except:
+                                    u_id = f"user_{i}"
+
+                                # 🔥 [QUAN TRỌNG] LOGIC BẢO VỆ QUYỀN ADMIN 🔥
+                                # Kiểm tra xem ID này đã tồn tại chưa và có phải là Admin không
+                                current_role = 'u3' # Mặc định là học sinh
+                                is_protected_admin = False
+                                
+                                if u_id in new_data:
+                                    # Nếu user đã tồn tại, kiểm tra role cũ
+                                    old_role = new_data[u_id].get('role', 'u3')
+                                    if old_role == 'admin':
+                                        is_protected_admin = True # Đánh dấu là Admin gốc
+                                        current_role = 'admin' # Giữ nguyên quyền Admin
+                                        count_update += 1
+                                    else:
+                                        # Nếu không phải admin, lấy role từ Excel (hoặc giữ nguyên u3)
+                                        excel_role = str(row.get('role', '')).lower()
+                                        current_role = excel_role if excel_role in ['admin', 'u3'] else old_role
+                                        count_update += 1
+                                else:
+                                    # User mới hoàn toàn
+                                    current_role = str(row.get('role', 'u3')).lower()
+                                    count_new += 1
+
+                                # Lấy mật khẩu từ file hoặc giữ mật khẩu cũ
+                                current_pass = str(row.get('Password', '123456'))
+                                if u_id in new_data:
+                                     # Nếu user cũ, ưu tiên giữ password cũ trừ khi Excel có cột Password khác rỗng
+                                     if 'Password' not in row or pd.isna(row['Password']):
+                                         current_pass = new_data[u_id].get('password', '123456')
+
+                                # TẠO/CẬP NHẬT USER
+                                new_user_info = {
                                     "name": full_name,
                                     "team": str(row.get('team', row.get('Tổ', 'Chưa phân tổ'))),
                                     "grade": grade_folder,
-                                    "role": str(row.get('role', 'u3')).lower(),
-                                    "password": str(row.get('Password', '123456')), # Mật khẩu mặc định
-                                    "kpi": int(row.get('KPI', 0)), # KPI mặc định 100
-                                    # --- THÊM DÒNG NÀY ĐỂ FIX LỖI MẤT CỘT ---
-                                    "special_permissions": {
-                                        "world_chat_count":0
-                                    },    
-                                    # Các chỉ số game
-                                    "Vi_Pham": 0, "Bonus": 0, "KTTX": 0, "KT Sản phẩm": 0,
-                                    "KT Giữa kỳ": 0, "KT Cuối kỳ": 0, "Tri_Thuc": 0,
-                                    "Chien_Tich": 0, "Vinh_Du": 0, "Vinh_Quang": 0,
-                                    "titles": ["Tân Thủ Học Sĩ"],
-                                    "inventory": {},
-                                    "total_score": 0.0 # Reset điểm học tập
-                                }
-                            
-                            # --- [BƯỚC 3] TRẢ LẠI ADMIN & CẤU HÌNH VÀO DATA MỚI ---
-                            # 1. Bảo vệ dữ liệu Admin và các quyền đặc biệt
-                            if 'admin' in st.session_state.data:
-                                # Lấy lại special_permissions của admin cũ nếu có, nếu không thì tạo mới
-                                admin_perms = st.session_state.data['admin'].get('special_permissions', {"world_chat_count": 5})
-                                preserved_admin['special_permissions'] = admin_perms
-
-                            new_data['admin'] = preserved_admin
-
-                            if preserved_ranks:
-                                new_data['rank_settings'] = preserved_ranks
-
-                            # 2. KIỂM TRA AN TOÀN TRƯỚC KHI LƯU
-                            if len(new_data) > 1: # Ít nhất phải có Admin + 1 User
-                                # Cập nhật Session State
-                                st.session_state.data = new_data
-                                
-                                try:
-                                    # Gọi hàm lưu - Hãy đảm bảo save_data của bạn nhận diện được dict lồng nhau
-                                    save_data(st.session_state.data) 
+                                    "role": current_role,   # <--- Đã được bảo vệ ở trên
+                                    "password": current_pass,
+                                    "kpi": int(row.get('KPI', 0)),
                                     
-                                    st.success(f"🎊 Chúc mừng! Đã kích hoạt {len(new_data)-1} tài khoản (Cột và Quyền lợi đã được bảo vệ).")
-                                    st.balloons()
-                                    import time
-                                    time.sleep(1)
-                                    st.rerun()
-                                except Exception as e:
-                                    st.error(f"❌ Lỗi khi ghi dữ liệu lên Sheets: {e}")
-                            else:
-                                st.warning("⚠️ Cảnh báo: Dữ liệu mới đang trống, hệ thống đã ngăn chặn việc ghi đè để bảo vệ Sheets!")
+                                    # Các chỉ số game (bảo toàn nếu đã có, reset nếu mới)
+                                    "special_permissions": new_data.get(u_id, {}).get("special_permissions", {"world_chat_count": 0}),
+                                    "Vi_Pham": new_data.get(u_id, {}).get("Vi_Pham", 0),
+                                    "Bonus": new_data.get(u_id, {}).get("Bonus", 0),
+                                    "Chien_Tich": new_data.get(u_id, {}).get("Chien_Tich", 0),
+                                    "inventory": new_data.get(u_id, {}).get("inventory", {}),
+                                    "titles": new_data.get(u_id, {}).get("titles", ["Tân Thủ Học Sĩ"]),
+                                    "total_score": 0.0
+                                }
+                                
+                                # Nếu là Admin được bảo vệ, giữ lại các quyền đặc biệt cũ
+                                if is_protected_admin:
+                                    new_user_info['special_permissions'] = new_data[u_id].get('special_permissions', {})
+                                    new_user_info['kpi'] = new_data[u_id].get('kpi', 9999) # Admin thường giàu
+
+                                # Ghi vào data
+                                new_data[u_id] = new_user_info
+
+                            # --- [BƯỚC 3] LƯU DỮ LIỆU ---
+                            st.session_state.data = new_data
+                            
+                            try:
+                                # Đảm bảo save_data đã được import hoặc định nghĩa
+                                save_data(st.session_state.data) 
+                                st.success(f"🎉 Hoàn tất! Thêm mới: {count_new} | Cập nhật: {count_update}")
+                                st.balloons()
+                                import time
+                                time.sleep(1)
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"❌ Lỗi lưu dữ liệu: {e}")
 
                 except Exception as e:
-                    st.error(f"❌ Lỗi khi xử lý file Excel: {e}")
+                    st.error(f"❌ Lỗi xử lý file Excel: {e}")
 
 
         st.divider()
