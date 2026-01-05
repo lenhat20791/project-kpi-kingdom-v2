@@ -3782,10 +3782,10 @@ from datetime import datetime
 def save_all_to_sheets(all_data):
     """
     PHIÊN BẢN FINAL (CẬP NHẬT ĐẦY ĐỦ):
-    1. Lưu Players (Bảo tồn Admin).
+    1. Lưu Players (Bảo tồn Admin + HISTORY LOG).
     2. Lưu Settings & Boss.
     3. Lưu Shop.
-    4. [MỚI] Lưu Admin Notices (Thông báo hệ thống).
+    4. Lưu Admin Notices.
     """
     import streamlit as st
     import json
@@ -3806,7 +3806,6 @@ def save_all_to_sheets(all_data):
 
     # --- [BƯỚC 0] ĐẢM BẢO ADMIN LUÔN TỒN TẠI ---
     if 'admin' not in all_data:
-        # Nếu đang có trong session thì lấy ra, không thì tạo mới
         if 'data' in st.session_state and 'admin' in st.session_state.data:
             all_data['admin'] = st.session_state.data['admin']
         else:
@@ -3845,24 +3844,22 @@ def save_all_to_sheets(all_data):
                 player_rows = [headers]
                 count_student = 0 
                 
-                # Các key hệ thống cần bỏ qua khi lưu vào danh sách học sinh
                 system_keys = ["rank_settings", "system_config", "shop_items", "temp_loot_table", "admin_notices"]
 
                 for uid, info in all_data.items():
-                    # Bỏ qua nếu không phải dict hoặc là key hệ thống
                     if not isinstance(info, dict) or uid in system_keys:
                         continue
                         
-                    # Logic đếm: Chỉ đếm học sinh
                     if str(info.get('role')) != 'admin':
                         count_student += 1
                     
-                    # --- CHUẨN BỊ DATA ---
+                    # --- [QUAN TRỌNG] CẬP NHẬT DANH SÁCH KEY CẦN LƯU ---
                     stats_keys = [
                         "Vi_Pham", "Bonus", "KTTX", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", 
                         "Tri_Thuc", "Chien_Tich", "Vinh_Du", "Vinh_Quang", 
                         "total_score", "titles", "best_time",
-                        "reborn_at", "last_defeat"
+                        "reborn_at", "last_defeat",
+                        "history_log" # <--- ĐÃ THÊM: Để lưu nhật ký giám sát vào JSON
                     ]
                     
                     stats_data = {}
@@ -3888,7 +3885,7 @@ def save_all_to_sheets(all_data):
                         
                         special_perms.get('world_chat_count', 0),
                         
-                        json.dumps(stats_data, ensure_ascii=False),
+                        json.dumps(stats_data, ensure_ascii=False), # history_log sẽ nằm trong cục này
                         json.dumps(info.get('inventory', {}), ensure_ascii=False),
                         json.dumps(info.get('dungeon_progress', {}), ensure_ascii=False)
                     ]
@@ -3961,13 +3958,11 @@ def save_all_to_sheets(all_data):
                 st.warning(f"⚠️ Lỗi tab Shop: {e}")
 
             # =========================================================
-            # --- 4. [MỚI] ĐỒNG BỘ ADMIN NOTICES (THÔNG BÁO) ---
+            # --- 4. ĐỒNG BỘ ADMIN NOTICES ---
             # =========================================================
             if 'admin_notices' in all_data:
                 try:
                     wks_notices = sh.worksheet("admin_notices")
-                    
-                    # Chuẩn bị dữ liệu (Dòng 2 trở đi, giữ lại header dòng 1)
                     rows_to_write = []
                     for note in all_data['admin_notices']:
                         row = [
@@ -3978,17 +3973,13 @@ def save_all_to_sheets(all_data):
                         ]
                         rows_to_write.append(row)
                     
-                    # Xóa dữ liệu cũ (chỉ xóa nội dung, giữ header)
                     wks_notices.batch_clear(["A2:D1000"]) 
-                    
-                    # Ghi dữ liệu mới
                     if rows_to_write:
                         wks_notices.update(range_name="A2", values=rows_to_write)
                         st.write(f"✅ Tab admin_notices: Đã lưu {len(rows_to_write)} thông báo.")
                         
                 except Exception as e:
-                    # Lỗi này thường do chưa tạo tab admin_notices, báo nhẹ nhàng thôi
-                    st.caption(f"⚠️ Không thể lưu thông báo (Kiểm tra xem đã tạo tab 'admin_notices' chưa): {e}")
+                    st.caption(f"⚠️ Không thể lưu thông báo: {e}")
 
             # =========================================================
             # --- 5. GHI LOG ---
@@ -4005,7 +3996,6 @@ def save_all_to_sheets(all_data):
         except Exception as e:
             st.error(f"❌ LỖI KẾT NỐI: {e}")
             return False
-
 def load_data_from_sheets():
     """
     Truy xuất toàn bộ dữ liệu vương quốc từ Cloud:
