@@ -543,7 +543,7 @@ def show_tutorial():
         st.components.v1.html(noidung_chiso, height=950, scrolling=True)
 
     with tab3:
-    noidung_khuvuc = """
+        noidung_khuvuc = """
 <div style="font-size: 28px; line-height: 1.6; font-family: sans-serif; text-align: left; padding: 10px;">
     <h2 style='color: #4CAF50; font-size: 40px; margin: 0 0 20px 0;'>🏰 CÁC ĐỊA DANH TẠI VƯƠNG QUỐC</h2>
     
