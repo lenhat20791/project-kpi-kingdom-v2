@@ -1,0 +1,20 @@
+🎮 Cách vận hành thực tế
+1. Khi muốn BẢO TRÌ (Đóng cửa):
+
+Bạn sửa code: CHE_DO_BAO_TRI = True
+
+Lúc này, bất kỳ học sinh nào vào link web bình thường sẽ thấy màn hình "HỆ THỐNG ĐANG BẢO TRÌ" và không làm gì được nữa.
+
+2. Khi Admin muốn vào kiểm tra (Trong lúc đang bảo trì):
+
+Bạn truy cập web với đường dẫn đặc biệt (thêm đuôi ?access=...):
+
+Link thường: https://kpi-kingdom.streamlit.app/ (Bị chặn)
+
+Link Admin: https://kpi-kingdom.streamlit.app/?access=admin_vip_123 (Vào được bình thường!)
+
+3. Khi xong việc (Mở cửa):
+
+Bạn sửa code lại: CHE_DO_BAO_TRI = False
+
+Mọi người lại vào được bình thường.
