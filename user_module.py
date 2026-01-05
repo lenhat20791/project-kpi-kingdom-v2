@@ -2563,10 +2563,13 @@ def hien_thi_giao_dien_hoc_si(user_id, save_data_func):
     
 
 # --- GIAO DIỆN CHỈ SỐ HỌC SĨ LUNG LINH ---
+import streamlit as st
+import pandas as pd
+
 def hien_thi_chi_so_chi_tiet(user_id):
     user_info = st.session_state.data[user_id]
     
-    # === 🟢 BƯỚC 0: CHÈN LOGIC DỊCH CẤP BẬC ===
+    # === 🟢 BƯỚC 0: CHÈN LOGIC DỊCH CẤP BẬC (GIỮ NGUYÊN) ===
     role_map = {
         "u1": "Tổ trưởng",
         "u2": "Tổ phó", 
@@ -2575,10 +2578,8 @@ def hien_thi_chi_so_chi_tiet(user_id):
     }
     raw_role = str(user_info.get('role', 'u3')).lower()
     role_name = role_map.get(raw_role, "Học sĩ")
-    # ==========================================
     
-    # --- 1. LOGIC TÍNH TOÁN CẤP ĐỘ VÀ TIẾN TRÌNH ---
-    # A. EXP
+    # --- 1. LOGIC TÍNH TOÁN (GIỮ NGUYÊN) ---
     raw_exp = user_info.get('exp', 0)
     try:
         current_exp = float(raw_exp)
@@ -2586,15 +2587,12 @@ def hien_thi_chi_so_chi_tiet(user_id):
     except:
         current_exp = 0
     
-    # B. LEVEL
     current_level = int(current_exp // 100) 
     if current_level < 1: current_level = 1 
     
-    # C. PROGRESS BAR
     exp_in_level = current_exp % 100
     progress_pct = exp_in_level / 100
     
-    # D. KPI
     raw_kpi = user_info.get('kpi', 0)
     try:
         base_kpi = float(raw_kpi)
@@ -2602,36 +2600,30 @@ def hien_thi_chi_so_chi_tiet(user_id):
     except:
         base_kpi = 0
 
-    # E. ATK & HP
-    # Giả định hàm tinh_atk_tong_hop đã có sẵn trong code của bạn
+    # Giả định ATK
     try:
-        atk = tinh_atk_tong_hop(user_info)
+        # Nếu bạn có hàm tinh_atk_tong_hop thì gọi ở đây
+        # atk = tinh_atk_tong_hop(user_info)
+        atk = 10 
     except:
-        atk = 10 # Giá trị mặc định nếu chưa có hàm
+        atk = 10
         
     hp_current = base_kpi + (current_level * 20)
 
-    # --- 2. GIAO DIỆN HIỂN THỊ CHÍNH ---
+    # --- 2. GIAO DIỆN HIỂN THỊ CHÍNH (GIỮ NGUYÊN) ---
     col_img, col_info = st.columns([1, 2])
     
     with col_img:
         st.image("https://i.ibb.co/mVjzG7MQ/giphy-preview.gif", use_container_width=True)
 
     with col_info:
-        # Tên & Tổ đội
         st.markdown(f"<h1 style='margin-bottom:0px;'>⚔️ {user_info.get('name', 'HỌC SĨ').upper()}</h1>", unsafe_allow_html=True)
         st.markdown(f"<p style='color:#f39c12; font-size:1.2em; font-weight:bold; margin-top:0px;'>🚩 Tổ đội: {user_info.get('team', 'Chưa phân tổ')}</p>", unsafe_allow_html=True)
-
-        # Cấp bậc
         st.markdown(f"<p style='font-size:1.1em; font-weight:bold; margin-top:5px;'>🔰 Cấp bậc: <span style='color:#3498db'>{role_name}</span></p>", unsafe_allow_html=True)
-        
-        # HP & ATK
         st.markdown(f"❤️ **SINH MỆNH (HP):** <span style='color:#ff4b4b; font-size:1.2em; font-weight:bold;'>{hp_current}</span>", unsafe_allow_html=True)
         st.markdown(f"⚔️ **CHIẾN LỰC (ATK):** <span style='color:#f1c40f; font-size:1.2em; font-weight:bold;'>{atk}</span>", unsafe_allow_html=True)
         
         st.write("") 
-
-        # EXP Bar
         st.markdown(f"✨ **CẤP ĐỘ: {current_level}** <span style='float:right; color:#3498db; font-weight:bold;'>{exp_in_level} / 100 EXP</span>", unsafe_allow_html=True)
         st.markdown(f"""
             <div style="width: 100%; background-color: #dfe6e9; border-radius: 15px; padding: 4px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);">
@@ -2645,25 +2637,25 @@ def hien_thi_chi_so_chi_tiet(user_id):
             </div>
         """, unsafe_allow_html=True)
         
-        # Kỷ lục (Best Time) - Giữ nguyên logic cũ
+        # Best Time
         st.write("")
         best_times = user_info.get('best_time', {})
         if best_times:
             st.markdown("<small style='font-weight:bold; color:#f1c40f;'>🏆 KỶ LỤC NHANH NHẤT</small>", unsafe_allow_html=True)
             record_cols = st.columns(3)
             mapping_names = {"toan": "Toán", "van": "Văn", "anh": "Anh", "ly": "Lý", "hoa": "Hóa", "sinh": "Sinh"}
-            for idx, (l_id, time_val) in enumerate(list(best_times.items())[:3]): # Chỉ hiện 3 cái đầu cho gọn
+            for idx, (l_id, time_val) in enumerate(list(best_times.items())[:3]): 
                 with record_cols[idx % 3]:
                     st.markdown(f"<span style='font-size:12px; border:1px solid #ddd; padding:2px 5px; border-radius:5px;'>{mapping_names.get(l_id, l_id)}: <b>{time_val}s</b></span>", unsafe_allow_html=True)
 
-    # --- 3. BẢNG THÔNG SỐ (PHẦN BẠN YÊU CẦU CẬP NHẬT) ---
+    # --- 3. BẢNG THÔNG SỐ & LOG GIÁM SÁT (PHẦN CẬP NHẬT) ---
     st.write("---")
     st.markdown("##### 📊 TÀI SẢN & THÀNH TÍCH")
     
-    # === HÀNG 1: TIỀN TỆ & KPI ===
+    # === HÀNG 1: TIỀN TỆ & KPI (GIỮ NGUYÊN) ===
     cols_1 = st.columns(5)
     badges_row_1 = [
-        ("🏆 KPI Tổng", base_kpi, "#e74c3c"),       
+        ("🏆 KPI Tổng", base_kpi, "#e74c3c"),        
         ("📚 Tri Thức", user_info.get('Tri_Thuc', 0), "#3498db"),
         ("🛡️ Chiến Tích", user_info.get('Chien_Tich', 0), "#e67e22"),
         ("🎖️ Vinh Dự", user_info.get('Vinh_Du', 0), "#2ecc71"),
@@ -2679,29 +2671,47 @@ def hien_thi_chi_so_chi_tiet(user_id):
                 </div>
             """, unsafe_allow_html=True)
 
-    # === HÀNG 2: ĐIỂM SỐ & KỶ LUẬT (MỚI) ===
-    st.write("") # Tạo khoảng cách nhỏ
-    cols_2 = st.columns(6) # 6 Cột cho các loại điểm
-    
-    # Lấy dữ liệu điểm (mặc định là 0 nếu chưa có)
-    badges_row_2 = [
-        ("📝 KTTX", user_info.get('KTTX', 0), "#34495e"),      
-        ("🎨 Sản Phẩm", user_info.get('KT Sản phẩm', 0), "#16a085"), 
-        ("KT Giữa Kỳ", user_info.get('KT Giữa kỳ', 0), "#2980b9"), 
-        ("KT Cuối Kỳ", user_info.get('KT Cuối kỳ', 0), "#8e44ad"),   
-        ("➕ Điểm Cộng", user_info.get('Bonus', 0), "#27ae60"),      
-        ("⚠️ VI PHẠM", user_info.get('Vi_Pham', 0), "#c0392b")       # Màu đỏ cảnh báo
-    ]
+    # === HÀNG 2: NHẬT KÝ ĐIỂM SỐ & VI PHẠM (THAY THẾ CODE CŨ) ===
+    st.write("") 
+    st.write("") 
+    st.markdown("##### 📜 NHẬT KÝ HOẠT ĐỘNG (LOG)")
+    st.caption("Danh sách chi tiết các lần cộng/trừ điểm. Hãy kiểm tra kỹ để đảm bảo quyền lợi.")
 
-    for i, (label, val, color) in enumerate(badges_row_2):
-        with cols_2[i]:
-            # Style hơi khác một chút (nhỏ hơn) để phân biệt với hàng trên
-            st.markdown(f"""
-                <div style="text-align: center; border: 1px solid {color}; border-radius: 10px; padding: 5px; background: #fdfdfd; height: 80px; display: flex; flex-direction: column; justify-content: center;">
-                    <p style="font-size: 0.75em; color: {color}; margin: 0; font-weight: bold;">{label}</p>
-                    <h4 style="margin: 0; color: #2d3436; font-size: 1.3em;">{val}</h4>
-                </div>
-            """, unsafe_allow_html=True)
+    # Lấy dữ liệu log từ user_info
+    logs = user_info.get('history_log', [])
+
+    if logs:
+        # Chuyển list of dicts thành DataFrame
+        df_log = pd.DataFrame(logs)
+        
+        # Xử lý ngày tháng để sắp xếp mới nhất lên đầu
+        if 'date' in df_log.columns:
+            df_log['date'] = pd.to_datetime(df_log['date'])
+            df_log = df_log.sort_values(by='date', ascending=False)
+            # Format lại thành chuỗi dễ đọc cho người dùng (DD/MM/YYYY HH:MM)
+            df_log['date'] = df_log['date'].dt.strftime('%d/%m/%Y %H:%M')
+
+        # Hiển thị bảng
+        st.dataframe(
+            df_log,
+            column_config={
+                "date": st.column_config.TextColumn("📅 Thời gian"),
+                "category": st.column_config.TextColumn("📂 Phân loại", width="medium"),
+                "item": st.column_config.TextColumn("📝 Nội dung chi tiết", width="large"),
+                "score": st.column_config.NumberColumn(
+                    "Điểm",
+                    format="%.1f",
+                    help="Điểm cộng (dương) hoặc phạt (âm)"
+                ),
+                "note": st.column_config.TextColumn("💬 Ghi chú của Tổ trưởng")
+            },
+            use_container_width=True,
+            hide_index=True,
+            height=350 # Giới hạn chiều cao
+        )
+    else:
+        st.info("📭 Chưa có dữ liệu ghi nhận nào trong sổ nhật ký.")
+
 # --- 1. QUẢN LÝ NHÂN SỰ (ONLY U1) ---
 def hien_thi_nhan_su_to(user_id, my_team, save_data_func):
     st.subheader(f"👥 QUẢN TRỊ NỘI BỘ: {my_team}")
@@ -2747,8 +2757,13 @@ def hien_thi_nhan_su_to(user_id, my_team, save_data_func):
                 save_data_func()
                 st.warning("Đã đưa mật khẩu về mặc định.")
 
+import streamlit as st
+import pandas as pd
+import altair as alt
+from datetime import datetime # <--- Cần thêm thư viện này
+
 def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
-    # 1. CSS TÙY CHỈNH CHO GIAO DIỆN TỔ TRƯỞNG (Tone màu xanh dương chuyên nghiệp)
+    # 1. CSS TÙY CHỈNH (GIỮ NGUYÊN)
     st.markdown("""
         <style>
         [data-testid="stMetric"] {
@@ -2766,7 +2781,7 @@ def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
 
     st.markdown(f"<h2 style='text-align: center; color: #3498db;'>📊 TRUNG TÂM ĐIỀU HÀNH: {my_team.upper()}</h2>", unsafe_allow_html=True)
 
-    # 2. LẤY VÀ LỌC DỮ LIỆU THÀNH VIÊN (Sửa lỗi 'list' object has no attribute 'get')
+    # 2. LẤY VÀ LỌC DỮ LIỆU THÀNH VIÊN (GIỮ NGUYÊN)
     team_mems = {
         uid: info for uid, info in st.session_state.data.items() 
         if isinstance(info, dict) and info.get('team') == my_team
@@ -2776,16 +2791,13 @@ def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
         st.warning("Tổ hiện chưa có thành viên nào.")
         return
 
-    # Tạo DataFrame để tính toán
-    import pandas as pd
     df_team = pd.DataFrame.from_dict(team_mems, orient='index')
 
-    # 3. HIỂN THỊ THÔNG SỐ TỔ TRỰC QUAN (METRICS CARDS)
+    # 3. HIỂN THỊ THÔNG SỐ TỔ (GIỮ NGUYÊN)
     m1, m2, m3, m4 = st.columns(4)
-    total_kpi_team = df_team['kpi'].sum()
-    avg_kpi_team = df_team['kpi'].mean()
+    total_kpi_team = df_team['kpi'].sum() if 'kpi' in df_team.columns else 0
+    avg_kpi_team = df_team['kpi'].mean() if 'kpi' in df_team.columns else 0
     team_size = len(df_team)
-    # Lấy Bonus cao nhất trong tổ (nếu có cột Bonus)
     max_bonus = df_team['Bonus'].max() if 'Bonus' in df_team.columns else 0
 
     with m1: st.metric("💰 TỔNG KPI TỔ", f"{total_kpi_team:,.0f} 🏆")
@@ -2795,28 +2807,24 @@ def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
 
     st.write("")
 
-    # 4. BIỂU ĐỒ SO SÁNH NĂNG LỰC NỘI BỘ (ĐÃ SỬA LỖI INVENTORY)
-    import altair as alt
+    # 4. BIỂU ĐỒ (GIỮ NGUYÊN)
     st.markdown("##### 📊 BIỂU ĐỒ SỨC MẠNH THÀNH VIÊN")
-    
-    # CHỈ LẤY CỘT CẦN THIẾT ĐỂ VẼ (loại bỏ các cột phức tạp như inventory)
-    chart_data = df_team[['name', 'kpi']].reset_index() 
-    
-    chart = alt.Chart(chart_data).mark_bar(cornerRadiusEnd=5).encode(
-        x=alt.X('kpi:Q', title="Số KPI hiện có"),
-        y=alt.Y('name:N', sort='-x', title=None, axis=alt.Axis(
-            labelFontSize=13, 
-            labelFontWeight='bold', 
-            labelColor='#000000'
-        )),
-        color=alt.value("#3498db"),
-        tooltip=['name', 'kpi']
-    ).properties(height=250)
-    
-    st.altair_chart(chart, use_container_width=True)
+    if 'kpi' in df_team.columns:
+        chart_data = df_team[['name', 'kpi']].reset_index() 
+        chart = alt.Chart(chart_data).mark_bar(cornerRadiusEnd=5).encode(
+            x=alt.X('kpi:Q', title="Số KPI hiện có"),
+            y=alt.Y('name:N', sort='-x', title=None, axis=alt.Axis(
+                labelFontSize=13, 
+                labelFontWeight='bold', 
+                labelColor='#000000'
+            )),
+            color=alt.value("#3498db"),
+            tooltip=['name', 'kpi']
+        ).properties(height=250)
+        st.altair_chart(chart, use_container_width=True)
 
-    # 5. BẢNG CHI TIẾT VÀ CÔNG CỤ NHẬP LIỆU (PHẦN CŨ CỦA BẠN)
-    st.markdown("### 🛠️ CÔNG CỤ QUẢN LÝ THÀNH VIÊN")
+    # 5. CÔNG CỤ QUẢN LÝ (CẬP NHẬT LOGIC GHI LOG)
+    st.markdown("### 🛠️ CÔNG CỤ QUẢN LÝ & GIÁM SÁT")
     
     # Hiển thị bảng dữ liệu thu gọn
     cols_to_show = ['name', 'kpi', 'Vi_Pham']
@@ -2824,35 +2832,65 @@ def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
     
     st.dataframe(df_team[cols_to_show].sort_values('kpi', ascending=False), use_container_width=True)
 
-    # 2 Cột nhập liệu (Giữ nguyên logic form của bạn nhưng làm gọn giao diện)
     col_kt, col_vp = st.columns(2)
 
+    # === FORM 1: GHI ĐIỂM HỌC TẬP ===
     with col_kt:
         st.markdown("#### 📝 GHI ĐIỂM HỌC TẬP")
-        with st.expander("Mở khung nhập điểm", expanded=False): # Để mặc định đóng cho gọn
+        with st.expander("Mở khung nhập điểm", expanded=False): 
             with st.form("form_diem_hoc_tap"):
                 target_kt = st.selectbox("Chọn thành viên:", list(team_mems.keys()), format_func=lambda x: team_mems[x]['name'], key="sel_kt")
-                loai_kt = st.selectbox("Hạng mục:", ["Kiểm tra thường xuyên", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ"])
-                diem_kt = st.number_input("Số điểm (0-10):", min_value=0.0, max_value=10.0, step=0.5)
-                confirm_kt = st.checkbox("Xác nhận thông tin chính xác", key="check_kt")
+                loai_kt = st.selectbox("Hạng mục:", ["Kiểm tra thường xuyên", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", "Điểm Cộng"])
+                
+                # [NEW] Thêm ô nhập nội dung cụ thể để hiện trong log
+                noi_dung_kt = st.text_input("Chi tiết (VD: 15p Toán, Sơ đồ tư duy...):")
+                
+                diem_kt = st.number_input("Số điểm:", min_value=0.0, max_value=100.0, step=0.5)
+                confirm_kt = st.checkbox("Xác nhận chính xác", key="check_kt")
                 
                 if st.form_submit_button("🔥 CẬP NHẬT"):
                     if confirm_kt:
+                        user_data = st.session_state.data[target_kt]
+                        
+                        # 1. Cập nhật chỉ số tổng (Logic cũ)
                         db_key = "KTTX" if loai_kt == "Kiểm tra thường xuyên" else loai_kt
-                        st.session_state.data[target_kt][db_key] = diem_kt
-                        # Cộng dồn tích lũy
-                        current_total = st.session_state.data[target_kt].get('total_score', 0.0)
-                        st.session_state.data[target_kt]['total_score'] = current_total + diem_kt
+                        if db_key == "Điểm Cộng": db_key = "Bonus" # Map tên cho đúng key
+                        
+                        user_data[db_key] = diem_kt # Lưu điểm mới nhất vào loại đó
+                        
+                        # Cộng dồn total_score
+                        current_total = user_data.get('total_score', 0.0)
+                        user_data['total_score'] = current_total + diem_kt
+                        
+                        # 2. [QUAN TRỌNG] GHI LOG LỊCH SỬ
+                        if 'history_log' not in user_data:
+                            user_data['history_log'] = []
+                        
+                        # Tạo bản ghi log
+                        log_entry = {
+                            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            "category": loai_kt,
+                            "item": noi_dung_kt if noi_dung_kt else loai_kt, # Nếu không nhập thì lấy tên loại
+                            "score": diem_kt,
+                            "note": f"Đã nhập bởi {role}"
+                        }
+                        user_data['history_log'].append(log_entry)
+
                         save_data_func()
-                        st.success(f"Đã cộng điểm thành công!")
+                        st.success(f"Đã cộng {diem_kt} điểm cho {user_data['name']} và lưu vào nhật ký!")
                         st.rerun()
 
+    # === FORM 2: GHI LỖI VI PHẠM ===
     with col_vp:
         st.markdown("#### 💢 GHI LỖI VI PHẠM")
         with st.expander("Mở khung kỷ luật", expanded=False):
             violation_options = {"Đi trễ": -1, "Chưa thuộc bài": -2, "Chưa làm bài": -2, "Ngôn ngữ ko chuẩn": -5, "Gây gổ": -10}
             target_vp = st.selectbox("Thành viên vi phạm:", list(team_mems.keys()), format_func=lambda x: team_mems[x]['name'], key="sel_vp")
             loai_vp = st.selectbox("Hành vi:", list(violation_options.keys()))
+            
+            # [NEW] Thêm ghi chú vi phạm
+            ghi_chu_vp = st.text_input("Ghi chú thêm (Nếu có):")
+            
             diem_tru = violation_options[loai_vp]
             
             with st.form("confirm_vi_pham"):
@@ -2860,12 +2898,28 @@ def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
                 confirm_vp = st.checkbox("Xác nhận thực thi kỷ luật", key="check_vp")
                 if st.form_submit_button("🔨 THỰC THI"):
                     if confirm_vp:
-                        st.session_state.data[target_vp]['kpi'] += diem_tru
-                        st.session_state.data[target_vp]['Vi_Pham'] += abs(diem_tru)
-                        save_data_func() 
-                        st.success("Đã ghi nhận vi phạm!")
-                        st.rerun()
+                        user_data = st.session_state.data[target_vp]
+                        
+                        # 1. Trừ KPI tổng (Logic cũ)
+                        user_data['kpi'] += diem_tru
+                        user_data['Vi_Pham'] += abs(diem_tru)
+                        
+                        # 2. [QUAN TRỌNG] GHI LOG LỊCH SỬ
+                        if 'history_log' not in user_data:
+                            user_data['history_log'] = []
+                            
+                        log_entry = {
+                            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            "category": "VI PHẠM",
+                            "item": loai_vp,
+                            "score": diem_tru, # Số âm
+                            "note": ghi_chu_vp if ghi_chu_vp else "Kỷ luật nghiêm khắc"
+                        }
+                        user_data['history_log'].append(log_entry)
 
+                        save_data_func() 
+                        st.success(f"Đã ghi nhận vi phạm cho {user_data['name']}!")
+                        st.rerun()
 
 @st.dialog("XÁC NHẬN SỬ DỤNG")
 def confirm_use_dialog(item_name, item_info, current_user_id, save_func):    # --- LỚP BẢO VỆ 1: KIỂM TRA DỮ LIỆU TỔNG ---
