@@ -60,52 +60,66 @@ except Exception:
 import streamlit as st
 
 # --- CẤU HÌNH BẢO TRÌ ---
-# Đổi thành True khi muốn đóng cửa bảo trì
 CHE_DO_BAO_TRI = True  
-# Mật khẩu để Admin vẫn vào được khi đang bảo trì
 MAT_KHAU_ADMIN = "admin_vip_123" 
 
 def kiem_tra_bao_tri():
     """
     Hàm chặn cửa: Nếu đang bảo trì -> Chặn hết User, trừ Admin có chìa khóa.
+    Phiên bản Fix lỗi: Tự động xóa khoảng trắng và hiện mã lỗi để Admin biết tại sao không vào được.
     """
     if CHE_DO_BAO_TRI:
-        # 1. Kiểm tra xem trên URL có mật khẩu không
-        # Ví dụ: kpi-kingdom.streamlit.app/?access=admin_vip_123
+        # 1. Lấy tham số an toàn (Chuyển về dict để tránh lỗi version)
         params = st.query_params
-        access_code = params.get("access", "")
         
+        # 2. Lấy mã access, ép kiểu string và xóa khoảng trắng thừa (QUAN TRỌNG)
+        # .get trả về None nếu không có, nên cần or "" để thành chuỗi rỗng
+        raw_code = params.get("access", "")
+        access_code = str(raw_code).strip()
+        
+        # 3. So sánh
         if access_code != MAT_KHAU_ADMIN:
-            # --- GIAO DIỆN BẢO TRÌ CHO NGƯỜI THƯỜNG ---
+            # --- GIAO DIỆN BẢO TRÌ ---
             st.markdown("""
                 <style>
                 .stApp {
                     background-color: #1E1E1E;
                     color: white;
                     text-align: center;
-                    padding-top: 100px;
+                    padding-top: 50px;
                 }
                 </style>
             """, unsafe_allow_html=True)
             
-            st.image("https://i.ibb.co/TBngKY75/bao-tri.jpg", width=600)
-            st.title("🚧 HỆ THỐNG ĐANG BẢO TRÌ 🚧")
-            st.header("Vui lòng quay lại sau ít phút!")
+            st.image("https://i.ibb.co/TBngKY75/bao-tri.jpg", width=500)
+            st.title("🚧 HỆ THỐNG ĐANG BẢO TRÌ")
             st.write("Admin đang cập nhật tính năng mới xịn xò hơn cho Vương Quốc.")
-            st.divider()
+            
+            # --- [DEBUG CHO ADMIN] ---
+            # Phần này giúp bạn biết tại sao mình không vào được
+            with st.expander("🔐 Dành cho Admin (Debug)", expanded=True):
+                st.write(f"🔑 Mã hệ thống nhận được: `{access_code}`")
+                st.write(f"🛡️ Mã yêu cầu: `{MAT_KHAU_ADMIN}`")
+                
+                if access_code == "":
+                    st.warning("👉 Bạn chưa nhập mã vào URL.")
+                    st.code(f"/?access={MAT_KHAU_ADMIN}", language="text")
+                else:
+                    st.error("❌ Mã không khớp! Hãy kiểm tra kỹ chính tả.")
+
             st.caption("© KPI Kingdom Development Team")
             
-            # Lệnh này sẽ DỪNG TOÀN BỘ code phía sau, không cho load tiếp
+            # Dừng lại
             st.stop()
         else:
-            # --- THÔNG BÁO CHO ADMIN ---
-            st.toast("🔓 Bạn đang truy cập bằng Lối Đi Riêng (Admin Mode)", icon="ue513")
-            st.warning("⚠️ ĐANG TRONG CHẾ ĐỘ BẢO TRÌ - CHỈ ADMIN MỚI THẤY TRANG NÀY")
+            # --- THÔNG BÁO KHI VÀO ĐƯỢC ---
+            st.toast(f"🔓 Admin Access Granted: {access_code}", icon="🚀")
+            st.warning("⚠️ BẠN ĐANG Ở CHẾ ĐỘ BẢO TRÌ (ADMIN MODE)")
 
-# --- ĐẶT HÀM NÀY Ở DÒNG ĐẦU TIÊN CỦA APP ---
+# --- GỌI HÀM ---
 kiem_tra_bao_tri()
 
-# ... (Các code import module và logic game của bạn ở phía dưới giữ nguyên) ...
+
 
 # --- 🚑 BỘ CỨU HỘ DỮ LIỆU TỪ Ổ CỨNG (SỬA FILE data.json) ---
 def emergency_fix_data_file():
