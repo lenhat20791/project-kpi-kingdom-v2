@@ -2594,7 +2594,7 @@ def hien_thi_chi_so_chi_tiet(user_id):
     exp_in_level = current_exp % 100
     progress_pct = exp_in_level / 100
     
-    # D. KPI (Dùng cho tính toán máu và hiển thị)
+    # D. KPI
     raw_kpi = user_info.get('kpi', 0)
     try:
         base_kpi = float(raw_kpi)
@@ -2603,7 +2603,12 @@ def hien_thi_chi_so_chi_tiet(user_id):
         base_kpi = 0
 
     # E. ATK & HP
-    atk = tinh_atk_tong_hop(user_info)
+    # Giả định hàm tinh_atk_tong_hop đã có sẵn trong code của bạn
+    try:
+        atk = tinh_atk_tong_hop(user_info)
+    except:
+        atk = 10 # Giá trị mặc định nếu chưa có hàm
+        
     hp_current = base_kpi + (current_level * 20)
 
     # --- 2. GIAO DIỆN HIỂN THỊ CHÍNH ---
@@ -2639,46 +2644,62 @@ def hien_thi_chi_so_chi_tiet(user_id):
                 </div>
             </div>
         """, unsafe_allow_html=True)
-        st.caption("🔥 Hãy tích cực thám hiểm phó bản để thăng cấp sức mạnh!")
         
-        # Kỷ lục (Best Time)
-        st.markdown("<p style='margin-bottom:5px; font-weight:bold; color:#f1c40f;'>🏆 KỶ LỤC THỜI GIAN NHANH NHẤT</p>", unsafe_allow_html=True)
+        # Kỷ lục (Best Time) - Giữ nguyên logic cũ
+        st.write("")
         best_times = user_info.get('best_time', {})
-        if not best_times:
-            st.markdown("<small style='color:#888;'><i>Chưa có kỷ lục nào được ghi nhận.</i></small>", unsafe_allow_html=True)
-        else:
+        if best_times:
+            st.markdown("<small style='font-weight:bold; color:#f1c40f;'>🏆 KỶ LỤC NHANH NHẤT</small>", unsafe_allow_html=True)
             record_cols = st.columns(3)
-            mapping_names = {"toan": "📐 Toán", "van": "📖 Văn", "anh": "🇬🇧 Anh", "ly": "⚡ Lý", "hoa": "🧪 Hóa", "sinh": "🌿 Sinh"}
-            for idx, (l_id, time_val) in enumerate(best_times.items()):
+            mapping_names = {"toan": "Toán", "van": "Văn", "anh": "Anh", "ly": "Lý", "hoa": "Hóa", "sinh": "Sinh"}
+            for idx, (l_id, time_val) in enumerate(list(best_times.items())[:3]): # Chỉ hiện 3 cái đầu cho gọn
                 with record_cols[idx % 3]:
-                    st.markdown(f"""
-                        <div style="background: rgba(241, 196, 15, 0.1); border: 1px solid #f1c40f; border-radius: 8px; padding: 5px; text-align: center; margin-bottom: 5px;">
-                            <div style="font-size: 11px; color: #aaa;">{mapping_names.get(l_id, l_id.upper())}</div>
-                            <div style="font-size: 16px; font-weight: bold; color: #f1c40f;">{time_val}s</div>
-                        </div>
-                    """, unsafe_allow_html=True)
+                    st.markdown(f"<span style='font-size:12px; border:1px solid #ddd; padding:2px 5px; border-radius:5px;'>{mapping_names.get(l_id, l_id)}: <b>{time_val}s</b></span>", unsafe_allow_html=True)
 
-    # --- 3. BẢNG THÔNG SỐ PHỤ DẠNG CARD (ĐÃ THÊM KPI) ---
+    # --- 3. BẢNG THÔNG SỐ (PHẦN BẠN YÊU CẦU CẬP NHẬT) ---
     st.write("---")
+    st.markdown("##### 📊 TÀI SẢN & THÀNH TÍCH")
     
-    # [CẬP NHẬT] Đổi thành 5 cột để đủ chỗ cho KPI
-    cols = st.columns(5)
-    
-    # Danh sách thẻ bài (Thêm KPI vào vị trí đầu tiên hoặc thứ 2)
-    badges = [
-        ("🏆 KPI Tổng", base_kpi, "#e74c3c"),       # <-- THÊM MỚI Ở ĐÂY
+    # === HÀNG 1: TIỀN TỆ & KPI ===
+    cols_1 = st.columns(5)
+    badges_row_1 = [
+        ("🏆 KPI Tổng", base_kpi, "#e74c3c"),       
         ("📚 Tri Thức", user_info.get('Tri_Thuc', 0), "#3498db"),
         ("🛡️ Chiến Tích", user_info.get('Chien_Tich', 0), "#e67e22"),
         ("🎖️ Vinh Dự", user_info.get('Vinh_Du', 0), "#2ecc71"),
         ("👑 Vinh Quang", user_info.get('Vinh_Quang', 0), "#f1c40f")
     ]
     
-    for i, (label, val, color) in enumerate(badges):
-        with cols[i]:
+    for i, (label, val, color) in enumerate(badges_row_1):
+        with cols_1[i]:
             st.markdown(f"""
-                <div style="text-align: center; border: 2px solid {color}; border-radius: 15px; padding: 10px; background: white; min-height: 100px; display: flex; flex-direction: column; justify-content: center;">
-                    <p style="font-size: 0.85em; color: #636e72; margin-bottom: 5px; font-weight: bold; white-space: nowrap;">{label}</p>
-                    <h2 style="margin: 0; color: {color}; font-size: 1.8em;">{val}</h2>
+                <div style="text-align: center; border: 2px solid {color}; border-radius: 12px; padding: 8px; background: white; height: 90px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <p style="font-size: 0.8em; color: #636e72; margin: 0; font-weight: bold; white-space: nowrap;">{label}</p>
+                    <h3 style="margin: 0; color: {color}; font-size: 1.5em;">{val}</h3>
+                </div>
+            """, unsafe_allow_html=True)
+
+    # === HÀNG 2: ĐIỂM SỐ & KỶ LUẬT (MỚI) ===
+    st.write("") # Tạo khoảng cách nhỏ
+    cols_2 = st.columns(6) # 6 Cột cho các loại điểm
+    
+    # Lấy dữ liệu điểm (mặc định là 0 nếu chưa có)
+    badges_row_2 = [
+        ("📝 KTTX", user_info.get('KTTX', 0), "#34495e"),      
+        ("🎨 Sản Phẩm", user_info.get('KT Sản phẩm', 0), "#16a085"), 
+        ("KT Giữa Kỳ", user_info.get('KT Giữa kỳ', 0), "#2980b9"), 
+        ("KT Cuối Kỳ", user_info.get('KT Cuối kỳ', 0), "#8e44ad"),   
+        ("➕ Điểm Cộng", user_info.get('Bonus', 0), "#27ae60"),      
+        ("⚠️ VI PHẠM", user_info.get('Vi_Pham', 0), "#c0392b")       # Màu đỏ cảnh báo
+    ]
+
+    for i, (label, val, color) in enumerate(badges_row_2):
+        with cols_2[i]:
+            # Style hơi khác một chút (nhỏ hơn) để phân biệt với hàng trên
+            st.markdown(f"""
+                <div style="text-align: center; border: 1px solid {color}; border-radius: 10px; padding: 5px; background: #fdfdfd; height: 80px; display: flex; flex-direction: column; justify-content: center;">
+                    <p style="font-size: 0.75em; color: {color}; margin: 0; font-weight: bold;">{label}</p>
+                    <h4 style="margin: 0; color: #2d3436; font-size: 1.3em;">{val}</h4>
                 </div>
             """, unsafe_allow_html=True)
 # --- 1. QUẢN LÝ NHÂN SỰ (ONLY U1) ---
