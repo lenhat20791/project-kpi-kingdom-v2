@@ -2674,7 +2674,7 @@ def hien_thi_chi_so_chi_tiet(user_id):
     # === HÀNG 2: NHẬT KÝ ĐIỂM SỐ & VI PHẠM (THAY THẾ CODE CŨ) ===
     st.write("") 
     st.write("") 
-    st.markdown("##### 📜 NHẬT KÝ HOẠT ĐỘNG (LOG)")
+    st.markdown("##### 📜 NHẬT KÝ ĐIỂM SỐ")
     st.caption("Danh sách chi tiết các lần cộng/trừ điểm. Hãy kiểm tra kỹ để đảm bảo quyền lợi.")
 
     # Lấy dữ liệu log từ user_info
@@ -2760,9 +2760,13 @@ def hien_thi_nhan_su_to(user_id, my_team, save_data_func):
 import streamlit as st
 import pandas as pd
 import altair as alt
-from datetime import datetime # <--- Cần thêm thư viện này
+from datetime import datetime, timedelta # <--- Cần thêm thư viện timedelta
 
 def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
+    # 0. LẤY THÔNG TIN NGƯỜI ĐANG THAO TÁC (TỔ TRƯỞNG)
+    # user_id ở đây chính là ID của người đang đăng nhập (Tổ trưởng)
+    nguoi_nhap = st.session_state.data.get(user_id, {}).get('name', 'Quản lý')
+
     # 1. CSS TÙY CHỈNH (GIỮ NGUYÊN)
     st.markdown("""
         <style>
@@ -2823,7 +2827,7 @@ def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
         ).properties(height=250)
         st.altair_chart(chart, use_container_width=True)
 
-    # 5. CÔNG CỤ QUẢN LÝ (CẬP NHẬT LOGIC GHI LOG)
+    # 5. CÔNG CỤ QUẢN LÝ
     st.markdown("### 🛠️ CÔNG CỤ QUẢN LÝ & GIÁM SÁT")
     
     # Hiển thị bảng dữ liệu thu gọn
@@ -2842,7 +2846,6 @@ def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
                 target_kt = st.selectbox("Chọn thành viên:", list(team_mems.keys()), format_func=lambda x: team_mems[x]['name'], key="sel_kt")
                 loai_kt = st.selectbox("Hạng mục:", ["Kiểm tra thường xuyên", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", "Điểm Cộng"])
                 
-                # [NEW] Thêm ô nhập nội dung cụ thể để hiện trong log
                 noi_dung_kt = st.text_input("Chi tiết (VD: 15p Toán, Sơ đồ tư duy...):")
                 
                 diem_kt = st.number_input("Số điểm:", min_value=0.0, max_value=100.0, step=0.5)
@@ -2852,32 +2855,34 @@ def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
                     if confirm_kt:
                         user_data = st.session_state.data[target_kt]
                         
-                        # 1. Cập nhật chỉ số tổng (Logic cũ)
+                        # 1. Cập nhật chỉ số tổng
                         db_key = "KTTX" if loai_kt == "Kiểm tra thường xuyên" else loai_kt
-                        if db_key == "Điểm Cộng": db_key = "Bonus" # Map tên cho đúng key
+                        if db_key == "Điểm Cộng": db_key = "Bonus"
                         
-                        user_data[db_key] = diem_kt # Lưu điểm mới nhất vào loại đó
+                        user_data[db_key] = diem_kt 
                         
-                        # Cộng dồn total_score
                         current_total = user_data.get('total_score', 0.0)
                         user_data['total_score'] = current_total + diem_kt
                         
-                        # 2. [QUAN TRỌNG] GHI LOG LỊCH SỬ
+                        # 2. GHI LOG LỊCH SỬ
                         if 'history_log' not in user_data:
                             user_data['history_log'] = []
                         
-                        # Tạo bản ghi log
+                        # [THỜI GIAN] Lấy giờ UTC + 7 tiếng cho Việt Nam
+                        vn_time = datetime.utcnow() + timedelta(hours=7)
+                        
                         log_entry = {
-                            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            "date": vn_time.strftime("%Y-%m-%d %H:%M:%S"), # Đã đổi sang giờ VN
                             "category": loai_kt,
-                            "item": noi_dung_kt if noi_dung_kt else loai_kt, # Nếu không nhập thì lấy tên loại
+                            "item": noi_dung_kt if noi_dung_kt else loai_kt,
                             "score": diem_kt,
-                            "note": f"Đã nhập bởi {role}"
+                            # [NGƯỜI NHẬP] Thay role bằng tên thật
+                            "note": f"Đã nhập bởi {nguoi_nhap}" 
                         }
                         user_data['history_log'].append(log_entry)
 
                         save_data_func()
-                        st.success(f"Đã cộng {diem_kt} điểm cho {user_data['name']} và lưu vào nhật ký!")
+                        st.success(f"Đã cộng {diem_kt} điểm cho {user_data['name']}!")
                         st.rerun()
 
     # === FORM 2: GHI LỖI VI PHẠM ===
@@ -2888,7 +2893,6 @@ def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
             target_vp = st.selectbox("Thành viên vi phạm:", list(team_mems.keys()), format_func=lambda x: team_mems[x]['name'], key="sel_vp")
             loai_vp = st.selectbox("Hành vi:", list(violation_options.keys()))
             
-            # [NEW] Thêm ghi chú vi phạm
             ghi_chu_vp = st.text_input("Ghi chú thêm (Nếu có):")
             
             diem_tru = violation_options[loai_vp]
@@ -2900,27 +2904,30 @@ def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
                     if confirm_vp:
                         user_data = st.session_state.data[target_vp]
                         
-                        # 1. Trừ KPI tổng (Logic cũ)
+                        # 1. Trừ KPI tổng
                         user_data['kpi'] += diem_tru
                         user_data['Vi_Pham'] += abs(diem_tru)
                         
-                        # 2. [QUAN TRỌNG] GHI LOG LỊCH SỬ
+                        # 2. GHI LOG LỊCH SỬ
                         if 'history_log' not in user_data:
                             user_data['history_log'] = []
+
+                        # [THỜI GIAN] Lấy giờ UTC + 7 tiếng cho Việt Nam
+                        vn_time = datetime.utcnow() + timedelta(hours=7)
                             
                         log_entry = {
-                            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            "date": vn_time.strftime("%Y-%m-%d %H:%M:%S"), # Đã đổi sang giờ VN
                             "category": "VI PHẠM",
                             "item": loai_vp,
-                            "score": diem_tru, # Số âm
-                            "note": ghi_chu_vp if ghi_chu_vp else "Kỷ luật nghiêm khắc"
+                            "score": diem_tru,
+                            # [NGƯỜI NHẬP] Nếu không có ghi chú thì hiện tên người nhập
+                            "note": ghi_chu_vp if ghi_chu_vp else f"Đã nhập bởi {nguoi_nhap}"
                         }
                         user_data['history_log'].append(log_entry)
 
                         save_data_func() 
                         st.success(f"Đã ghi nhận vi phạm cho {user_data['name']}!")
                         st.rerun()
-
 @st.dialog("XÁC NHẬN SỬ DỤNG")
 def confirm_use_dialog(item_name, item_info, current_user_id, save_func):    # --- LỚP BẢO VỆ 1: KIỂM TRA DỮ LIỆU TỔNG ---
     # Kiểm tra xem 'data' có tồn tại trong session_state không và có bị None không
