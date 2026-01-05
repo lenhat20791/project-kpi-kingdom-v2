@@ -11,7 +11,7 @@ Bạn truy cập web với đường dẫn đặc biệt (thêm đuôi ?access=.
 
 Link thường: https://kpi-kingdom.streamlit.app/ (Bị chặn)
 
-Link Admin: https://kpi-kingdom.streamlit.app/?access=admin_vip_123 (Vào được bình thường!)
+Link Admin: https://thcspvt.streamlit.app/?access=admin_vip_123 (Vào được bình thường!)
 
 3. Khi xong việc (Mở cửa):
 
