@@ -1710,6 +1710,34 @@ else:
 
     # --- CỘT TRÁI: ĐĂNG NHẬP & BẢNG CAO THỦ ---
     with col_sidebar:
+        # === 🟢 THÊM CSS ĐỂ CĂN GIỮA VÀ TÔ MÀU NÚT ===
+        st.markdown("""
+            <style>
+            /* 1. Canh giữa nút submit trong Form */
+            div[data-testid="stFormSubmitButton"] {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+            }
+            /* 2. Style cho nút: Màu xanh dương nhạt + Chữ trắng + Bo góc */
+            div[data-testid="stFormSubmitButton"] > button {
+                background-color: #5DADE2 !important;  /* Mã màu xanh dương nhạt */
+                color: white !important;                /* Chữ màu trắng */
+                border: none;
+                font-weight: bold;
+                padding: 0.5rem 2rem;                   /* Tăng độ rộng nút cho đẹp */
+                border-radius: 8px;                     /* Bo tròn góc */
+            }
+            /* 3. Hiệu ứng khi di chuột vào (Hover) */
+            div[data-testid="stFormSubmitButton"] > button:hover {
+                background-color: #3498db !important;   /* Xanh đậm hơn chút khi hover */
+                color: white !important;
+                border: 1px solid #fff;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+        # ===============================================
+
         st.subheader("🔑 ĐĂNG NHẬP")
         with st.form("login_form"):
             # Truyền giá trị đã lưu vào tham số 'value' 
@@ -1718,6 +1746,7 @@ else:
             # ✅ DÒNG MỚI CHO MẬT KHẨU LUÔN:
             pwd_input = st.text_input("Mật khẩu:", type="password")             
             
+            # Nút bấm (CSS ở trên sẽ tự động tác động vào nút này)
             btn_login = st.form_submit_button("VÀO HỆ THỐNG 🔥")
             
         # --- NÚT HƯỚNG DẪN TÂN THỦ TÙY CHỈNH ---
