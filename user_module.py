@@ -1942,9 +1942,7 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         
         # --- LƯU KẾT QUẢ (QUAN TRỌNG) ---
         with st.spinner("💾 Đang lưu kết quả lên hệ thống..."):
-            # Import lại hàm load để tránh lỗi vòng lặp import
-            from admin_module import load_loi_dai, trong_tai_tong_ket, save_loi_dai 
-            
+                        
             # Tải lại dữ liệu mới nhất từ Cloud để tránh ghi đè
             ld_data = load_loi_dai()
             
