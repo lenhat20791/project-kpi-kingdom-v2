@@ -19,6 +19,8 @@ from item_system import get_active_combat_stats
 SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 SHEET_NAME = "Data_KPI_Kingdom"
 
+# 🔥 [QUAN TRỌNG] Thêm cache để không bị connect lại liên tục gây lag
+@st.cache_resource(show_spinner=False)
 def get_gspread_client():
     try:
         # Ưu tiên 1: Lấy từ Streamlit Secrets (Online)
@@ -31,14 +33,14 @@ def get_gspread_client():
             
             creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
             client = gspread.authorize(creds)
-            print("✅ Đã kết nối Google Sheets (Online Mode)")
+            # print("✅ Đã kết nối Google Sheets (Online Mode)")
             return client
 
         # Ưu tiên 2: Lấy từ file JSON (Offline/Local)
         elif os.path.exists("service_account.json"):
             creds = Credentials.from_service_account_file("service_account.json", scopes=SCOPE)
             client = gspread.authorize(creds)
-            print("✅ Đã kết nối Google Sheets (Local JSON)")
+            # print("✅ Đã kết nối Google Sheets (Local JSON)")
             return client
 
         else:
@@ -49,7 +51,8 @@ def get_gspread_client():
         st.error(f"⚠️ Lỗi kết nối: {e}")
         return None
 
-# 2. Gọi hàm để lấy biến CLIENT (Chạy 1 lần duy nhất ở đây)
+# 🔥 [QUAN TRỌNG] Khởi tạo biến CLIENT toàn cục tại đây
+# Để các hàm bên dưới (load_loi_dai, save_loi_dai) có thể gọi CLIENT.open(...)
 CLIENT = get_gspread_client()
 
 def ghi_log_he_thong(user_id, action, detail, note=""):
@@ -1988,6 +1991,12 @@ def load_loi_dai():
     """
     default_data = {"matches": {}, "rankings": {}}
     
+    # Cần đảm bảo CLIENT và SHEET_NAME có sẵn. 
+    # Nếu không, hãy truyền chúng vào hàm hoặc import ở đầu file.
+    if 'CLIENT' not in globals() or 'SHEET_NAME' not in globals():
+        st.error("Lỗi cấu hình: CLIENT hoặc SHEET_NAME chưa được định nghĩa.")
+        return default_data
+
     try:
         # 1. Kết nối Google Sheets và mở Tab PVP
         try:
@@ -2006,33 +2015,31 @@ def load_loi_dai():
         matches = {}
         now = datetime.now()
         thirty_days_ago = now - timedelta(days=30)
-        need_save = False # Cờ đánh dấu nếu có xóa dữ liệu cũ
+        need_save = False 
 
-        # 3. Duyệt từng dòng để tái tạo dữ liệu
-        # Cấu trúc cột: [0] ID | [1] JSON | [2] Status | [3] Created_At
+        # 3. Duyệt từng dòng
         for r in rows[1:]:
             try:
                 if len(r) < 2: continue
                 
                 mid = r[0]
-                # Giải nén JSON từ cột B (Full_JSON_Data)
                 m_data = json.loads(r[1]) 
                 
                 # --- LOGIC DỌN DẸP TỰ ĐỘNG ---
                 created_at_str = m_data.get('created_at', "")
                 if created_at_str:
                     try:
-                        # Chỉ lấy 10 ký tự đầu (dd/mm/yyyy) để so sánh
+                        # Xử lý linh hoạt hơn cho ngày tháng nếu cần
                         match_date = datetime.strptime(created_at_str[:10], "%d/%m/%Y")
                         
-                        # Nếu trận đấu cũ hơn 30 ngày -> Bỏ qua (không thêm vào dict matches)
                         if match_date < thirty_days_ago:
-                            need_save = True # Đánh dấu là đã có sự thay đổi (xóa bớt)
+                            need_save = True 
                             continue 
-                    except:
-                        pass # Nếu lỗi định dạng ngày tháng thì cứ giữ lại cho an toàn
+                    except ValueError:
+                         # Log nhẹ để biết dòng nào lỗi ngày tháng nhưng không crash app
+                        print(f"Lỗi định dạng ngày tháng trận {mid}: {created_at_str}")
+                        pass 
 
-                # Nếu qua được cửa kiểm tra thì thêm vào danh sách
                 matches[mid] = m_data
                 
             except Exception as e:
@@ -2041,25 +2048,27 @@ def load_loi_dai():
         
         final_data = {"matches": matches, "rankings": {}}
 
-        # 4. Nếu có dọn dẹp rác (need_save == True), lưu lại ngay để Sheet sạch sẽ
+        # 4. Lưu lại nếu có dọn dẹp
         if need_save:
-            # Lưu ý: Hàm save_loi_dai phải được định nghĩa trong cùng module hoặc import vào
             save_loi_dai(final_data)
 
         return final_data
 
     except Exception as e:
-        # Nếu lỗi (ví dụ Quota 429), trả về mặc định để App không bị sập
         st.error(f"⚠️ Lỗi kết nối Lôi Đài Cloud: {e}")
         return default_data
+
 def save_loi_dai(data):
     """
     Lưu dữ liệu Lôi Đài & Xóa Cache để cập nhật ngay lập tức.
     """
+    if 'CLIENT' not in globals() or 'SHEET_NAME' not in globals():
+        st.error("Lỗi cấu hình: CLIENT hoặc SHEET_NAME chưa được định nghĩa.")
+        return
+
     try:
         sh = CLIENT.open(SHEET_NAME).worksheet("PVP")
         
-        # ... (Giữ nguyên đoạn code chuẩn bị rows_to_write) ...
         rows_to_write = [["Match_ID", "Full_JSON_Data", "Status", "Created_At"]]
         matches = data.get('matches', {})
         for mid, m_info in matches.items():
@@ -2068,16 +2077,15 @@ def save_loi_dai(data):
             created = m_info.get('created_at', '')
             rows_to_write.append([str(mid), json_str, status, created])
             
-        # Ghi đè lên Google Sheets
         sh.clear()
         sh.update('A1', rows_to_write)
         
-        # [QUAN TRỌNG] XÓA CACHE CỦA HÀM LOAD
-        # Để lần tải tiếp theo (st.rerun) nó sẽ lấy dữ liệu mới nhất vừa lưu
+        # Xóa cache để đảm bảo lần load sau lấy dữ liệu mới
         load_loi_dai.clear()
         
     except Exception as e:
         st.error(f"❌ Không thể lưu Lôi Đài lên Cloud: {e}")
+
 @st.dialog("🏁 KẾT QUẢ TRẬN ĐẤU")
 def hien_thi_bang_diem_chung_cuoc(match_id, ld_data):
     # Kiểm tra an toàn xem trận đấu còn tồn tại không
@@ -2200,6 +2208,7 @@ def trong_tai_tong_ket(match_id, ld_data, save_data_func):
     
     # 2. Lưu dữ liệu NGƯỜI CHƠI (KPI) lên tab Players
     save_data_func(data)    
+
 def hien_thi_loi_dai(current_user_id, save_data_func):
     import pandas as pd
     from datetime import datetime
