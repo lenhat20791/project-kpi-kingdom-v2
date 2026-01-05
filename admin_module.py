@@ -1888,9 +1888,10 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
             
             # --- NÚT ĐÓNG GÓI (TẠO RƯƠNG) ---
             if st.button("🎁 ĐÓNG GÓI RƯƠNG NGAY", type="primary", use_container_width=True):
-                # [FIX LỖI] Import thư viện datetime với tên riêng để không bị trùng biến 'datetime' ở nơi khác
+                # [FIX LỖI] Import thư viện datetime với tên riêng để an toàn
                 import datetime as dt_lib 
                 import time
+                
                 if box_name and st.session_state.temp_loot_table:
                     # Tạo cấu trúc dữ liệu rương mới
                     new_chest_data = {
@@ -1909,28 +1910,30 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         "limit_type": "none", 
                         "limit_value": 0,
                         "desc": f"Chứa {len(st.session_state.temp_loot_table)} loại quà. Mở để thử vận may!",
-                        # [FIX LỖI] Dùng dt_lib.datetime.now() thay vì datetime.now()
+                        # [FIX LỖI] Dùng dt_lib.datetime.now()
                         "created_at": dt_lib.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     }
                     
-                    # Lưu vào Shop Items
+                    # Lưu vào Shop Items trong Session State
                     if 'shop_items' not in st.session_state.data:
                         st.session_state.data['shop_items'] = {}
                         
                     st.session_state.data['shop_items'][box_name] = new_chest_data
                     
-                    # Gọi hàm lưu an toàn lên Google Sheets
-                    if user_module.save_all_to_sheets(st.session_state.data):
+                    # === [QUAN TRỌNG] SỬA LỖI Ở DÒNG NÀY ===
+                    # Dùng biến 'save_data' thay vì 'user_module.save_all_to_sheets'
+                    if save_data(st.session_state.data):
                         st.session_state.temp_loot_table = [] 
                         st.balloons()
+                        
                         status_msg = "đã được BÀY BÁN trên Shop" if is_listed else "đã được CẤT VÀO KHO ẨN"
-                        # Kiểm tra an toàn biến box_display_name khi hiển thị thông báo
                         disp_name = box_display_name if 'box_display_name' in locals() and box_display_name else box_name
+                        
                         st.success(f"✅ Rương **{disp_name}** {status_msg} thành công!")
                         time.sleep(1)
                         st.rerun()
                     else:
-                        st.error("❌ Lỗi lưu trữ Cloud!")
+                        st.error("❌ Lỗi lưu trữ Cloud! Vui lòng kiểm tra kết nối.")
                 else:
                     st.error("❌ Thiếu tên rương hoặc danh sách vật phẩm rỗng!")
             
