@@ -1942,30 +1942,39 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         
         # --- LƯU KẾT QUẢ (QUAN TRỌNG) ---
         with st.spinner("💾 Đang lưu kết quả lên hệ thống..."):
-                        
-            # Tải lại dữ liệu mới nhất từ Cloud để tránh ghi đè
+            
+            # 1. Tải dữ liệu mới nhất (Tránh ghi đè điểm người khác)
+            # Lưu ý: Hàm load_loi_dai phải có sẵn trong file này (đã copy ở bước trước)
             ld_data = load_loi_dai()
             
             if match_id in ld_data['matches']:
                 m = ld_data['matches'][match_id]
                 
-                # Lưu điểm cá nhân
+                # 2. Lưu điểm cá nhân
                 m[f"score_{current_user_id}"] = final_score
                 
-                # Kiểm tra xem mọi người đã thi xong chưa
-                challengers = m.get('challenger_team', []) or [m.get('challenger')]
-                opponents = m.get('opponent_team', []) or [m.get('opponent')]
-                all_players = challengers + opponents
+                # 3. [FIX LOGIC ĐẾM NGƯỜI] Tính toán chính xác tổng số người chơi
+                # Lấy danh sách team 1 (Nếu danh sách rỗng thì lấy cá nhân đội trưởng)
+                c_team = m.get('challenger_team', [])
+                if not c_team: c_team = [m.get('challenger')]
                 
-                # Lọc danh sách những người đã có điểm
+                # Lấy danh sách team 2
+                o_team = m.get('opponent_team', [])
+                if not o_team: o_team = [m.get('opponent')]
+                
+                # Tổng hợp tất cả người chơi trong trận
+                all_players = c_team + o_team
+                
+                # 4. Lọc danh sách những người ĐÃ CÓ ĐIỂM
                 finished_players = [uid for uid in all_players if f"score_{uid}" in m]
                 
+                # 5. Kiểm tra điều kiện kết thúc (Số người xong >= Tổng số người)
                 if len(finished_players) >= len(all_players):
                     # TẤT CẢ ĐÃ XONG -> GỌI TRỌNG TÀI TỔNG KẾT
                     trong_tai_tong_ket(match_id, ld_data, save_data_func)
                     st.success("🏁 TẤT CẢ ĐÃ THI XONG! ĐÃ CÓ KẾT QUẢ CHUNG CUỘC.")
                 else:
-                    # CHƯA XONG HẾT -> LƯU TẠM THỜI
+                    # CHƯA XONG HẾT -> LƯU TẠM THỜI TRẠNG THÁI
                     save_loi_dai(ld_data)
                     remaining_players = len(all_players) - len(finished_players)
                     st.info(f"⏳ Đã lưu điểm của bạn. Đang chờ {remaining_players} người chơi khác hoàn thành...")
