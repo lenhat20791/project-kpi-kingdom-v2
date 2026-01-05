@@ -60,7 +60,7 @@ except Exception:
 import streamlit as st
 
 # --- CẤU HÌNH BẢO TRÌ ---
-CHE_DO_BAO_TRI = True  
+CHE_DO_BAO_TRI = False  
 MAT_KHAU_ADMIN = "admin_vip_123" 
 
 def kiem_tra_bao_tri():
