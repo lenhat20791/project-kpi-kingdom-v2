@@ -2301,20 +2301,37 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
     # --- BƯỚC 4: HIỂN THỊ CÁC TRẬN ĐANG DIỄN RA ---
     st.subheader("⚔️ TRẬN ĐẤU ĐANG DIỄN RA") 
     active_matches = [mid for mid, m in ld_data['matches'].items() if m.get('status') == 'active'] 
+    
     if not active_matches:
         st.write("Không có trận đấu nào đang diễn ra.") 
     else:
         for mid in active_matches:
             m = ld_data['matches'][mid]
-            all_players = m.get('challenger_team', [m.get('challenger')]) + m.get('opponent_team', [m.get('opponent')]) 
+            
+            # [FIX QUAN TRỌNG] Logic lấy danh sách người chơi chuẩn xác
+            c_team = m.get('challenger_team', [])
+            if not c_team: c_team = [m.get('challenger')]
+            
+            o_team = m.get('opponent_team', [])
+            if not o_team: o_team = [m.get('opponent')]
+            
+            all_players = c_team + o_team
+            
             if current_user_id in all_players:
-                # [CẬP NHẬT] Hiển thị độ khó trên tiêu đề
                 diff_label = m.get('difficulty', 'Medium')
-                with st.expander(f"⚔️ Trận đấu môn {m['subject'].upper()} ({diff_label})"):
+                with st.expander(f"⚔️ Trận đấu môn {m.get('subject', '').upper()} ({diff_label})", expanded=True):
+                    
+                    # --- DEBUG (Nếu vẫn lỗi thì bỏ comment dòng dưới để xem nó đang lưu cái gì) ---
+                    st.write(f"🔍 Key Debug: {list(m.keys())}")
+                    st.write(f"👤 Bạn là: {current_user_id}")
+                    
+                    # Kiểm tra xem ID của bạn đã có điểm chưa
                     if f"score_{current_user_id}" in m:
-                        st.success("✅ Bạn đã hoàn thành phần thi.") 
+                        st.success("✅ Bạn đã hoàn thành phần thi.")
+                        st.info("⏳ Đang chờ đồng đội và đối thủ hoàn thành...")
                     else:
-                        if st.button("🚀 VÀO THI ĐẤU", key=f"play_btn_{mid}"): 
+                        st.markdown(f"**Thể thức:** {m.get('mode')} | **Cược:** {m.get('bet')} KPI")
+                        if st.button("🚀 VÀO THI ĐẤU", key=f"play_btn_{mid}", type="primary"): 
                             st.session_state.match_id_active = mid 
                             st.rerun()
 
