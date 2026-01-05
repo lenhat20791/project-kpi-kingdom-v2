@@ -60,26 +60,25 @@ except Exception:
 import streamlit as st
 
 # --- CẤU HÌNH BẢO TRÌ ---
-CHE_DO_BAO_TRI = False  
+CHE_DO_BAO_TRI = False   # Đổi thành True khi muốn đóng cửa bảo trì
 MAT_KHAU_ADMIN = "admin_vip_123" 
 
 def kiem_tra_bao_tri():
     """
     Hàm chặn cửa: Nếu đang bảo trì -> Chặn hết User, trừ Admin có chìa khóa.
-    Phiên bản Fix lỗi: Tự động xóa khoảng trắng và hiện mã lỗi để Admin biết tại sao không vào được.
+    Phiên bản Production: Đã ẩn thông tin Debug để bảo mật tuyệt đối.
     """
     if CHE_DO_BAO_TRI:
-        # 1. Lấy tham số an toàn (Chuyển về dict để tránh lỗi version)
+        # 1. Lấy tham số an toàn
         params = st.query_params
         
-        # 2. Lấy mã access, ép kiểu string và xóa khoảng trắng thừa (QUAN TRỌNG)
-        # .get trả về None nếu không có, nên cần or "" để thành chuỗi rỗng
+        # 2. Lấy mã access, ép kiểu string và xóa khoảng trắng thừa
         raw_code = params.get("access", "")
         access_code = str(raw_code).strip()
         
         # 3. So sánh
         if access_code != MAT_KHAU_ADMIN:
-            # --- GIAO DIỆN BẢO TRÌ ---
+            # --- GIAO DIỆN BẢO TRÌ (PUBLIC) ---
             st.markdown("""
                 <style>
                 .stApp {
@@ -94,26 +93,16 @@ def kiem_tra_bao_tri():
             st.image("https://i.ibb.co/TBngKY75/bao-tri.jpg", width=500)
             st.title("🚧 HỆ THỐNG ĐANG BẢO TRÌ")
             st.write("Admin đang cập nhật tính năng mới xịn xò hơn cho Vương Quốc.")
+            st.write("Vui lòng quay lại sau ít phút!")
             
-            # --- [DEBUG CHO ADMIN] ---
-            # Phần này giúp bạn biết tại sao mình không vào được
-            with st.expander("🔐 Dành cho Admin (Debug)", expanded=True):
-                st.write(f"🔑 Mã hệ thống nhận được: `{access_code}`")
-                st.write(f"🛡️ Mã yêu cầu: `{MAT_KHAU_ADMIN}`")
-                
-                if access_code == "":
-                    st.warning("👉 Bạn chưa nhập mã vào URL.")
-                    st.code(f"/?access={MAT_KHAU_ADMIN}", language="text")
-                else:
-                    st.error("❌ Mã không khớp! Hãy kiểm tra kỹ chính tả.")
-
+            st.divider()
             st.caption("© KPI Kingdom Development Team")
             
-            # Dừng lại
+            # Dừng lại hoàn toàn, không cho load code phía sau
             st.stop()
         else:
-            # --- THÔNG BÁO KHI VÀO ĐƯỢC ---
-            st.toast(f"🔓 Admin Access Granted: {access_code}", icon="🚀")
+            # --- THÔNG BÁO KHI ADMIN VÀO ĐƯỢC ---
+            st.toast("🔓 Admin Access Granted", icon="🚀")
             st.warning("⚠️ BẠN ĐANG Ở CHẾ ĐỘ BẢO TRÌ (ADMIN MODE)")
 
 # --- GỌI HÀM ---
