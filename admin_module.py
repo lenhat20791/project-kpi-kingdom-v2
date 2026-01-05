@@ -1487,46 +1487,61 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 hide_index=True
             )
             
-            # 6. NÚT XÁC NHẬN LƯU THAY ĐỔI (BẢN FIX AN TOÀN)
+            # 6. NÚT XÁC NHẬN LƯU THAY ĐỔI (BẢN ĐÃ FIX LỖI MẤT ADMIN)
             if st.button("💾 XÁC NHẬN THAY ĐỔI TOÀN BỘ", use_container_width=True):
                 role_to_code = {"Tổ trưởng": "u1", "Tổ phó": "u2", "Tổ viên": "u3"}
                 
-                # Tạo một bản sao dữ liệu hiện tại để tránh lỗi tham chiếu
+                # Tạo bản sao để sửa
                 temp_data = st.session_state.data.copy()
+                
+                # Biến đếm để báo cáo
+                count_updated = 0
                 
                 for _, row in edited_df.iterrows():
                     u_id = str(row['User ID'])
                     
-                    # Xác định mật khẩu và chức vụ mới
-                    new_password = "123" if row.get('Reset_123') else str(row.get('password', '123456'))
-                    new_role = role_to_code.get(row.get('role'), "u3")
-                    
                     if u_id in temp_data:
-                        # Cập nhật thông tin cơ bản
+                        # --- 🛡️ [QUAN TRỌNG] LÁ CHẮN BẢO VỆ ADMIN ---
+                        old_role = temp_data[u_id].get('role', 'u3')
+                        
+                        # Logic xác định Role mới:
+                        excel_role_text = row.get('role')
+                        proposed_role = role_to_code.get(excel_role_text, "u3")
+                        
+                        # Nếu role cũ là admin -> CƯỠNG CHẾ GIỮ LẠI LÀ ADMIN (Bất chấp bảng chọn gì)
+                        if old_role == 'admin':
+                            final_role = 'admin'
+                        else:
+                            final_role = proposed_role
+                        # -----------------------------------------------
+
+                        # Xác định mật khẩu mới
+                        new_password = "123" if row.get('Reset_123') else str(row.get('password', '123456'))
+                        
+                        # Cập nhật thông tin
                         temp_data[u_id]["team"] = row.get('team', temp_data[u_id].get('team', 'Chưa phân tổ'))
-                        temp_data[u_id]["role"] = new_role
+                        temp_data[u_id]["role"] = final_role  # <--- Đã được bảo vệ
                         temp_data[u_id]["password"] = new_password
                         
-                        # --- QUAN TRỌNG: Đảm bảo các key cần thiết cho hàm save_all_to_sheets tồn tại ---
-                        # Nếu thiếu các key này, hàm lưu sẽ tạo ra dòng dữ liệu lỗi/rỗng
-                        keys_to_check = ['exp', 'level', 'hp', 'hp_max', 'kpi', 'inventory', 'dungeon_progress']
+                        # Bù đắp các trường thiếu (như code cũ)
+                        keys_to_check = ['exp', 'level', 'hp', 'hp_max', 'kpi', 'inventory', 'dungeon_progress', 'special_permissions']
                         for k in keys_to_check:
                             if k not in temp_data[u_id]:
                                 if k == 'special_permissions': temp_data[u_id][k] = {"world_chat_count": 0}
                                 elif k in ['inventory', 'dungeon_progress']: temp_data[u_id][k] = {}
                                 elif k in ['hp', 'hp_max']: temp_data[u_id][k] = 100
                                 else: temp_data[u_id][k] = 0
+                        
+                        count_updated += 1
 
                 # Cập nhật session và Lưu
                 st.session_state.data = temp_data
                 
-                # Gọi hàm lưu an toàn
                 if len(st.session_state.data) > 0:
                     st.info("🔄 Đang xử lý lưu trữ...")
                     import user_module
-                    # Gọi hàm save_data từ user_module
                     if user_module.save_all_to_sheets(st.session_state.data):
-                        st.success("🎉 Đã cập nhật thành công!")
+                        st.success(f"🎉 Đã cập nhật thành công {count_updated} hồ sơ!")
                         import time
                         time.sleep(1)
                         st.rerun()
