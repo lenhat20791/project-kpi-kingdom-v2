@@ -88,7 +88,7 @@ def kiem_tra_bao_tri():
                 </style>
             """, unsafe_allow_html=True)
             
-            st.image("https://media.giphy.com/media/l0HlHFRbmaZtBRhXG/giphy.gif", width=300)
+            st.image("https://i.ibb.co/TBngKY75/bao-tri.jpg", width=600)
             st.title("🚧 HỆ THỐNG ĐANG BẢO TRÌ 🚧")
             st.header("Vui lòng quay lại sau ít phút!")
             st.write("Admin đang cập nhật tính năng mới xịn xò hơn cho Vương Quốc.")
