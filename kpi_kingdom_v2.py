@@ -63,7 +63,7 @@ import streamlit as st
 # Đổi thành True khi muốn đóng cửa bảo trì
 CHE_DO_BAO_TRI = True  
 # Mật khẩu để Admin vẫn vào được khi đang bảo trì
-MAT_KHAU_ADMIN = "admin123" 
+MAT_KHAU_ADMIN = "admin_vip_123" 
 
 def kiem_tra_bao_tri():
     """
