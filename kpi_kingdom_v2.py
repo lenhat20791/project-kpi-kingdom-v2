@@ -56,7 +56,57 @@ except Exception:
     error_details = traceback.format_exc()
     st.code(error_details, language="python")
     st.stop() # Dừng ứng dụng tại đây để bạn đọc lỗi
+ 
+import streamlit as st
+
+# --- CẤU HÌNH BẢO TRÌ ---
+# Đổi thành True khi muốn đóng cửa bảo trì
+CHE_DO_BAO_TRI = False  
+# Mật khẩu để Admin vẫn vào được khi đang bảo trì
+MAT_KHAU_ADMIN = "admin123" 
+
+def kiem_tra_bao_tri():
+    """
+    Hàm chặn cửa: Nếu đang bảo trì -> Chặn hết User, trừ Admin có chìa khóa.
+    """
+    if CHE_DO_BAO_TRI:
+        # 1. Kiểm tra xem trên URL có mật khẩu không
+        # Ví dụ: kpi-kingdom.streamlit.app/?access=admin_vip_123
+        params = st.query_params
+        access_code = params.get("access", "")
         
+        if access_code != MAT_KHAU_ADMIN:
+            # --- GIAO DIỆN BẢO TRÌ CHO NGƯỜI THƯỜNG ---
+            st.markdown("""
+                <style>
+                .stApp {
+                    background-color: #1E1E1E;
+                    color: white;
+                    text-align: center;
+                    padding-top: 100px;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+            
+            st.image("https://media.giphy.com/media/l0HlHFRbmaZtBRhXG/giphy.gif", width=300)
+            st.title("🚧 HỆ THỐNG ĐANG BẢO TRÌ 🚧")
+            st.header("Vui lòng quay lại sau ít phút!")
+            st.write("Admin đang cập nhật tính năng mới xịn xò hơn cho Vương Quốc.")
+            st.divider()
+            st.caption("© KPI Kingdom Development Team")
+            
+            # Lệnh này sẽ DỪNG TOÀN BỘ code phía sau, không cho load tiếp
+            st.stop()
+        else:
+            # --- THÔNG BÁO CHO ADMIN ---
+            st.toast("🔓 Bạn đang truy cập bằng Lối Đi Riêng (Admin Mode)", icon="ue513")
+            st.warning("⚠️ ĐANG TRONG CHẾ ĐỘ BẢO TRÌ - CHỈ ADMIN MỚI THẤY TRANG NÀY")
+
+# --- ĐẶT HÀM NÀY Ở DÒNG ĐẦU TIÊN CỦA APP ---
+kiem_tra_bao_tri()
+
+# ... (Các code import module và logic game của bạn ở phía dưới giữ nguyên) ...
+
 # --- 🚑 BỘ CỨU HỘ DỮ LIỆU TỪ Ổ CỨNG (SỬA FILE data.json) ---
 def emergency_fix_data_file():
     FILE_PATH = "data.json"
