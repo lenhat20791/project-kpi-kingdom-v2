@@ -2053,7 +2053,7 @@ else:
 
         # Danh sách dữ liệu 6 vùng đất (Bạn có thể thay đổi link ảnh nền tương ứng)
         vung_dat_data = [
-            {"name": "Rừng Toán Học", "icon": "📐", "bg_url": "https://i.ibb.co/Nd0b47RD/khuvuontoanhoc.png"},
+            {"name": "Thung Lũng Số Học", "icon": "📐", "bg_url": "https://i.ibb.co/Nd0b47RD/khuvuontoanhoc.png"},
             {"name": "Hang Động Ngôn Ngữ", "icon": "🇬🇧", "bg_url": "https://i.ibb.co/99ppBGf3/hangdongngonngu.png"},
             {"name": "Thung Lũng Văn Chương", "icon": "📖", "bg_url": "https://i.ibb.co/k6kTjVmv/thunglungvanchuong.png"},
             {"name": "Ngọn Núi Vật Lý", "icon": "⚡", "bg_url": "https://i.ibb.co/CsVxQ9R1/ngonnuivatly.png"},
@@ -2066,7 +2066,7 @@ else:
         
         # Định nghĩa dữ liệu hiển thị cố định để ánh xạ chính xác vào land_id trong data.json
         display_data = [
-            ("Rừng Toán Học", "toan", vung_dat_data[0]['bg_url'], vung_dat_data[0]['icon']),
+            ("Thung Lũng Số Học", "toan", vung_dat_data[0]['bg_url'], vung_dat_data[0]['icon']),
             ("Hang Động Ngôn Ngữ", "anh", vung_dat_data[1]['bg_url'], vung_dat_data[1]['icon']),
             ("Thung Lũng Văn Chương", "van", vung_dat_data[2]['bg_url'], vung_dat_data[2]['icon']),
             ("Ngọn Núi Vật Lý", "ly", vung_dat_data[3]['bg_url'], vung_dat_data[3]['icon']),
