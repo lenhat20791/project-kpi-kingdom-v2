@@ -3100,7 +3100,7 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
     # Lấy thông tin người dùng hiện tại
     user_info = st.session_state.data[user_id]
     
-    # --- PHẦN MỚI: HIỂN THỊ SỐ DƯ TÀI SẢN ---
+    # --- PHẦN 1: HIỂN THỊ SỐ DƯ TÀI SẢN ---
     st.markdown(f"""
         <div style="display: flex; justify-content: space-around; background: #3e2723; padding: 15px; border-radius: 10px; border: 2px solid #8d6e63; margin-bottom: 20px;">
             <div style="text-align: center; color: white;">
@@ -3134,36 +3134,38 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
     tab_tiem, tab_kho = st.tabs(["🛒 Mua sắm", "🎒 Túi đồ của tôi"])
     
     label_map = {
-        "kpi": "Tri Thức", 
+        "kpi": "KPI Tổng", 
         "Tri_Thuc": "Tri Thức", 
         "Chien_Tich": "Chiến Tích",
         "Vinh_Du": "Vinh Dự", 
         "Vinh_Quang": "Vinh Quang"
     }
 
+    # === TAB 1: CỬA HÀNG ===
     with tab_tiem:
-        all_items = st.session_state.shop_items
-        shop_items_visible = [(name, info) for name, info in all_items.items() if info.get('is_listed', True)]
-        if not st.session_state.shop_items:
-            st.info("Cửa hàng hiện đang nhập thêm hàng, bạn quay lại sau nhé!")
+        # [FIX QUAN TRỌNG] Lấy dữ liệu an toàn từ session_state.data
+        all_items = st.session_state.data.get('shop_items', {})
+        
+        # [FIX LỖI] Kiểm tra all_items phải là Dict, nếu không gán rỗng để tránh crash
+        if not isinstance(all_items, dict):
+            all_items = {}
+            
+        shop_items_visible = []
+        for name, info in all_items.items():
+            # Chỉ hiển thị nếu item có thông tin hợp lệ và đang được niêm yết (is_listed)
+            if isinstance(info, dict) and info.get('is_listed', True):
+                shop_items_visible.append((name, info))
+
+        if not shop_items_visible:
+            st.info("🏪 Cửa hàng hiện đang nhập thêm hàng, bạn quay lại sau nhé!")
         else:
-            label_map = {
-                "kpi": "KPI Tổng", 
-                "Tri_Thuc": "Tri Thức", 
-                "Chien_Tich": "Chiến Tích",
-                "Vinh_Du": "Vinh Dự", 
-                "Vinh_Quang": "Vinh Quang"
-            }
+            # --- ĐỊNH NGHĨA HÀM DIALOG XÁC NHẬN ---
             @st.dialog("XÁC NHẬN GIAO DỊCH")
             def confirm_dialog(item_name, item_info):
-                    # 1. Lấy thông tin tiền tệ và quyền giảm giá
                     currency = item_info.get('currency_buy', 'kpi')
                     u_info = st.session_state.data[user_id]
-                    
-                    # Lấy % giảm giá (khớp với tên biến trong item_system)
                     u_discount = u_info.get('special_permissions', {}).get('discount_percent', 0)
                     
-                    # 2. Tính giá thực tế sau giảm
                     price_goc = item_info.get('price', 0)
                     actual_price = int(price_goc * (100 - u_discount) / 100)
 
@@ -3177,92 +3179,83 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                     col_ok, col_no = st.columns(2)
                     
                     if col_ok.button("✅ Xác nhận mua", use_container_width=True):
-                        # Kiểm tra số dư theo giá ĐÃ GIẢM
                         if u_info.get(currency, 0) >= actual_price:
-                            # THỰC HIỆN TRỪ TIỀN THEO GIÁ GIẢM
+                            # Trừ tiền
                             st.session_state.data[user_id][currency] -= actual_price
-                        
-                            # THÊM VẬT PHẨM VÀO KHO
-                            inventory = st.session_state.data[user_id].setdefault('inventory', {})
-                            if isinstance(inventory, dict):
-                                inventory[item_name] = inventory.get(item_name, 0) + 1
-                            elif isinstance(inventory, list):
-                                inventory.append(item_name)
                             
-                            save_data_func()
-                            st.success(f"🎊 Chúc mừng! Bạn đã sở hữu {item_name}")
+                            # Cộng đồ vào kho
+                            inventory = st.session_state.data[user_id].setdefault('inventory', {})
+                            
+                            # Đảm bảo kho là dict
+                            if isinstance(inventory, list): 
+                                new_inv = {}
+                                for it in inventory: new_inv[it] = new_inv.get(it, 0) + 1
+                                inventory = new_inv
+                                st.session_state.data[user_id]['inventory'] = inventory
+
+                            inventory[item_name] = inventory.get(item_name, 0) + 1
+                            
+                            save_data_func(st.session_state.data)
+                            st.success(f"🎊 Mua thành công {item_name}!")
                             del st.session_state.pending_item
                             st.rerun()
                         else:
-                            st.error(f"❌ Bạn không đủ {label_map.get(currency, currency)} để mua!")
+                            st.error(f"❌ Bạn không đủ {label_map.get(currency, currency)}!")
 
                     if col_no.button("❌ Hủy bỏ", use_container_width=True):
                         del st.session_state.pending_item
                         st.rerun()
                     
-            # Tạo lưới 4 cột để hiển thị vật phẩm
+            # --- HIỂN THỊ DANH SÁCH VẬT PHẨM ---
             cols = st.columns(4)
-            shop_items = shop_items_visible
-            
-            for i, (name, info) in enumerate(shop_items):
+            for i, (name, info) in enumerate(shop_items_visible):
                 with cols[i % 4]:
-                    # 1. Hiển thị Card vật phẩm (Dời sát lề trái để tránh lỗi render)
-                    # --- LẤY DỮ LIỆU THÔNG MINH TỪ KHO ADMIN ---
-                    item_detail = get_item_info(name)
-                    if item_detail:
-                        behavior = item_detail.get('type')
-                        props = item_detail.get('properties', {})
-                        img_url = item_detail.get('image', info.get('image', ''))
-
-                        # Tự động tạo mô tả dựa trên loại vật phẩm (Behavior)
-                        if behavior == "BUFF_STAT":
-                            eff_text = f"🔥 +{props.get('value')} {props.get('target_stat', '').upper()} ({props.get('duration_type')})"
-                        elif behavior == "FUNCTIONAL":
-                            eff_text = f"📣 Quyền: {props.get('feature')}"
-                        elif behavior == "CONSUMABLE":
-                            eff_text = f"💎 Nhận: {props.get('value')} {props.get('target_type', '').upper()}"
-                        else:
-                            eff_text = "✨ Vật phẩm đặc biệt"
-                    else:
-                        # Nếu không tìm thấy trong kho Admin, dùng dữ liệu mặc định từ Shop
-                        eff_text = "Chưa có định nghĩa"
-                        img_url = info.get('image', '')
+                    # Lấy thông tin chi tiết
+                    img_url = info.get('image', '')
+                    if not img_url: img_url = "https://cdn-icons-png.flaticon.com/512/2979/2979689.png"
                     
-                    c_buy = info.get('currency_buy', 'Tri_Thuc')
-                    icon_buy = "📘" if c_buy == "Tri_Thuc" else "🏆"
+                    # Tạo mô tả ngắn gọn
+                    itype = info.get('type', 'ITEM')
+                    if itype == "BUFF_STAT": eff_text = "Tăng chỉ số"
+                    elif itype == "GACHA_BOX": eff_text = "Mở khóa vận may"
+                    elif itype == "CONSUMABLE": eff_text = "Tiêu hao"
+                    else: eff_text = "Vật phẩm"
 
+                    c_buy = info.get('currency_buy', 'kpi')
+                    icon_buy = "📘" if c_buy == "Tri_Thuc" else ("🏆" if c_buy == "kpi" else "💰")
+
+                    # Card HTML
                     st.markdown(f"""
-<div style="background:#5d4037;border:2px solid #a1887f;border-radius:8px;padding:10px;text-align:center;color:white;margin-bottom:10px;">
-<img src="{img_url}" style="width:50px;height:50px;object-fit:contain;margin-bottom:5px;">
-<div style="font-size:0.8em;font-weight:bold;height:35px;overflow:hidden;">{name}</div>
-<div style="font-size:0.7em;color:#76ff03;font-weight:bold;">{eff_text}</div>
-<div style="color:#ffd600;font-size:0.85em;font-weight:bold;margin-top:5px;">{icon_buy} {info.get('price', 0)}</div>
-</div>
-""", unsafe_allow_html=True)
+                        <div style="background:#5d4037;border:2px solid #a1887f;border-radius:8px;padding:10px;text-align:center;color:white;margin-bottom:10px;height:160px;display:flex;flex-direction:column;justify-content:space-between;">
+                            <img src="{img_url}" style="width:50px;height:50px;object-fit:contain;margin:0 auto;">
+                            <div style="font-size:0.8em;font-weight:bold;height:35px;overflow:hidden;margin-top:5px;">{name}</div>
+                            <div style="font-size:0.7em;color:#76ff03;">{eff_text}</div>
+                            <div style="color:#ffd600;font-size:0.85em;font-weight:bold;">{icon_buy} {info.get('price', 0)}</div>
+                        </div>
+                    """, unsafe_allow_html=True)
 
-                    if st.button(f"Mua {name}", key=f"btn_buy_{name}", use_container_width=True):
+                    if st.button(f"Mua", key=f"btn_buy_{name}", use_container_width=True):
                         st.session_state.pending_item = (name, info)
-                        st.rerun() # Rerun để kích hoạt hiển thị dialog bên dưới
+                        st.rerun()
 
-            # --- GỌI DIALOG KHI CÓ TRẠNG THÁI CHỜ MUA ---
+            # Kích hoạt Dialog
             if "pending_item" in st.session_state:
                 p_name, p_info = st.session_state.pending_item
                 confirm_dialog(p_name, p_info)
                 
                 
-
-    # --- TAB 2: TÚI ĐỒ (CẬP NHẬT SỬA LỖI KHÓA RƯƠNG) ---
+    # === TAB 2: TÚI ĐỒ ===
     with tab_kho:
         inventory = user_info.get('inventory', {})
         
-        # 1. Tự động chuyển đổi List -> Dict (Fix lỗi dữ liệu cũ)
+        # [FIX LỖI DỮ LIỆU CŨ] Chuyển List -> Dict
         if isinstance(inventory, list):
             new_inv = {}
             for item in inventory:
                 new_inv[item] = new_inv.get(item, 0) + 1
             inventory = new_inv
             user_info['inventory'] = inventory
-            save_data_func(st.session_state.data)
+            save_data_func(st.session_state.data) # Lưu ngay để fix vĩnh viễn
             st.rerun()
 
         if not inventory:
@@ -3270,48 +3263,52 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
         else:
             st.write(f"### 📦 Đồ đạc của bạn")
             
+            # Lấy data shop để tra cứu thông tin item trong kho
             shop_data = st.session_state.data.get('shop_items', {})
             cols_kho = st.columns(4)
             
             for i, (item_name, count) in enumerate(inventory.items()):
-                # Lấy thông tin item
                 item_info = shop_data.get(item_name, {})
                 
-                # Mặc định lấy loại từ DB, nếu không có thì là ITEM
-                item_type = item_info.get('type', 'ITEM') 
-                
-                # Lấy ảnh
+                # --- [FIX ẢNH & LOẠI RƯƠNG] ---
                 img_url = item_info.get('image', '')
-                if not img_url:
-                    img_url = "https://cdn-icons-png.flaticon.com/512/9630/9630454.png" # Ảnh mặc định
+                item_type = item_info.get('type', 'ITEM')
 
-                # 🔥🔥🔥 [FIX QUAN TRỌNG] ÉP BUỘC RƯƠNG BÁU LÀ GACHA_BOX 🔥🔥🔥
-                # Dù trong Admin bạn lỡ để là ITEM hay gì, code này sẽ sửa lại hết.
-                if "Rương" in item_name or "ruong" in item_name.lower(): 
+                # Fix ảnh
+                if not img_url: 
+                    img_url = "https://cdn-icons-png.flaticon.com/512/9630/9630454.png"
+                if "via.placeholder" in img_url: # Fix ảnh lỗi
+                     img_url = "https://cdn-icons-png.flaticon.com/512/9336/9336056.png"
+
+                # Fix loại rương (bắt buộc nhận diện rương qua tên nếu type sai)
+                if "Rương" in item_name or "ruong" in item_name.lower() or "GACHA" in item_type: 
                     item_type = "GACHA_BOX"
-                    # Fix luôn ảnh nếu bị lỗi (như trong hình của bạn)
-                    if "via.placeholder" in img_url or not img_url: 
-                         img_url = "https://cdn-icons-png.flaticon.com/512/9336/9336056.png"
-                # -------------------------------------------------------------
+                # ------------------------------
 
                 with cols_kho[i % 4]:
-                    # Card hiển thị
                     st.markdown(f"""
                         <div style="background:#3e2723; border:2px solid #8d6e63; border-radius:10px; padding:10px; text-align:center; position:relative; height: 160px; display: flex; flex-direction: column; justify-content: space-between;">
                             <div style="position:absolute; top:5px; right:5px; background:#e74c3c; color:white; border-radius:50%; width:25px; height:25px; line-height:25px; font-weight:bold; font-size:12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">{count}</div>
                             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
                                 <img src="{img_url}" style="width:60px; height:60px; object-fit:contain;">
                             </div>
-                            <div style="font-weight:bold; color:#f1c40f; font-size:14px; margin-top: 5px; height:40px; overflow:hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">{item_name}</div>
+                            <div style="font-weight:bold; color:#f1c40f; font-size:13px; margin-top: 5px; height:36px; overflow:hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">{item_name}</div>
                         </div>
                     """, unsafe_allow_html=True)
                     
-                    # Nút bấm hành động (Đã được mở khóa nhờ đoạn Fix ở trên)
+                    # Nút hành động
                     if item_type == "GACHA_BOX":
                         if st.button("🎲 MỞ NGAY", key=f"open_{i}", use_container_width=True, type="primary"):
-                            rewards = xu_ly_mo_ruong(user_id, item_name, item_info, st.session_state.data, save_data_func)
-                            st.session_state.gacha_result = {"name": item_name, "rewards": rewards}
-                            st.rerun()
+                            # Gọi hàm mở rương (đảm bảo hàm này đã import đúng)
+                            try:
+                                from user_module import xu_ly_mo_ruong # Import tại chỗ để chắc chắn
+                                rewards = xu_ly_mo_ruong(user_id, item_name, item_info, st.session_state.data, save_data_func)
+                                st.session_state.gacha_result = {"name": item_name, "rewards": rewards}
+                                st.rerun()
+                            except ImportError:
+                                st.error("Lỗi hệ thống: Không tìm thấy hàm mở rương.")
+                            except Exception as e:
+                                st.error(f"Lỗi khi mở rương: {e}")
                             
                     elif item_type in ["CONSUMABLE", "BUFF_STAT"]:
                         if st.button("⚡ SỬ DỤNG", key=f"use_{i}", use_container_width=True):
@@ -3319,11 +3316,13 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                     else:
                         st.button("🔒 Đã sở hữu", disabled=True, key=f"lock_{i}")
 
-        # Kiểm tra Popup kết quả
+        # Hiển thị Popup kết quả mở rương
         if "gacha_result" in st.session_state:
             res = st.session_state.gacha_result
-            popup_ket_qua_mo_ruong(res['name'], res['rewards'])
-
+            try:
+                from user_module import popup_ket_qua_mo_ruong
+                popup_ket_qua_mo_ruong(res['name'], res['rewards'])
+            except: pass
           
 def hien_thi_doi_mat_khau(user_id, save_data_func):
     st.subheader("🔑 THAY ĐỔI MẬT MÃ")
