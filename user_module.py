@@ -1671,11 +1671,19 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                 if "contributions" not in boss: boss["contributions"] = {}
                 boss["contributions"][user_id] = boss["contributions"].get(user_id, 0) + dmg_deal
                 
+                # 🔥 [THÊM MỚI] GỌI HÀM LOG (Nằm cùng file nên gọi trực tiếp)
+                # rewards=None để chỉ ghi nhận sát thương
+                try:
+                    ghi_log_boss(user_id, boss.get('name', 'Boss'), dmg_deal, rewards=None)
+                except Exception as e:
+                    print(f"Log Error: {e}")
+                    
                 save_data_func(st.session_state.data)
                 st.success(f"🎯 Chính xác! Gây {dmg_deal} sát thương!")
                 
                 if boss['hp_current'] <= 0:
                     del st.session_state.cau_hoi_active
+                    
                     xu_ly_boss_chet(user_id, all_data, save_data_func)
                 else:
                     del st.session_state.cau_hoi_active
@@ -1748,7 +1756,19 @@ def xu_ly_boss_chet(user_id, all_data, save_data_func):
     """
     # 1. Tính thưởng (đã fix lỗi inventory bên trong hàm này)
     qua_cua_toi, dmg_cua_toi = tinh_va_tra_thuong_global(user_id, all_data)
-    
+    # 🔥 [THÊM MỚI] Ghi log kết quả trận đấu ngay khi có quà
+    try:
+        # Cố gắng lấy tên Boss chuẩn từ data, nếu không thì dùng tên mặc định
+        boss_name = "Boss"
+        if 'system_config' in all_data and isinstance(all_data['system_config'].get('active_boss'), dict):
+             boss_name = all_data['system_config']['active_boss'].get('name', "Boss")
+        
+        # Gọi hàm ghi log (rewards khác None -> sẽ ghi là log nhận quà)
+        # Lưu ý: Hàm ghi_log_boss phải có sẵn trong file này (như đã làm ở bước trước)
+        ghi_log_boss(user_id, boss_name, dmg_cua_toi, rewards=qua_cua_toi)
+        
+    except Exception as e:
+        print(f"⚠️ Lỗi ghi log Boss chết: {e}")
     # 2. Đồng bộ dữ liệu mới nhất vào Session State (Quan trọng!)
     st.session_state.data = all_data
     
