@@ -209,60 +209,52 @@ def ghi_log_boss(user_id, boss_name, damage, rewards):
     if isinstance(rewards, list):
         rewards_str = ", ".join(str(x) for x in rewards)
     elif isinstance(rewards, dict):
-        # Ví dụ: {"kpi": 10, "exp": 50} -> "kpi: 10, exp: 50"
         rewards_str = ", ".join([f"{k}: {v}" for k, v in rewards.items()])
     else:
         rewards_str = str(rewards)
 
-    # --- 1. LƯU VÀO FILE JSON (BACKUP DỰ PHÒNG) ---
-    log_file = 'data/boss_logs.json'
-    new_log = {
-        "boss_name": boss_name,
-        "user_id": user_id,
-        "damage": int(damage),
-        "rewards": rewards_str,
-        "time": thoi_gian
-    }
-    
-    logs = []
-    if os.path.exists(log_file):
-        try:
-            with open(log_file, 'r', encoding='utf-8') as f:
-                logs = json.load(f)
-        except: logs = []
-            
-    logs.append(new_log)
+    # --- 1. LƯU VÀO FILE JSON (BACKUP) ---
     try:
+        log_file = 'data/boss_logs.json'
+        new_log = {
+            "boss_name": boss_name, "user_id": user_id,
+            "damage": int(damage), "rewards": rewards_str, "time": thoi_gian
+        }
+        logs = []
+        if os.path.exists(log_file):
+            with open(log_file, 'r', encoding='utf-8') as f:
+                try: logs = json.load(f)
+                except: logs = []
+        logs.append(new_log)
         with open(log_file, 'w', encoding='utf-8') as f:
             json.dump(logs, f, indent=4, ensure_ascii=False)
     except Exception as e:
-        print(f"Lỗi ghi JSON: {e}")
+        print(f"Lỗi JSON: {e}") # Lỗi này không quan trọng lắm
 
     # --- 2. LƯU LÊN GOOGLE SHEETS (QUAN TRỌNG) ---
     try:
-        # Import hàm lấy client gspread từ user_module (đảm bảo bạn đã có hàm này)
-        from user_module import get_gspread_client 
-        client = get_gspread_client()
-        
-        # Kết nối tới Spreadsheet
-        secrets_gcp = st.secrets.get("gcp_service_account", {})
-        if "spreadsheet_id" in secrets_gcp: 
-            sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
-        elif "spreadsheet_url" in secrets_gcp: 
-            sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
-        else: 
-            sh = client.openall()[0]
+        # [FIX QUAN TRỌNG] Không import lại từ user_module nữa
+        # Kiểm tra xem biến toàn cục CLIENT có tồn tại không (do ta đã khai báo ở đầu file)
+        if 'CLIENT' in globals() and globals()['CLIENT']:
+            sh = globals()['CLIENT'].open(SHEET_NAME)
+        else:
+            # Nếu không tìm thấy biến toàn cục (trường hợp hiếm), gọi hàm trực tiếp
+            # Lưu ý: Không dùng 'from user_module import...' để tránh lỗi vòng lặp
+            client = get_gspread_client() 
+            if not client:
+                st.error("❌ Mất kết nối Google Sheets!")
+                return
+            sh = client.open(SHEET_NAME)
 
         # Tìm Tab BossLogs
         try:
             wks = sh.worksheet("BossLogs")
         except:
-            # Nếu chưa có thì tạo mới luôn (Optional)
+            # Nếu chưa có thì tạo mới
             wks = sh.add_worksheet(title="BossLogs", rows=1000, cols=10)
             wks.append_row(["Thời gian", "Tên Boss", "User ID", "Sát thương", "Phần thưởng"])
 
-        # Ghi dòng mới vào cuối bảng
-        # Thứ tự cột: [Thời gian, Boss, User, Damage, Rewards]
+        # Ghi dòng mới
         row_data = [
             thoi_gian,
             str(boss_name),
@@ -272,12 +264,11 @@ def ghi_log_boss(user_id, boss_name, damage, rewards):
         ]
         
         wks.append_row(row_data)
-        # print("✅ Đã ghi log Boss lên Google Sheet.")
+        # st.toast("✅ Đã lưu chiến tích lên Cloud!", icon="☁️") # Báo thành công nhẹ nhàng
         
     except Exception as e:
-        # Nếu lỗi mạng hoặc lỗi Sheet thì chỉ báo lỗi ở server log, không làm crash game
-        print(f"⚠️ Không thể ghi log lên Google Sheet: {e}")
-        
+        # [FIX] Hiện lỗi đỏ lòm lên màn hình để biết tại sao không lưu được
+        st.error(f"⚠️ LỖI GHI SHEET BOSS: {e}")        
 # ------------------------------------------------------------------------------
 # CÁC HÀM HỖ TRỢ CHỢ ĐEN (MARKET) - GOOGLE SHEETS SYNC
 # ------------------------------------------------------------------------------
@@ -2329,12 +2320,7 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
             
             if current_user_id in all_players:
                 diff_label = m.get('difficulty', 'Medium')
-                with st.expander(f"⚔️ Trận đấu môn {m.get('subject', '').upper()} ({diff_label})", expanded=True):
-                    
-                    # --- DEBUG (Nếu vẫn lỗi thì bỏ comment dòng dưới để xem nó đang lưu cái gì) ---
-                    st.write(f"🔍 Key Debug: {list(m.keys())}")
-                    st.write(f"👤 Bạn là: {current_user_id}")
-                    
+                with st.expander(f"⚔️ Trận đấu môn {m.get('subject', '').upper()} ({diff_label})", expanded=True):                                        
                     # Kiểm tra xem ID của bạn đã có điểm chưa
                     if f"score_{current_user_id}" in m:
                         st.success("✅ Bạn đã hoàn thành phần thi.")
