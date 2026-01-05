@@ -2671,7 +2671,7 @@ def hien_thi_chi_so_chi_tiet(user_id):
                 </div>
             """, unsafe_allow_html=True)
 
-    # === HÀNG 2: NHẬT KÝ ĐIỂM SỐ & VI PHẠM (THAY THẾ CODE CŨ) ===
+    # === HÀNG 2: NHẬT KÝ ĐIỂM SỐ & VI PHẠM (PHIÊN BẢN NÂNG CẤP GIAO DIỆN) ===
     st.write("") 
     st.write("") 
     st.markdown("##### 📜 NHẬT KÝ ĐIỂM SỐ")
@@ -2681,33 +2681,46 @@ def hien_thi_chi_so_chi_tiet(user_id):
     logs = user_info.get('history_log', [])
 
     if logs:
-        # Chuyển list of dicts thành DataFrame
+        # 1. Tạo DataFrame
         df_log = pd.DataFrame(logs)
         
-        # Xử lý ngày tháng để sắp xếp mới nhất lên đầu
+        # 2. Xử lý dữ liệu
         if 'date' in df_log.columns:
             df_log['date'] = pd.to_datetime(df_log['date'])
             df_log = df_log.sort_values(by='date', ascending=False)
-            # Format lại thành chuỗi dễ đọc cho người dùng (DD/MM/YYYY HH:MM)
+            # Format lại thành chuỗi (String) để hiển thị đẹp
             df_log['date'] = df_log['date'].dt.strftime('%d/%m/%Y %H:%M')
 
-        # Hiển thị bảng
+        # 3. [QUAN TRỌNG] TẠO STYLER ĐỂ CHỈNH MÀU VÀ CỠ CHỮ
+        # - font-size: 16px (To hơn bình thường)
+        # - font-weight: bold (In đậm)
+        # - color: black (Màu đen tuyệt đối)
+        styled_df = df_log.style.set_properties(**{
+            'font-size': '16px',
+            'font-weight': 'bold', 
+            'color': '#000000',
+            'background-color': '#ffffff', # Nền trắng cho dễ đọc
+            'border-color': '#dcdcdc'
+        })
+
+        # 4. Hiển thị bảng với cấu hình cột
         st.dataframe(
-            df_log,
+            styled_df, # Truyền vào bảng đã style thay vì df_log thô
             column_config={
-                "date": st.column_config.TextColumn("📅 Thời gian"),
-                "category": st.column_config.TextColumn("📂 Phân loại", width="medium"),
+                "date": st.column_config.TextColumn("📅 Thời gian", width="medium"),
+                "category": st.column_config.TextColumn("📂 Phân loại", width="small"),
                 "item": st.column_config.TextColumn("📝 Nội dung chi tiết", width="large"),
                 "score": st.column_config.NumberColumn(
                     "Điểm",
                     format="%.1f",
-                    help="Điểm cộng (dương) hoặc phạt (âm)"
+                    help="Điểm cộng (dương) hoặc phạt (âm)",
+                    width="small"
                 ),
-                "note": st.column_config.TextColumn("💬 Ghi chú của Tổ trưởng")
+                "note": st.column_config.TextColumn("💬 Ghi chú của Tổ trưởng", width="medium")
             },
             use_container_width=True,
             hide_index=True,
-            height=350 # Giới hạn chiều cao
+            height=350 
         )
     else:
         st.info("📭 Chưa có dữ liệu ghi nhận nào trong sổ nhật ký.")
