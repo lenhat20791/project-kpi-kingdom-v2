@@ -980,6 +980,7 @@ if st.session_state.get("user_role") is not None:
             menu = [
                 "📜 Chỉ số Học sĩ",
                 "👥 Quản lý nhân sự Tổ",
+                "🔑 Đổi mật khẩu",
                 "⚔️ Đại chiến Giáo viên",
                 "🗺️ Thám hiểm Phó bản",
                 "🏪 Tiệm tạp hóa & Kho đồ",
@@ -993,6 +994,7 @@ if st.session_state.get("user_role") is not None:
             menu = [
                 "📜 Chỉ số Học sĩ",
                 "⚔️ Đại chiến Giáo viên",
+                "🔑 Đổi mật khẩu",
                 "🗺️ Thám hiểm Phó bản",
                 "🏪 Tiệm tạp hóa & Kho đồ",
                 "⚖️ Chợ Đen",
