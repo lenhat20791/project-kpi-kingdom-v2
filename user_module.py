@@ -401,25 +401,24 @@ def hien_thi_cho_den(current_user_id, save_data_func):
     import streamlit as st
     
     # 1. Tải dữ liệu cần thiết
-    market_data = load_market() # Hàm load_market có sẵn của bạn
-    
-    # Lấy thông tin user và shop từ session_state
+    market_data = load_market()
     user_info = st.session_state.data.get(current_user_id, {})
     shop_data = st.session_state.data.get('shop_items', {}) 
 
-    # --- CSS GIAO DIỆN CHỢ ĐEN (ĐÃ NÂNG CẤP) ---
+    # --- CSS GIAO DIỆN CHỢ ĐEN (ĐÃ CẬP NHẬT DESC) ---
     st.markdown("""
         <style>
         /* 1. Style cho Card trên Sàn (Tab 1) */
         .market-card {
-            background-color: #ffffff; /* Nền trắng sáng */
-            border: 2px solid #e0e0e0; /* Viền xám nhẹ */
-            border-left: 5px solid #FFD700; /* Viền trái màu vàng điểm nhấn */
+            background-color: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-left: 5px solid #FFD700;
             border-radius: 12px;
-            padding: 20px;
+            padding: 15px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Bóng đổ nổi */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
+            position: relative;
         }
         .market-card:hover {
             transform: translateY(-5px);
@@ -427,46 +426,53 @@ def hien_thi_cho_den(current_user_id, save_data_func):
             border-color: #FFD700;
         }
 
-        /* Tên vật phẩm: To, Đậm, Màu Đỏ Đô */
         .market-item-title {
-            color: #c0392b; 
-            font-size: 22px !important;
-            font-weight: 900 !important;
-            margin-bottom: 8px;
-            line-height: 1.2;
+            color: #c0392b; font-size: 20px !important; font-weight: 900 !important;
+            margin-bottom: 5px; line-height: 1.2;
         }
 
-        /* Người bán: Chữ đậm, màu đen rõ ràng */
         .market-seller-info {
-            color: #2c3e50;
-            font-size: 16px !important;
-            font-weight: 700 !important;
-            margin-bottom: 12px;
+            color: #2c3e50; font-size: 14px !important; font-weight: 700 !important;
+            margin-bottom: 5px;
         }
 
-        /* Tag giá tiền: Nổi bật */
+        /* CLASS MÔ TẢ CHO SÀN GIAO DỊCH */
+        .market-item-desc {
+            font-size: 13px; color: #546e7a; font-style: italic;
+            background: #eceff1; padding: 5px; border-radius: 4px;
+            margin-bottom: 8px; line-height: 1.3;
+            border-left: 3px solid #b0bec5;
+        }
+
         .market-price-badge {
             background: linear-gradient(90deg, #f1c40f, #f39c12);
-            color: #fff !important;
-            padding: 6px 15px;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 15px;
-            display: inline-block;
+            color: #fff !important; padding: 5px 12px; border-radius: 50px;
+            font-weight: bold; font-size: 14px; display: inline-block;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        /* 2. Style cho Card trong Kho (Tab 2) - Giữ nguyên style nâu cũ */
+        /* 2. Style cho Card trong Kho (Tab 2) */
         .inventory-card {
             background: #5d4037; border: 2px solid #a1887f; border-radius: 12px;
-            padding: 15px; text-align: center; color: white; height: 220px;
+            padding: 10px; text-align: center; color: white; height: 220px;
             display: flex; flex-direction: column; justify-content: space-between;
             position: relative; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
+        
         .qty-badge {
             position: absolute; top: 10px; right: 10px; background: #e74c3c;
             color: white; border-radius: 50%; width: 32px; height: 32px;
-            line-height: 32px; font-weight: bold; font-size: 14px;
+            line-height: 32px; font-weight: bold; font-size: 14px; z-index: 10;
+        }
+        
+        /* CLASS MÔ TẢ CHO KHO (Giống bên Tiệm tạp hóa) */
+        .item-desc {
+            font-size: 11px; color: #e0f7fa; font-style: italic;
+            background: rgba(0, 0, 0, 0.2); padding: 4px; border-radius: 4px;
+            margin: 5px 0; min-height: 35px;
+            display: flex; align-items: center; justify-content: center;
+            line-height: 1.2; overflow: hidden;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
         }
         </style> 
     """, unsafe_allow_html=True)
@@ -475,16 +481,15 @@ def hien_thi_cho_den(current_user_id, save_data_func):
     tab_san, tab_kho = st.tabs(["🛒 Sàn giao dịch", "🎒 Kho & Treo bán"])
 
     # =========================================================================
-    # TAB 1: SÀN GIAO DỊCH (GIAO DIỆN MỚI TO RÕ)
+    # TAB 1: SÀN GIAO DỊCH (ĐÃ THÊM MÔ TẢ)
     # =========================================================================
     with tab_san:
         listings = market_data.get('listings', {})
         if not listings:
             st.info("Sàn giao dịch đang trống. Hãy là người đầu tiên đăng bán!")
         else:
-            # Hiển thị từng item
             for listing_id, info in list(listings.items()):
-                # Lấy thông tin item
+                # Lấy thông tin
                 item_key = str(info.get('item_name'))
                 item_info = shop_data.get(item_key, {})
                 
@@ -492,32 +497,31 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                 img_src = item_info.get('image', "https://cdn-icons-png.flaticon.com/512/9630/9630454.png")
                 seller_name = st.session_state.data.get(info['seller_id'], {}).get('name', 'Người bí ẩn')
                 
-                # --- RENDER CARD (HTML) ---
-                # Dùng st.container để bọc khung HTML
+                # [NEW] Lấy mô tả
+                description = item_info.get('desc') or item_info.get('description', 'Vật phẩm hiếm')
+                
                 with st.container():
                     c_img, c_info, c_action = st.columns([1, 3, 1])
-                    
-                    # Cột 1: Ảnh (To hơn chút)
                     with c_img:
-                        st.image(img_src, width=100) # Tăng kích thước ảnh
+                        st.image(img_src, width=90) 
 
-                    # Cột 2: Thông tin (Dùng class CSS mới)
+                    # Cập nhật hiển thị HTML có mô tả
                     with c_info:
                         st.markdown(f"""
                             <div class="market-item-title">{real_name}</div>
                             <div class="market-seller-info">👤 Người bán: {seller_name}</div>
+                            <div class="market-item-desc">💡 {description}</div>
                             <div class="market-price-badge">💎 {info['price']} KPI <small>(x{info.get('quantity', 1)})</small></div>
                         """, unsafe_allow_html=True)
 
-                    # Cột 3: Nút hành động
                     with c_action:
-                        st.write("") # Spacer xuống dòng cho nút cân giữa
+                        st.write("") 
                         st.write("")
                         if info['seller_id'] == current_user_id:
                              if st.button("🗑️ GỠ BÁN", key=f"rm_{listing_id}", use_container_width=True):
-                                 # Logic gỡ bán (Giữ nguyên như cũ)
+                                 # Logic gỡ bán
                                  inv = st.session_state.data[current_user_id].setdefault('inventory', {})
-                                 if isinstance(inv, list): inv = {}
+                                 if isinstance(inv, list): inv = {k: inv.count(k) for k in set(inv)} # Fix list->dict
                                  inv[item_key] = inv.get(item_key, 0) + info.get('quantity', 1)
                                  st.session_state.data[current_user_id]['inventory'] = inv
                                  del listings[listing_id]
@@ -526,123 +530,85 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                                  st.rerun()
                         else:
                             if st.button("💸 MUA NGAY", key=f"buy_{listing_id}", type="primary", use_container_width=True):
-                                # Logic mua hàng (Giữ nguyên hoặc bổ sung)
+                                # Logic mua hàng (Giữ nguyên)
                                 pass
-                    
-                    st.divider() # Kẻ dòng phân cách giữa các món hàng
+                    st.divider()
 
     # =========================================================================
-    # TAB 2: KHO & TREO BÁN (GIAO DIỆN MỚI ĐẸP HƠN)
+    # TAB 2: KHO & TREO BÁN (ĐÃ THÊM MÔ TẢ)
     # =========================================================================
     with tab_kho:
-        # 1. LẤY DỮ LIỆU KHO (CODE CHUẨN)
         inventory = user_info.get('inventory', {})
-
-        # [FIX LỖI DỮ LIỆU CŨ] Chuyển List -> Dict
         if isinstance(inventory, list):
-            new_inv = {}
-            for item in inventory:
-                new_inv[item] = new_inv.get(item, 0) + 1
-            inventory = new_inv
+            inventory = {k: inventory.count(k) for k in set(inventory)}
             user_info['inventory'] = inventory
             save_data_func(st.session_state.data)
-            st.rerun()
 
-        # --- PHẦN 1: HIỂN THỊ LƯỚI VẬT PHẨM (GRID VIEW) ---
         st.write("### 📦 Vật phẩm đang có")
         if not inventory:
-            st.info("Kho trống. Hãy ghé Tiệm tạp hóa để mua sắm!")
+            st.info("Kho trống.")
         else:
-            # Tạo 4 cột cho lưới
             cols_kho = st.columns(4)
-            
-            # Lặp qua kho đồ và hiển thị dạng thẻ
             for i, (item_name, count) in enumerate(inventory.items()):
                 if count <= 0: continue
 
-                # Tra cứu thông tin từ shop_data
                 item_info = shop_data.get(item_name, {})
-                
-                # Lấy ảnh, tên, loại
                 img_url = item_info.get('image', "https://cdn-icons-png.flaticon.com/512/9630/9630454.png")
-                if "via.placeholder" in img_url: img_url = "https://cdn-icons-png.flaticon.com/512/9336/9336056.png"
                 display_name = item_info.get('name', item_name)
                 
-                # Dịch loại vật phẩm sang tiếng Việt cho đẹp
-                itype_raw = item_info.get('type', 'ITEM')
-                type_map = {
-                    "BUFF_STAT": "Tăng chỉ số", "CONSUMABLE": "Tiêu hao", 
-                    "FUNCTIONAL": "Chức năng", "BOSS_RESET": "Vật phẩm Boss", "GACHA_BOX": "Rương may mắn"
-                }
-                item_type_vn = type_map.get(itype_raw, "Vật phẩm")
+                # [NEW] Lấy mô tả
+                description = item_info.get('desc') or item_info.get('description', 'Vật phẩm')
 
-                # Render Card (Sử dụng CSS .inventory-card đã định nghĩa ở trên)
                 with cols_kho[i % 4]:
+                    # HTML Card (Ép sát lề trái để không lỗi code block)
                     st.markdown(f"""
-                        <div class="inventory-card">
-                            <div class="qty-badge">x{count}</div>
-                            <img src="{img_url}" style="width:80px; height:80px; object-fit:contain; margin: 15px auto;">
-                            <div class="item-name">{display_name}</div>
-                            <div class="item-type">{item_type_vn}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
+<div class="inventory-card">
+<div class="qty-badge">x{count}</div>
+<img src="{img_url}" style="width:70px;height:70px;object-fit:contain;margin:10px auto;">
+<div style="font-weight:bold;color:#f1c40f;font-size:13px;margin-top:5px;height:35px;overflow:hidden;line-height:1.2;">{display_name}</div>
+<div class="item-desc">{description}</div>
+</div>
+""", unsafe_allow_html=True)
 
-        st.divider() # Đường kẻ phân cách
+        st.divider() 
 
-        # --- PHẦN 2: FORM ĐĂNG BÁN (Nằm bên dưới lưới) ---
+        # --- PHẦN FORM ĐĂNG BÁN (Giữ nguyên logic của bạn) ---
         st.write("### 🏷️ Treo bán mới")
         with st.container(border=True):
-            
-            # Lọc vật phẩm có số lượng > 0
             valid_items = [k for k, v in inventory.items() if v > 0]
-            
             if valid_items:
-                # Tạo map để hiển thị tên đẹp trong Selectbox
                 item_options = {k: shop_data.get(k, {}).get('name', k) for k in valid_items}
                 
-                c_form1, c_form2 = st.columns(2)
-                with c_form1:
+                c1, c2 = st.columns(2)
+                with c1:
                     selected_id = st.selectbox(
-                        "Chọn vật phẩm:", 
-                        options=valid_items,
-                        format_func=lambda x: f"{item_options[x]} (Đang có: {inventory[x]})"
+                        "Chọn vật phẩm:", options=valid_items,
+                        format_func=lambda x: f"{item_options[x]} (Có: {inventory[x]})"
                     )
-                    # Hiển thị ảnh preview nhỏ bên cạnh
                     preview_img = shop_data.get(selected_id, {}).get('image')
                     if preview_img: st.image(preview_img, width=60)
 
-                with c_form2:
-                    price = st.number_input("Giá bán mỗi cái (KPI):", min_value=1.0, value=100.0, step=10.0)
+                with c2:
+                    price = st.number_input("Giá bán (KPI):", min_value=1.0, value=100.0, step=10.0)
                     qty_sell = st.number_input("Số lượng bán:", min_value=1, max_value=inventory[selected_id])
-                    
                     fee = int(price * qty_sell * 0.1)
-                    total_receive = (price * qty_sell) - fee
-                    st.caption(f"Tổng giá: {price*qty_sell:.0f} | Phí sàn (10%): -{fee} | **Nhận về: {total_receive:.0f} KPI**")
+                    st.caption(f"Nhận về: {(price*qty_sell)-fee:.0f} KPI (Phí sàn: {fee})")
                 
                 if st.button("🚀 Treo lên chợ", type="primary", use_container_width=True):
-                    # Logic lưu vào market
                     new_id = str(uuid.uuid4())[:8]
                     market_data['listings'][new_id] = {
-                        "item_name": selected_id, 
-                        "price": price * qty_sell, # Tổng giá của gói
-                        "quantity": qty_sell,      # Số lượng trong gói
-                        "seller_id": current_user_id,
-                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M")
+                        "item_name": selected_id, "price": price * qty_sell, "quantity": qty_sell,
+                        "seller_id": current_user_id, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M")
                     }
-                    
-                    # Trừ kho
                     inventory[selected_id] -= qty_sell
-                    if inventory[selected_id] <= 0:
-                        del inventory[selected_id]
+                    if inventory[selected_id] <= 0: del inventory[selected_id]
                     
-                    # Lưu dữ liệu
                     save_market(market_data)
                     save_data_func(st.session_state.data)
-                    
-                    st.success(f"Đã đăng bán {qty_sell} cái {item_options[selected_id]}!")
+                    st.success("Đã đăng bán!")
                     st.rerun()
             else:
-                st.warning("Bạn không có vật phẩm nào khả dụng để bán.")    
+                st.warning("Hết đồ để bán rồi đại gia ơi!")
 def generate_username(text): 
     if not isinstance(text, str):
         return "user"
