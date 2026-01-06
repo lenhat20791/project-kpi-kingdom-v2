@@ -3446,27 +3446,14 @@ import time
 import random
 import json
 import os
-import streamlit.components.v1 as components # <--- QUAN TRỌNG: Thư viện để chạy JS
-
-import streamlit as st
-import time
-import random
-import json
-import os
-import streamlit.components.v1 as components
-
-import streamlit as st
-import time
-import random
-import json
-import os
 import streamlit.components.v1 as components
 
 def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_func):
     """
-    [FINAL FIX] Phiên bản Hardcore:
-    1. Fix lỗi Caching: Thêm key độc nhất cho component JS để bắt buộc reset thời gian.
-    2. Fix lỗi Button: Dùng vòng lặp JS quét liên tục để tìm và ẩn nút, đảm bảo click thành công.
+    [FIXED TYPE_ERROR] Phiên bản chạy ổn định:
+    1. Loại bỏ tham số 'key' trong components.html (nguyên nhân gây crash).
+    2. Fix lỗi Caching: Thêm random ID vào nội dung HTML để ép Streamlit vẽ lại đồng hồ mới.
+    3. Giữ nguyên logic săn tìm nút bấm (Aggressive Polling) để đảm bảo tự động chuyển câu.
     """
     
     # 🔥 1. CẦU DAO TỰ ĐỘNG (GIỮ NGUYÊN)
@@ -3480,7 +3467,7 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
 
     # --- PHẦN 1: KHỞI TẠO DỮ LIỆU (GIỮ NGUYÊN) ---
     if "dungeon_questions" not in st.session_state:
-        # (Giữ nguyên logic load file và normalize dữ liệu như cũ)
+        # Load config phó bản
         p_data = dungeon_config[land_id]["phases"][p_id]
         p_num = int(p_id.split('_')[1])
         difficulty_map = {1: "easy", 2: "medium", 3: "hard", 4: "extreme"}
@@ -3489,6 +3476,7 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
         path_quiz = f"quiz_data/grade_6/{land_id}.json"
         all_quizzes = {}
         
+        # Load file câu hỏi an toàn
         if os.path.exists(path_quiz):
             try:
                 with open(path_quiz, 'r', encoding='utf-8') as f:
@@ -3496,12 +3484,14 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
             except Exception as e:
                 st.error(f"Lỗi đọc file câu hỏi: {e}")
         
+        # Lấy pool câu hỏi
         pool = all_quizzes.get(target_diff, [])
         if not pool:
             for alt in ["extreme", "hard", "medium", "easy"]:
                 pool = all_quizzes.get(alt, [])
                 if pool: break
         
+        # Normalize dữ liệu
         if pool:
             for q in pool:
                 if "answer" not in q and "correct_answer" in q:
@@ -3509,6 +3499,7 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
         
         if not pool: pool = [{"question": "1+1=?", "options": ["2","3"], "answer": "2"}]
 
+        # Chọn câu hỏi ngẫu nhiên
         num_q = p_data.get('num_questions', 5)
         st.session_state.dungeon_questions = random.sample(pool, min(len(pool), num_q)) if pool else []
         st.session_state.current_q_idx = 0
@@ -3529,16 +3520,13 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
         time_limit = p_data.get('time_limit', 15)
         
         # ==========================================================
-        # 🟢 CƠ CHẾ TIMEOUT [HARDCORE MODE]
+        # 🟢 CƠ CHẾ TIMEOUT [PHIÊN BẢN ỔN ĐỊNH]
         # ==========================================================
         
         # 1. Nút Trigger (Python Side)
-        # Nút này sẽ được JS tìm và click. 
-        # Ta đặt một cái label cực dị "||TIMEOUT||" để JS dễ tìm, tránh trùng với nút khác.
         trigger_label = f"TIMEOUT_TRIGGER_{idx}" 
         
-        # Logic Python nhận tín hiệu
-        # Khi JS click nút này -> Python chạy dòng dưới -> Rerun sang câu mới
+        # Logic Python nhận tín hiệu click từ JS
         if st.button(trigger_label, key=f"btn_hidden_{land_id}_{idx}"):
             st.toast(f"⏰ HẾT GIỜ! Đáp án là: {q.get('answer', 'Unknown')}", icon="⚠️")
             st.session_state.current_q_idx += 1
@@ -3555,36 +3543,35 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
             
             # --- CỘT ĐỒNG HỒ ---
             with t_col1:
-                # [QUAN TRỌNG] Tạo unique ID cho timer để ép Streamlit render lại script mới
-                timer_component_key = f"js_timer_{land_id}_{p_id}_{idx}"
+                # [THỦ THUẬT QUAN TRỌNG] 
+                # Thêm một con số ngẫu nhiên vào HTML comment.
+                # Khi 'idx' thay đổi -> random_id thay đổi -> nội dung HTML thay đổi -> Streamlit tự động vẽ lại iframe mới.
+                random_id = random.randint(1, 1000000)
                 
                 timer_html = f"""
                 <div id="timer_display" style="font-size: 28px; font-weight: bold; color: #333; text-align: center; font-family: sans-serif; border: 2px solid #ddd; border-radius: 10px; padding: 10px; background: white;">
                     ⏳ {time_limit}
                 </div>
                 <script>
-                    // Biến toàn cục để kiểm soát
                     var timeleft = {time_limit};
                     var timerElem = document.getElementById("timer_display");
                     var targetLabel = "{trigger_label}";
                     
-                    // Hàm săn tìm nút Trigger hung hãn (Aggressive Hunter)
+                    // Hàm săn tìm nút Trigger
                     function huntAndHideButton() {{
                         const buttons = window.parent.document.getElementsByTagName("button");
                         let found = null;
                         for (let btn of buttons) {{
-                            // Tìm đúng cái nút có text label đặc biệt của câu hỏi này
                             if (btn.innerText.includes(targetLabel)) {{
                                 found = btn;
-                                // Tàng hình ngay lập tức
-                                btn.style.display = "none"; 
+                                btn.style.display = "none"; // Ẩn nút đi
                                 break; 
                             }}
                         }}
                         return found;
                     }}
 
-                    // 1. Chạy vòng lặp quét nút mỗi 100ms (để đảm bảo nút luôn bị ẩn)
+                    // 1. Chạy vòng lặp ẩn nút liên tục
                     var hiderInterval = setInterval(() => {{
                         huntAndHideButton();
                     }}, 100);
@@ -3594,7 +3581,7 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                         timeleft--;
                         if(timerElem) timerElem.innerText = "⏳ " + timeleft;
                         
-                        // Đổi màu cảnh báo
+                        // Đổi màu đỏ
                         if(timeleft <= 5 && timerElem) {{
                             timerElem.style.color = "#ff4b4b"; 
                             timerElem.style.borderColor = "#ff4b4b";
@@ -3603,17 +3590,14 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                         // Hết giờ
                         if (timeleft <= 0) {{
                             clearInterval(countdownInterval);
-                            clearInterval(hiderInterval); // Dừng việc ẩn nút
+                            clearInterval(hiderInterval);
                             if(timerElem) timerElem.innerText = "⌛ 0";
                             
-                            // TÌM VÀ CLICK (Phải cho hiện lại xíu hoặc click trực tiếp DOM)
+                            // Tìm và Click
                             const buttons = window.parent.document.getElementsByTagName("button");
                             for (let btn of buttons) {{
                                 if (btn.innerText.includes(targetLabel)) {{
-                                    // Mẹo: Đôi khi display:none làm nút không click được.
-                                    // Ta chỉ click() trực tiếp vào Element, JS vẫn hiểu.
-                                    btn.click();
-                                    console.log("Đã click timeout trigger!");
+                                    btn.click(); // Kích hoạt sự kiện Python
                                     break;
                                 }}
                             }}
@@ -3621,12 +3605,11 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                     }}, 1000);
                 </script>
                 """
-                # [FIX QUAN TRỌNG] Tham số 'key' ở đây giúp reset timer cho câu mới
-                components.html(timer_html, height=80, key=timer_component_key)
+                # [SỬA LỖI] Bỏ tham số 'key' đi vì components.html không hỗ trợ
+                components.html(timer_html, height=80)
 
             # --- CỘT CÂU HỎI (GIỮ NGUYÊN) ---
             with t_col2:
-                # CSS làm đẹp nút bấm
                 st.markdown("""
                 <style>
                 div.stButton > button { height: auto !important; min-height: 60px; padding: 10px 20px; }
@@ -3691,6 +3674,8 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                         if k.startswith("dungeon_") or "btn_hidden" in k:
                             del st.session_state[k]
                     st.rerun()
+
+
 def reset_dungeon_state():
     """Dọn dẹp triệt để bộ nhớ để bắt đầu trận đấu mới sạch sẽ"""
     # 1. Các phím trạng thái cơ bản
