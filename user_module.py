@@ -468,7 +468,7 @@ def hien_thi_cho_den(current_user_id, save_data_func):
             color: white; border-radius: 50%; width: 32px; height: 32px;
             line-height: 32px; font-weight: bold; font-size: 14px;
         }
-        </style>
+        </style> 
     """, unsafe_allow_html=True)
 
     st.subheader("⚖️ THỊ TRƯỜNG CHỢ ĐEN")
