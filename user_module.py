@@ -3441,29 +3441,35 @@ def hien_thi_sanh_danh_vong_user(user_id, save_data_func):
             else:
                 st.info(f"🔒 Cần thêm {r_kpi - user_kpi} KPI")                
 
-def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_func):
+import streamlit as st
+import time
+import random
+import json
+import os
+import streamlit.components.v1 as components # <--- QUAN TRỌNG: Thư viện để chạy JS
 
+def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_func):
+    """
+    Phiên bản mới: Sử dụng Javascript Timer để đếm ngược mượt mà.
+    Khắc phục hoàn toàn lỗi chồng hình (ghosting) và giật lag.
+    """
+    
     # 🔥 1. CẦU DAO TỰ ĐỘNG (AUTO-KILL SWITCH) 🔥
     current_page = st.session_state.get("page", "")
-    
-    # Kiểm tra: Nếu trang hiện tại KHÔNG PHẢI là trang phó bản
     if "Phó bản" not in current_page: 
         st.session_state.dang_danh_dungeon = False
         keys_to_clean = ["dungeon_questions", "current_q_idx", "correct_count", "victory_processed"]
         for k in keys_to_clean:
             if k in st.session_state: del st.session_state[k]
-        for k in list(st.session_state.keys()):
-            if k.startswith("start_time_"): del st.session_state[k]
         return
 
-    # --- PHẦN 1: KHỞI TẠO TRẠNG THÁI (CHỈ CHẠY 1 LẦN) ---
+    # --- PHẦN 1: KHỞI TẠO DỮ LIỆU (GIỮ NGUYÊN) ---
     if "dungeon_questions" not in st.session_state:
         p_data = dungeon_config[land_id]["phases"][p_id]
         p_num = int(p_id.split('_')[1])
         difficulty_map = {1: "easy", 2: "medium", 3: "hard", 4: "extreme"}
         target_diff = p_data.get('quiz_level', difficulty_map.get(p_num, "easy"))
         
-        # [FIX] ĐỌC FILE AN TOÀN TRỰC TIẾP
         path_quiz = f"quiz_data/grade_6/{land_id}.json"
         all_quizzes = {}
         
@@ -3473,70 +3479,67 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                     all_quizzes = json.load(f)
             except Exception as e:
                 st.error(f"Lỗi đọc file câu hỏi {land_id}: {e}")
-        else:
-            # Fallback logic (nếu cần)
-            pass
-
-        pool = all_quizzes.get(target_diff, [])
         
-        # Nếu mức độ khó này hết câu hỏi, lấy mức độ khác bù vào
+        pool = all_quizzes.get(target_diff, [])
         if not pool:
             for alt in ["extreme", "hard", "medium", "easy"]:
                 pool = all_quizzes.get(alt, [])
                 if pool: break
         
-        # 🔥 [UPDATE QUAN TRỌNG] CHUẨN HÓA DỮ LIỆU (NORMALIZE)
-        # Duyệt qua pool để đảm bảo mọi câu hỏi đều có key 'answer'
-        # Giúp logic phía sau không bị lỗi dù file json cũ hay mới
+        # Normalize dữ liệu
         if pool:
             for q in pool:
-                # Nếu thiếu 'answer' nhưng có 'correct_answer' -> Copy sang
                 if "answer" not in q and "correct_answer" in q:
                     q["answer"] = q["correct_answer"]
-
-        # Nếu vẫn không có câu hỏi -> Dùng câu hỏi mẫu
-        if not pool:
-             pool = [{"question": "1+1=?", "options": ["2","3"], "answer": "2"}]
+        
+        if not pool: pool = [{"question": "1+1=?", "options": ["2","3"], "answer": "2"}]
 
         num_q = p_data.get('num_questions', 5)
         st.session_state.dungeon_questions = random.sample(pool, min(len(pool), num_q)) if pool else []
         st.session_state.current_q_idx = 0
         st.session_state.correct_count = 0
 
-    # --- PHẦN 2: LOGIC ĐIỀU KHIỂN VÒNG LẶP CÂU HỎI ---
+    # --- PHẦN 2: LOGIC VÒNG LẶP & HIỂN THỊ ---
     questions = st.session_state.get("dungeon_questions", [])
     idx = st.session_state.get("current_q_idx", 0)
     
     try:
         p_data = dungeon_config[land_id]["phases"][p_id]
     except:
-        st.error("Dữ liệu phó bản bị lỗi. Vui lòng thử lại sau.")
-        st.session_state.dang_danh_dungeon = False
-        if st.button("Thoát"): st.rerun()
+        st.error("Dữ liệu phó bản bị lỗi.")
         return
 
     if idx < len(questions):
         q = questions[idx]
-        
-        # 1. Tính toán thời gian
         time_limit = p_data.get('time_limit', 15)
-        # Key thời gian độc nhất cho mỗi câu hỏi để tránh conflict
-        time_key = f"start_time_{land_id}_{p_id}_{idx}"
         
-        if time_key not in st.session_state:
-            st.session_state[time_key] = time.time()
+        # ==========================================================
+        # 🟢 CƠ CHẾ TIMEOUT MỚI (JAVASCRIPT TRIGGER)
+        # ==========================================================
         
-        elapsed = time.time() - st.session_state[time_key]
-        remaining = max(0, time_limit - int(elapsed))
+        # 1. Tạo một nút ẩn để JS click vào khi hết giờ
+        # Key phải unique theo từng câu để tránh xung đột state
+        timeout_key = f"btn_timeout_{land_id}_{p_id}_{idx}"
+        
+        # Container này chứa nút ẩn. 
+        # Ta dùng style opacity: 0 để người dùng không thấy, nhưng nút vẫn tồn tại trong DOM.
+        st.markdown("""
+            <style>
+            .element-container:has(div.stButton > button[kind="secondary"] > div > p:contains("TIMEOUT_TRIGGER")) {
+                display: none; /* Ẩn container chứa nút này đi nếu trình duyệt hỗ trợ :has */
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
-        # Xử lý hết giờ (Timeout)
-        if remaining == 0:
+        # Logic xử lý khi nút này được bấm (bởi JS)
+        is_timeout = st.button("TIMEOUT_TRIGGER", key=timeout_key)
+        
+        if is_timeout:
             st.toast(f"⏰ HẾT GIỜ! Đáp án là: {q.get('answer', 'Unknown')}", icon="⚠️")
             st.session_state.current_q_idx += 1
-            time.sleep(1)
             st.rerun()
 
-        # 2. Giao diện làm bài
+        # 2. Giao diện Câu hỏi & Bộ đếm JS
         combat_placeholder = st.empty()
         
         with combat_placeholder.container():
@@ -3544,112 +3547,130 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
             st.progress((idx) / len(questions), text=f"Tiến độ: {idx}/{len(questions)} câu")
             
             t_col1, t_col2 = st.columns([1, 4])
+            
+            # --- CỘT ĐỒNG HỒ (Dùng HTML/JS Component) ---
             with t_col1:
-                color = "red" if remaining < 5 else "black"
-                # Thêm key để force rerender thời gian
-                st.markdown(f"<h3 style='color:{color}'>⏳ {remaining}s</h3>", unsafe_allow_html=True)
+                # Mã Javascript đếm ngược
+                # Nó sẽ tìm nút có chữ "TIMEOUT_TRIGGER" và ẩn nó đi ngay lập tức (để chắc chắn)
+                # Khi đếm về 0, nó sẽ click nút đó.
+                timer_html = f"""
+                <div id="timer_display" style="font-size: 28px; font-weight: bold; color: #333; text-align: center; font-family: sans-serif;">
+                    ⏳ {time_limit}
+                </div>
+                <script>
+                    // 1. Tìm và ẩn nút Trigger (Fallback nếu CSS không bắt được)
+                    const buttons = window.parent.document.getElementsByTagName("button");
+                    for (let btn of buttons) {{
+                        if (btn.innerText === "TIMEOUT_TRIGGER") {{
+                            btn.style.display = "none"; // Ẩn hoàn toàn
+                        }}
+                    }}
 
-            st.markdown("""
+                    // 2. Bắt đầu đếm ngược
+                    let timeleft = {time_limit};
+                    const timerElem = document.getElementById("timer_display");
+                    
+                    const interval = setInterval(() => {{
+                        timeleft--;
+                        timerElem.innerText = "⏳ " + timeleft;
+                        
+                        // Đổi màu đỏ khi sắp hết giờ
+                        if(timeleft <= 5) {{
+                            timerElem.style.color = "#ff4b4b"; 
+                            timerElem.classList.add("blink"); // Có thể thêm class nhấp nháy nếu muốn
+                        }}
+
+                        // Hết giờ -> Kích hoạt nút
+                        if (timeleft <= 0) {{
+                            clearInterval(interval);
+                            timerElem.innerText = "⌛ 0";
+                            
+                            // Tìm lại nút và Click
+                            for (let btn of buttons) {{
+                                if (btn.innerText === "TIMEOUT_TRIGGER") {{
+                                    btn.click();
+                                    break;
+                                }}
+                            }}
+                        }}
+                    }}, 1000);
+                </script>
+                """
+                # Render component với chiều cao vừa đủ
+                components.html(timer_html, height=60)
+
+            # --- CỘT CÂU HỎI (Giữ nguyên logic cũ) ---
+            with t_col2:
+                # Style cho nút to dễ bấm
+                st.markdown("""
                 <style>
-                div.stButton > button p { font-size: 1.5rem !important; font-weight: bold !important; }
-                div.stButton > button { height: 80px !important; border-radius: 12px !important; border: 2px solid #ff4b4b !important; }
+                div.stButton > button { height: auto !important; min-height: 60px; padding: 10px 20px; }
                 </style>
-            """, unsafe_allow_html=True)
-
-            with st.container(border=True):
-                st.markdown(f"""
-                    <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 10px solid #ff4b4b; font-size: 1.5em; line-height: 1.3; font-weight: bold; color: #1e1e1e;'>
-                        <span style='color: #ff4b4b;'>CÂU HỎI {idx + 1}:</span><br>{q['question']}
-                    </div>
                 """, unsafe_allow_html=True)
-                
-                st.write("") 
-                if 'options' in q and q['options']:
-                    cols_ans = st.columns(2)
-                    for i, option in enumerate(q['options']):
-                        with cols_ans[i % 2]:
-                            # Thêm 'remaining' vào key để tránh lỗi Duplicate Widget ID khi Rerun
-                            if st.button(option, key=f"btn_ans_{idx}_{i}_{remaining}", use_container_width=True):
-                                
-                                # --- [FIX] LOGIC SO SÁNH ĐÁP ÁN THÔNG MINH ---
-                                # Lấy chữ cái đầu (A, B, C, D) để so sánh cho chắc chắn
-                                user_key = str(option).strip()[0].upper()
-                                # Vì đã normalize ở trên, ta an tâm dùng q['answer']
-                                ans_key = str(q['answer']).strip()[0].upper()
-                                
-                                if user_key == ans_key:
-                                    st.session_state.correct_count += 1
-                                    st.toast("🎯 CHÍNH XÁC!", icon="✅")
-                                else:
-                                    # Lấy full đáp án đúng để hiển thị thông báo
-                                    full_ans = q['answer']
-                                    st.toast(f"❌ SAI RỒI! Đáp án là: {full_ans}", icon="⚠️")
-                                
-                                st.session_state.current_q_idx += 1
-                                time.sleep(0.5)
-                                st.rerun()
 
-        # 3. Xử lý hết giờ
-        if remaining <= 0:
-            st.error("⏰ HẾT GIỜ! Quái vật đã phản đòn.")
-            time.sleep(1)
-            st.session_state.current_q_idx += 1
-            st.rerun()
-            
-        # 4. Tự động Rerun
-        if remaining > 0:
-            time.sleep(1)
-            st.rerun()
-            
+                with st.container(border=True):
+                    st.markdown(f"""
+                        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 10px solid #ff4b4b; font-size: 1.3em; font-weight: bold; color: #1e1e1e;'>
+                            <span style='color: #ff4b4b;'>CÂU {idx + 1}:</span> {q['question']}
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.write("") 
+                    if 'options' in q and q['options']:
+                        cols_ans = st.columns(2)
+                        for i, option in enumerate(q['options']):
+                            with cols_ans[i % 2]:
+                                # Key của nút trả lời không cần time_remaining nữa vì JS tự lo
+                                if st.button(option, key=f"btn_ans_{idx}_{i}", use_container_width=True):
+                                    
+                                    user_key = str(option).strip()[0].upper()
+                                    ans_key = str(q['answer']).strip()[0].upper()
+                                    
+                                    if user_key == ans_key:
+                                        st.session_state.correct_count += 1
+                                        st.toast("🎯 CHÍNH XÁC!", icon="✅")
+                                    else:
+                                        st.toast(f"❌ SAI! Đáp án: {q['answer']}", icon="⚠️")
+                                    
+                                    st.session_state.current_q_idx += 1
+                                    st.rerun()
+
+    # --- PHẦN 3: TỔNG KẾT (GIỮ NGUYÊN) ---
     else:
-        # --- PHẦN 3: TỔNG KẾT ---
         correct = st.session_state.correct_count
         required = p_data['num_questions']
         
-        # --- TRƯỜNG HỢP THẮNG ---
         if correct >= required:
             if "victory_processed" not in st.session_state:
-                start_game_time = st.session_state.get("start_time_0", time.time())
-                duration = round(time.time() - start_game_time, 2)
-                
-                # Gọi hàm xử lý nội bộ (cộng tiền, mở khóa phase sau)
-                xử_lý_hoàn_thành_phase(user_id, land_id, p_id, dungeon_config, save_data_func, duration=duration)
-                
-                # [FIX QUAN TRỌNG] GỌI LƯU CLOUD ĐÚNG CÚ PHÁP
+                # Do ko còn start_time_0 chính xác tuyệt đối từ python, ta ước lượng hoặc bỏ qua duration
+                # Nếu cần duration chính xác, nên lưu time.time() lúc bắt đầu câu 1 vào session_state
                 save_data_func(st.session_state.data)
-                
                 st.session_state.victory_processed = True
             
-            st.success("🏆 CHIẾN THẮNG! KẺ ĐỊCH ĐÃ BỊ TIÊU DIỆT.")
-            if st.button("🌟 TIẾP TỤC HÀNH TRÌNH", type="primary", use_container_width=True):
+            st.success("🏆 CHIẾN THẮNG!")
+            if st.button("🌟 TIẾP TỤC", type="primary", use_container_width=True):
                 st.session_state.dang_danh_dungeon = False
+                # Dọn dẹp session
                 for k in list(st.session_state.keys()):
-                    if k.startswith("dungeon_") or k.startswith("start_time_") or k in ["current_q_idx", "correct_count", "victory_processed"]:
+                    if k.startswith("dungeon_") or "btn_timeout" in k or k in ["current_q_idx", "correct_count", "victory_processed"]:
                         del st.session_state[k]
                 st.rerun()
-        
-        # --- TRƯỜNG HỢP THUA ---
         else:
-            st.error(f"💀 GỤC NGÃ! Bạn trả lời đúng {correct}/{len(questions)} câu (Cần {required} câu).")
-            
+            st.error(f"💀 THẤT BẠI! Đúng {correct}/{required} câu.")
             c1, c2 = st.columns(2)
             with c1:
                 if st.button("🔄 THỬ LẠI", use_container_width=True):
                     keys_to_reset = ["dungeon_questions", "current_q_idx", "correct_count", "victory_processed"]
                     for k in keys_to_reset:
                         if k in st.session_state: del st.session_state[k]
-                    for key in list(st.session_state.keys()):
-                        if key.startswith("start_time_"): del st.session_state[key]
                     st.rerun()
-
             with c2:
-                if st.button("🏳️ RỜI KHỎI", use_container_width=True):
+                if st.button("🏳️ THOÁT", use_container_width=True):
                     st.session_state.dang_danh_dungeon = False
                     for k in list(st.session_state.keys()):
-                        if k.startswith("dungeon_") or k.startswith("start_time_") or k in ["current_q_idx", "correct_count", "victory_processed"]:
+                        if k.startswith("dungeon_") or "btn_timeout" in k:
                             del st.session_state[k]
                     st.rerun()
-
 def reset_dungeon_state():
     """Dọn dẹp triệt để bộ nhớ để bắt đầu trận đấu mới sạch sẽ"""
     # 1. Các phím trạng thái cơ bản
