@@ -954,48 +954,60 @@ def tinh_atk_tong_hop(user_info):
     return round(atk_tong, 1)
 
 
-def check_up_level(user_id):
+def check_up_level(user_input):
     """
-    [CẬP NHẬT] Cơ chế Level Up:
-    - Công thức: 70 + (Level * 15)
-    - Cơ chế: Tiêu hao EXP (Cộng dồn phần dư)
+    [SMART FIX] Hàm kiểm tra lên cấp thông minh.
+    - Hỗ trợ đầu vào là ID (str) HOẶC Dictionary (dict).
+    - Khắc phục lỗi TypeError khi gọi từ các hàm khác nhau.
     """
-    # Kiểm tra an toàn dữ liệu
-    if user_id not in st.session_state.data: return
-    user = st.session_state.data[user_id]
+    # 1. Xác định đầu vào là ID hay Data
+    user = None
     
-    current_lvl = user.get('level', 1)
-    current_exp = user.get('exp', 0)
+    if isinstance(user_input, str):
+        # Nếu là ID (chuỗi) -> Lấy data từ session
+        if user_input in st.session_state.data:
+            user = st.session_state.data[user_input]
+        else:
+            return # ID không tồn tại
+            
+    elif isinstance(user_input, dict):
+        # Nếu đã là Dictionary data -> Dùng luôn
+        user = user_input
     
-    # === CÔNG THỨC EXP CHỐT ===
-    # Lv 1 cần 85, Lv 10 cần 220...
-    exp_required = 70 + (current_lvl * 15)
-    
-    # Kiểm tra lên cấp (Dùng vòng lặp while để xử lý trường hợp lên nhiều cấp 1 lúc)
-    if current_exp >= exp_required:
-        # 1. Trừ EXP tiêu hao và Tăng cấp
-        user['level'] += 1
-        user['exp'] = round(current_exp - exp_required, 2)
-        
-        # 2. Cập nhật Máu tối đa (HP Max)
-        # Công thức: KPI + (Level * 20) -> Giúp trâu hơn khi level cao
-        current_kpi = user.get('kpi', 0.0)
-        user['hp_max'] = int(current_kpi + (user['level'] * 20))
-        user['hp'] = user['hp_max'] # Hồi đầy máu ngay lập tức
-        
-        # 3. Cộng chỉ số Bonus ẩn (Hoa lá cành)
-        # Mỗi cấp tặng thêm 0.2 ATK vĩnh viễn (nhỏ thôi vì đã có công thức Level * 1.2 rồi)
-        if 'bonus_stats' not in user: 
-            user['bonus_stats'] = {"hp": 0, "atk": 0}
-        
-        user['bonus_stats']['atk'] = round(user['bonus_stats'].get('atk', 0) + 0.2, 1)
-        
-        # Thông báo
-        st.toast(f"🎉 THĂNG CẤP! Bạn đã đạt Level {user['level']}!", icon="🆙")
-        
-        # 4. Đệ quy: Gọi lại chính nó để kiểm tra xem phần dư còn đủ lên cấp tiếp không
-        check_up_level(user_id)
+    else:
+        return # Kiểu dữ liệu không hợp lệ
 
+    # 2. Logic Lên cấp (Dùng vòng lặp While để xử lý thăng nhiều cấp 1 lúc)
+    # Công thức: 70 + (Level * 15)
+    while True:
+        current_lvl = user.get('level', 1)
+        exp_required = 70 + (current_lvl * 15)
+        
+        current_exp = user.get('exp', 0)
+        
+        if current_exp >= exp_required:
+            # === THĂNG CẤP ===
+            user['level'] += 1
+            user['exp'] = round(current_exp - exp_required, 2)
+            
+            # Cập nhật chỉ số mới
+            # HP Max = KPI + (Level * 20)
+            base_kpi = user.get('kpi', 0)
+            user['hp_max'] = int(base_kpi + (user['level'] * 20))
+            user['hp'] = user['hp_max'] # Hồi đầy máu
+            
+            # Bonus nhỏ (tùy chọn)
+            if 'bonus_stats' not in user: user['bonus_stats'] = {"hp": 0, "atk": 0}
+            user['bonus_stats']['atk'] = round(user['bonus_stats'].get('atk', 0) + 0.2, 1)
+            
+            # Thông báo (Chỉ hiện nếu đang trong ngữ cảnh Streamlit render chính)
+            try:
+                st.toast(f"🆙 LÊN CẤP {user['level']}! HP đã hồi đầy!", icon="🎉")
+            except:
+                pass
+        else:
+            # Nếu không đủ exp lên cấp nữa thì dừng vòng lặp
+            break
         
 def tinh_chi_so_chien_dau(level):
     """
