@@ -705,7 +705,7 @@ def initialize_accounts_from_excel(file_path):
                 "KTTX": 0, "KT Sản phẩm": 0, "KT Giữa kỳ": 0, "KT Cuối kỳ": 0, 
                 "Tri_Thuc": 0, "Chien_Tich": 0, "Vinh_Du": 0, "Vinh_Quang": 0, 
                 "titles": ["Tân Thủ Học Sĩ"], 
-                "inventory": {}, 
+                "inventory": [], 
                 "purchase_history": {},
                 "unlocked_ranks": [] 
             }
