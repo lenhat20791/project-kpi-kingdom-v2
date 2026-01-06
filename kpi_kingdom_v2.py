@@ -176,22 +176,42 @@ def show_world_chat_dialog(user_id):
                 "expire_at": datetime.now().timestamp() + 3600 # Hết hạn sau 1 tiếng
             }
             try:
-                # Đọc file cũ
+                # --- BẮT ĐẦU ĐOẠN CODE XỬ LÝ FILE ---
+                file_path = 'data/world_announcements.json'
                 current_msgs = []
-                if os.path.exists('data/world_announcements.json'):
-                    with open('data/world_announcements.json', 'r', encoding='utf-8') as f:
-                        current_msgs = json.load(f)
+
+                # 1. Đọc file cũ (có xử lý lỗi nếu file hỏng)
+                if os.path.exists(file_path):
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            current_msgs = json.load(f)
+                    except (json.JSONDecodeError, ValueError):
+                        current_msgs = [] # Nếu file lỗi thì coi như rỗng
+
+                # 2. DỌN DẸP TIN NHẮN HẾT HẠN (Quan trọng)
+                # Lấy thời gian hiện tại
+                current_ts = datetime.now().timestamp()
                 
-                # Thêm tin mới
-                current_msgs.append(new_msg)
-                if len(current_msgs) > 20: current_msgs = current_msgs[-20:]
+                # Chỉ giữ lại những tin nhắn mà thời gian hết hạn > thời gian hiện tại
+                # Dùng .get('expire_at', 0) để tránh lỗi với dữ liệu cũ không có key này
+                clean_msgs = [msg for msg in current_msgs if msg.get('expire_at', 0) > current_ts]
+
+                # 3. Thêm tin mới vào danh sách đã làm sạch
+                clean_msgs.append(new_msg)
+
+                # 4. Giới hạn số lượng (Chỉ giữ 20 tin mới nhất để tránh spam)
+                if len(clean_msgs) > 20: 
+                    clean_msgs = clean_msgs[-20:]
                 
-                # Ghi đè file
-                with open('data/world_announcements.json', 'w', encoding='utf-8') as f:
-                    json.dump(current_msgs, f, ensure_ascii=False, indent=4)
+                # 5. Ghi đè lại file
+                # Đảm bảo thư mục tồn tại
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    json.dump(clean_msgs, f, ensure_ascii=False, indent=4)
                 
                 st.success("✅ Đã gửi tin nhắn thành công!")
-                
+                # --- KẾT THÚC ---
                 # Lưu data user
                 # save_data_func(st.session_state.data) <-- Bỏ comment nếu có hàm save
                 
