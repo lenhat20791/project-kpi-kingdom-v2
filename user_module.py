@@ -3425,16 +3425,13 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                     description = info.get('desc', 'Vật phẩm hỗ trợ')
                     # Card HTML
                     st.markdown(f"""
-                        <div style="background:#5d4037;border:2px solid #a1887f;border-radius:8px;padding:10px;text-align:center;color:white;margin-bottom:10px;height:220px;display:flex;flex-direction:column;justify-content:space-between;">
-                            <img src="{img_url}" style="width:50px;height:50px;object-fit:contain;margin:0 auto;">
-                            
-                            <div style="font-size:0.9em;font-weight:bold;margin-top:5px;color:#f1c40f;">{name}</div>
-                            
-                            <div class="item-desc">{description}</div>
-                            
-                            <div style="color:#ffd600;font-size:0.9em;font-weight:bold;">{icon_buy} {info.get('price', 0)}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
+<div style="background:#5d4037;border:2px solid #a1887f;border-radius:8px;padding:10px;text-align:center;color:white;margin-bottom:10px;height:220px;display:flex;flex-direction:column;justify-content:space-between;">
+<img src="{img_url}" style="width:50px;height:50px;object-fit:contain;margin:0 auto;">
+<div style="font-size:0.9em;font-weight:bold;margin-top:5px;color:#f1c40f;">{name}</div>
+<div class="item-desc">{description}</div>
+<div style="color:#ffd600;font-size:0.9em;font-weight:bold;">{icon_buy} {info.get('price', 0)}</div>
+</div>
+""", unsafe_allow_html=True)
 
                     if st.button(f"Mua", key=f"btn_buy_{name}", use_container_width=True):
                         st.session_state.pending_item = (name, info)
@@ -3489,18 +3486,15 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                 description = item_info.get('desc', 'Vật phẩm')
                 with cols_kho[i % 4]:
                     st.markdown(f"""
-                        <div style="background:#3e2723; border:2px solid #8d6e63; border-radius:10px; padding:10px; text-align:center; position:relative; height: 200px; display: flex; flex-direction: column; justify-content: space-between;">
-                            <div style="position:absolute; top:5px; right:5px; background:#e74c3c; color:white; border-radius:50%; width:25px; height:25px; line-height:25px; font-weight:bold; font-size:12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">{count}</div>
-                            
-                            <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
-                                <img src="{img_url}" style="width:60px; height:60px; object-fit:contain;">
-                            </div>
-                            
-                            <div style="font-weight:bold; color:#f1c40f; font-size:13px; margin-top: 5px;">{item_name}</div>
-                            
-                            <div class="item-desc" style="font-size:11px; min-height:30px;">{description}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
+<div style="background:#3e2723; border:2px solid #8d6e63; border-radius:10px; padding:10px; text-align:center; position:relative; height: 200px; display: flex; flex-direction: column; justify-content: space-between;">
+<div style="position:absolute; top:5px; right:5px; background:#e74c3c; color:white; border-radius:50%; width:25px; height:25px; line-height:25px; font-weight:bold; font-size:12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">{count}</div>
+<div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+<img src="{img_url}" style="width:60px; height:60px; object-fit:contain;">
+</div>
+<div style="font-weight:bold; color:#f1c40f; font-size:13px; margin-top: 5px;">{item_name}</div>
+<div class="item-desc" style="font-size:11px; min-height:30px;">{description}</div>
+</div>
+""", unsafe_allow_html=True)
                     
                     # Nút hành động
                     if item_type == "GACHA_BOX":
