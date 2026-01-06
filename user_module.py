@@ -677,8 +677,8 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                         
                         st.toast("Đã đăng bán!", icon="✅")
                         st.rerun()
-                        
-def generate_username(text):
+    
+def generate_username(text): 
     if not isinstance(text, str):
         return "user"
     
