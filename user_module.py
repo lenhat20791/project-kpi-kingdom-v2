@@ -3195,32 +3195,131 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
     user_info = st.session_state.data[user_id]
     
     # --- PHẦN 1: HIỂN THỊ SỐ DƯ TÀI SẢN ---
+    # --- PHẦN 1: GỘP CSS CHUNG & HIỂN THỊ SỐ DƯ TÀI SẢN ---
     st.markdown(f"""
-        <div style="display: flex; justify-content: space-around; background: #3e2723; padding: 15px; border-radius: 10px; border: 2px solid #8d6e63; margin-bottom: 20px;">
-            <div style="text-align: center; color: white;">
-                <div style="font-size: 1.2em;">📘</div>
-                <div style="font-size: 0.8em; color: #bdbdbd;">Tri Thức</div>
-                <div style="font-weight: bold; color: #ffd600;">{user_info.get('Tri_Thuc', 0)}</div>
+        <style>
+        /* =========================================
+           1. CSS CHO THẺ VẬT PHẨM (SHOP & KHO)
+           ========================================= */
+        .item-card {{
+            background: linear-gradient(145deg, #2c3e50, #4ca1af);
+            border: 2px solid #f1c40f;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            color: white;
+            height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.3s;
+            position: relative;
+        }}
+        .item-card:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(241, 196, 15, 0.4);
+        }}
+        
+        .card-title {{
+            color: #ffeb3b;
+            font-size: 18px !important;
+            font-weight: 900 !important;
+            margin: 10px 0;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 2px black;
+            line-height: 1.2;
+            height: 45px;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }}
+        
+        /* CLASS MÔ TẢ MÀ BẠN ĐANG HỎI ĐÂY */
+        .item-desc {{
+            font-size: 13px;
+            color: #e0f7fa;
+            font-style: italic;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 5px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            height: 50px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            line-height: 1.3;
+            display: flex; align-items: center; justify-content: center;
+        }}
+
+        .card-price {{
+            font-size: 16px; font-weight: bold; color: #ffffff;
+            background: #e74c3c; padding: 5px 10px; border-radius: 20px;
+            display: inline-block;
+        }}
+        
+        .qty-badge {{
+            position: absolute; top: -5px; right: -5px;
+            background: #ff0000; border: 2px solid white;
+            color: white; border-radius: 50%; width: 35px; height: 35px;
+            line-height: 32px; font-weight: bold; font-size: 14px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5); z-index: 10;
+        }}
+
+        /* =========================================
+           2. CSS CHO THANH TÀI SẢN (HEADER)
+           ========================================= */
+        .stat-container {{
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center;
+            background: linear-gradient(90deg, #141e30 0%, #243b55 100%);
+            padding: 15px 10px; 
+            border-radius: 12px; 
+            border: 2px solid #f1c40f;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.2);
+            margin-bottom: 25px;
+        }}
+        
+        .stat-box {{
+            text-align: center; transition: transform 0.2s;
+            padding: 5px; border-radius: 8px; width: 18%;
+        }}
+        
+        .stat-box:hover {{
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-3px);
+        }}
+
+        .stat-icon {{ font-size: 1.8em; margin-bottom: 5px; display: block; }}
+        .stat-label {{ font-size: 0.75em; color: #bdc3c7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; font-weight: 600; }}
+        .stat-value {{ font-size: 1.4em; font-weight: 900; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }}
+        </style>
+
+        <div class="stat-container">
+            <div class="stat-box">
+                <div class="stat-icon">📘</div>
+                <div class="stat-label">Tri Thức</div>
+                <div class="stat-value" style="color: #00e5ff;">{user_info.get('Tri_Thuc', 0)}</div>
             </div>
-            <div style="text-align: center; color: white;">
-                <div style="font-size: 1.2em;">🏆</div>
-                <div style="font-size: 0.8em; color: #bdbdbd;">KPI</div>
-                <div style="font-weight: bold; color: #76ff03;">{user_info.get('kpi', 0)}</div>
+            <div class="stat-box">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-label">KPI</div>
+                <div class="stat-value" style="color: #76ff03;">{user_info.get('kpi', 0)}</div>
             </div>
-            <div style="text-align: center; color: white;">
-                <div style="font-size: 1.2em;">⚔️</div>
-                <div style="font-size: 0.8em; color: #bdbdbd;">Chiến Tích</div>
-                <div style="font-weight: bold; color: #ff5252;">{user_info.get('Chien_Tich', 0)}</div>
+            <div class="stat-box">
+                <div class="stat-icon">⚔️</div>
+                <div class="stat-label">Chiến Tích</div>
+                <div class="stat-value" style="color: #ff5252;">{user_info.get('Chien_Tich', 0)}</div>
             </div>
-            <div style="text-align: center; color: white;">
-                <div style="font-size: 1.2em;">🎖️</div>
-                <div style="font-size: 0.8em; color: #bdbdbd;">Vinh Dự</div>
-                <div style="font-weight: bold; color: #40c4ff;">{user_info.get('Vinh_Du', 0)}</div>
+            <div class="stat-box">
+                <div class="stat-icon">🎖️</div>
+                <div class="stat-label">Vinh Dự</div>
+                <div class="stat-value" style="color: #ffd600;">{user_info.get('Vinh_Du', 0)}</div>
             </div>
-            <div style="text-align: center; color: white;">
-                <div style="font-size: 1.2em;">👑</div>
-                <div style="font-size: 0.7em; color: #bdbdbd;">Vinh Quang</div>
-                <div style="font-weight: bold; color: #ea80fc;">{user_info.get('Vinh_Quang', 0)}</div>
+            <div class="stat-box">
+                <div class="stat-icon">👑</div>
+                <div class="stat-label">Vinh Quang</div>
+                <div class="stat-value" style="color: #ea80fc;">{user_info.get('Vinh_Quang', 0)}</div>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -3317,14 +3416,17 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
 
                     c_buy = info.get('currency_buy', 'kpi')
                     icon_buy = "📘" if c_buy == "Tri_Thuc" else ("🏆" if c_buy == "kpi" else "💰")
-
+                    description = info.get('desc', 'Vật phẩm hỗ trợ')
                     # Card HTML
                     st.markdown(f"""
-                        <div style="background:#5d4037;border:2px solid #a1887f;border-radius:8px;padding:10px;text-align:center;color:white;margin-bottom:10px;height:160px;display:flex;flex-direction:column;justify-content:space-between;">
+                        <div style="background:#5d4037;border:2px solid #a1887f;border-radius:8px;padding:10px;text-align:center;color:white;margin-bottom:10px;height:220px;display:flex;flex-direction:column;justify-content:space-between;">
                             <img src="{img_url}" style="width:50px;height:50px;object-fit:contain;margin:0 auto;">
-                            <div style="font-size:0.8em;font-weight:bold;height:35px;overflow:hidden;margin-top:5px;">{name}</div>
-                            <div style="font-size:0.7em;color:#76ff03;">{eff_text}</div>
-                            <div style="color:#ffd600;font-size:0.85em;font-weight:bold;">{icon_buy} {info.get('price', 0)}</div>
+                            
+                            <div style="font-size:0.9em;font-weight:bold;margin-top:5px;color:#f1c40f;">{name}</div>
+                            
+                            <div class="item-desc">{description}</div>
+                            
+                            <div style="color:#ffd600;font-size:0.9em;font-weight:bold;">{icon_buy} {info.get('price', 0)}</div>
                         </div>
                     """, unsafe_allow_html=True)
 
@@ -3378,15 +3480,19 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                 if "Rương" in item_name or "ruong" in item_name.lower() or "GACHA" in item_type: 
                     item_type = "GACHA_BOX"
                 # ------------------------------
-
+                description = item_info.get('desc', 'Vật phẩm')
                 with cols_kho[i % 4]:
                     st.markdown(f"""
-                        <div style="background:#3e2723; border:2px solid #8d6e63; border-radius:10px; padding:10px; text-align:center; position:relative; height: 160px; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div style="background:#3e2723; border:2px solid #8d6e63; border-radius:10px; padding:10px; text-align:center; position:relative; height: 200px; display: flex; flex-direction: column; justify-content: space-between;">
                             <div style="position:absolute; top:5px; right:5px; background:#e74c3c; color:white; border-radius:50%; width:25px; height:25px; line-height:25px; font-weight:bold; font-size:12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">{count}</div>
+                            
                             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
                                 <img src="{img_url}" style="width:60px; height:60px; object-fit:contain;">
                             </div>
-                            <div style="font-weight:bold; color:#f1c40f; font-size:13px; margin-top: 5px; height:36px; overflow:hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">{item_name}</div>
+                            
+                            <div style="font-weight:bold; color:#f1c40f; font-size:13px; margin-top: 5px;">{item_name}</div>
+                            
+                            <div class="item-desc" style="font-size:11px; min-height:30px;">{description}</div>
                         </div>
                     """, unsafe_allow_html=True)
                     
