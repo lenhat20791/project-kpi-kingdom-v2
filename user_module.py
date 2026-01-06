@@ -397,33 +397,75 @@ def get_fallback_icon(name):
 # ==============================================================================
 def hien_thi_cho_den(current_user_id, save_data_func):
     """
-    [SYNC FIX] Chợ Đen với tính năng Đồng bộ dữ liệu trực tiếp từ Sheet.
-    - Tab 2 có nút 'Đồng bộ' để tải lại kho đồ mới nhất từ Google Sheet.
-    - Fix lỗi không hiển thị vật phẩm do dữ liệu cũ trong Cache.
+    [FIXED VISUAL] Chợ Đen hoàn thiện:
+    1. Tự động tải Shop Config để dịch ID "1" -> Tên & Ảnh thật.
+    2. Đồng bộ kho đồ tự động.
     """
     import uuid
     from datetime import datetime
     import streamlit as st
+    import json
     
-    # 1. Tải dữ liệu
+    # 1. Tải dữ liệu thị trường
     market_data = load_market()
     user_data = st.session_state.data.get(current_user_id, {})
     
     # =================================================================================
-    # 🔗 LẤY TỪ ĐIỂN VẬT PHẨM TỪ SHOP CONFIG
+    # 🔄 1. TỰ ĐỘNG TẢI DỮ LIỆU SHOP (Để có từ điển tra cứu Tên/Ảnh)
+    # =================================================================================
+    if 'shop_config' not in st.session_state or not st.session_state.shop_config:
+        try:
+            # Spinner ẩn hoặc hiển thị nhẹ
+            with st.spinner("📦 Đang tải danh mục vật phẩm..."):
+                from user_module import get_gspread_client
+                client = get_gspread_client()
+                
+                # Kết nối Sheet
+                secrets_gcp = st.secrets.get("gcp_service_account", {})
+                if "spreadsheet_id" in secrets_gcp: sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+                else: sh = client.openall()[0]
+                
+                # Tìm tab Shop
+                wks_shop = None
+                for name in ["Shop", "shop", "Cửa hàng", "Items"]:
+                    try: wks_shop = sh.worksheet(name); break
+                    except: continue
+                
+                if wks_shop:
+                    st.session_state.shop_config = wks_shop.get_all_records()
+                    # print("Đã tải shop_config cho User") # Debug
+                else:
+                    st.session_state.shop_config = []
+        except Exception as e:
+            print(f"Lỗi tải Shop Config: {e}")
+            st.session_state.shop_config = []
+
+    # =================================================================================
+    # 🔍 2. HÀM TRA CỨU THÔNG TIN VẬT PHẨM (Map ID -> Name/Image)
     # =================================================================================
     def get_item_info(raw_id):
-        raw_id = str(raw_id).strip()
-        shop_items = st.session_state.get('shop_items', {})
+        target_id = str(raw_id).strip()
         
-        if raw_id in shop_items:
-            item_data = shop_items[raw_id]
-            name = item_data.get('name', raw_id)
-            # Lấy ảnh: ưu tiên image_url > image > img
-            img = item_data.get('image_url') or item_data.get('image') or item_data.get('img')
-            return name, img
+        # Tìm trong Shop Config vừa tải
+        shop_list = st.session_state.get('shop_config', [])
+        for item in shop_list:
+            # Check các cột ID có thể có
+            sid = str(item.get('ID') or item.get('id') or item.get('Item_ID') or '')
             
-        return raw_id.upper(), None 
+            if sid == target_id:
+                # Tìm thấy! Lấy tên và ảnh
+                name = item.get('Name') or item.get('name') or item.get('Item_Name') or target_id
+                
+                # Lấy ảnh: ưu tiên image_url > image > img
+                img = item.get('image_url') or item.get('image') or item.get('img')
+                # Nếu ảnh rỗng, thử link mặc định rương nếu tên có chữ 'Rương'
+                if not img and "Rương" in name:
+                    img = "https://cdn-icons-png.flaticon.com/512/9336/9336056.png"
+                    
+                return name, img
+                
+        # Nếu không tìm thấy trong Shop, trả về ID gốc và không ảnh
+        return target_id, None 
 
     # =================================================================================
 
@@ -437,20 +479,20 @@ def hien_thi_cho_den(current_user_id, save_data_func):
             transition: all 0.3s ease; overflow: hidden;
         }
         .market-card:hover { transform: translateY(-5px); border-color: #f9e2af; box-shadow: 0 10px 20px rgba(249, 226, 175, 0.15); }
-        .item-real-image { width: 100px; height: 100px; object-fit: contain; margin: 0 auto 10px auto; display: block; filter: drop-shadow(0 0 5px rgba(255,255,255,0.1)); }
-        .item-fallback-icon { font-size: 80px; text-align: center; margin-bottom: 10px; }
-        .item-title { color: #f9e2af; font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        .seller-info { color: #bac2de; font-size: 13px; text-align: center; margin-bottom: 15px; }
-        .price-badge { background: rgba(249, 226, 175, 0.1); color: #f9e2af; border: 1px solid #f9e2af; padding: 5px 20px; border-radius: 50px; font-weight: bold; font-size: 16px; }
+        .item-real-image { width: 80px; height: 80px; object-fit: contain; margin: 0 auto 10px auto; display: block; filter: drop-shadow(0 0 5px rgba(255,255,255,0.1)); }
+        .item-fallback-icon { font-size: 60px; text-align: center; margin-bottom: 10px; display: block; }
+        .item-title { color: #f9e2af; font-size: 16px; font-weight: 800; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; min-height: 40px; display: flex; align-items: center; justify-content: center;}
+        .seller-info { color: #bac2de; font-size: 12px; text-align: center; margin-bottom: 10px; }
+        .price-badge { background: rgba(249, 226, 175, 0.1); color: #f9e2af; border: 1px solid #f9e2af; padding: 5px 15px; border-radius: 50px; font-weight: bold; font-size: 14px; }
         .my-item-badge { position: absolute; top: 10px; right: 10px; background: linear-gradient(45deg, #a6da95, #8bd5ca); color: #1e1e2e; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 6px; z-index: 5; }
         </style>
     """, unsafe_allow_html=True)
 
     st.markdown("<h1 style='text-align: center; color: #f9e2af; text-shadow: 0 0 15px rgba(249,226,175,0.4);'>⚖️ THỊ TRƯỜNG CHỢ ĐEN</h1>", unsafe_allow_html=True)
     
-    tab1, tab2 = st.tabs(["🛒 SÀN GIAO DỊCH", "🎒 KHO & NIÊM YẾT"])
+    tab1, tab2 = st.tabs(["🛒 SÀN GIAO DỊCH", "🎒 KHO & TREO BÁN"])
 
-    # --- TAB 1: MUA HÀNG (Giữ nguyên logic cũ) ---
+    # --- TAB 1: MUA HÀNG ---
     with tab1:
         listings = market_data.get('listings', {})
         if not listings:
@@ -461,6 +503,8 @@ def hien_thi_cho_den(current_user_id, save_data_func):
             
             for idx, (item_id, info) in enumerate(listing_items):
                 is_mine = info['seller_id'] == current_user_id
+                
+                # [FIX] Dùng hàm tra cứu thông minh
                 raw_item_id = str(info.get('item_name', 'Unknown'))
                 display_name, real_image_url = get_item_info(raw_item_id)
                 
@@ -486,10 +530,11 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                     """, unsafe_allow_html=True)
                     
                     if is_mine:
-                        c1, c2 = st.columns([4, 1])
-                        with c1: st.button("🔒 Đang niêm yết", key=f"st_{item_id}", disabled=True, use_container_width=True)
+                        c1, c2 = st.columns([3, 1])
+                        with c1: st.button("🔒 Đang bán", key=f"st_{item_id}", disabled=True, use_container_width=True)
                         with c2:
                             if st.button("🗑️", key=f"rm_{item_id}", help="Gỡ xuống"):
+                                # Gỡ đồ: Trả ID gốc về kho
                                 current_user_data = st.session_state.data[current_user_id]
                                 if 'inventory' not in current_user_data or not isinstance(current_user_data['inventory'], list):
                                     current_user_data['inventory'] = []
@@ -502,6 +547,7 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                         if st.button(f"💸 MUA NGAY", key=f"buy_{item_id}", use_container_width=True, type="primary"):
                             price = float(info['price'])
                             if user_data.get('kpi', 0) >= price:
+                                # Giao dịch
                                 st.session_state.data[current_user_id]['kpi'] -= price
                                 seller_id = info['seller_id']
                                 if seller_id in st.session_state.data:
@@ -522,70 +568,45 @@ def hien_thi_cho_den(current_user_id, save_data_func):
 
     # --- TAB 2: TREO BÁN & KHO ĐỒ ---
     with tab2:
-        # Header + Nút Refresh
-        c_head, c_refresh = st.columns([3, 1])
-        with c_head:
-            st.markdown("### 🎒 Kho đồ & Niêm yết")
-        with c_refresh:
-            if st.button("🔄 Đồng bộ Kho", help="Bấm nút để cập nhật lại dữ liệu mới nhất nếu thấy thiếu item."):
-                # ==========================================================
-                # 🔥 LOGIC TẢI LẠI DỮ LIỆU RIÊNG CHO USER NÀY 🔥
-                # ==========================================================
-                try:
-                    with st.spinner("Đang kết nối vệ tinh..."):
-                        import json
-                        from user_module import get_gspread_client
-                        
-                        client = get_gspread_client()
-                        # Mở Sheet
-                        secrets_gcp = st.secrets.get("gcp_service_account", {})
-                        if "spreadsheet_id" in secrets_gcp: sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
-                        else: sh = client.openall()[0]
-                        
-                        # Đọc tab Players
-                        try: wks = sh.worksheet("Players")
-                        except: wks = sh.sheet1
-                        
-                        records = wks.get_all_records()
-                        
-                        # Tìm user hiện tại
-                        found = False
-                        for r in records:
-                            # Logic tìm ID giống hệt hàm load_data_from_sheets
-                            raw_uid = str(r.get('user_id') or r.get('u_id') or r.get('name', '')).strip().lower()
-                            # (Giản lược logic khử dấu để tìm nhanh, hoặc bạn copy hàm khử dấu vào đây nếu cần chính xác tuyệt đối)
-                            # Ở đây ta giả định current_user_id đã chuẩn hóa, ta so sánh tương đối
-                            
-                            if raw_uid and (raw_uid in current_user_id or current_user_id in raw_uid):
-                                # Cập nhật Inventory từ JSON
-                                try: 
-                                    new_inv = json.loads(str(r.get('inventory_json', '[]')))
-                                    if isinstance(new_inv, list):
-                                        st.session_state.data[current_user_id]['inventory'] = new_inv
-                                        st.toast("Đã đồng bộ kho đồ thành công!", icon="✅")
-                                        found = True
-                                        break
-                                except: pass
-                        
-                        if not found:
-                            st.warning("Không tìm thấy dữ liệu mới trên Cloud.")
-                        
-                        import time
-                        time.sleep(0.5)
-                        st.rerun()
-                        
-                except Exception as e:
-                    st.error(f"Lỗi đồng bộ: {e}")
-
-        # --- HIỂN THỊ KHO ĐỒ ---
-        # Lấy inventory từ session (đã có thể vừa được refresh)
-        raw_inv = st.session_state.data[current_user_id].get('inventory', [])
+        st.markdown("### 🎒 Kho đồ & Niêm yết")
         
-        # Chuẩn hóa về List
+        # [AUTO SYNC] Tự động đồng bộ kho đồ (AN TOÀN)
+        try:
+            with st.spinner("⏳ Đang đồng bộ túi đồ..."):
+                from user_module import get_gspread_client
+                client = get_gspread_client()
+                secrets_gcp = st.secrets.get("gcp_service_account", {})
+                if "spreadsheet_id" in secrets_gcp: sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+                else: sh = client.openall()[0]
+                
+                try: wks = sh.worksheet("Players")
+                except: wks = sh.sheet1
+                
+                records = wks.get_all_records()
+                target_uid = str(current_user_id).strip().lower()
+
+                for r in records:
+                    sheet_uid = str(r.get('user_id') or r.get('u_id') or r.get('name', '')).strip().lower()
+                    if sheet_uid == target_uid:
+                        raw_json = str(r.get('inventory_json', '[]'))
+                        if "'" in raw_json and '"' not in raw_json: raw_json = raw_json.replace("'", '"')
+                        try:
+                            new_inv = json.loads(raw_json)
+                            if isinstance(new_inv, list):
+                                current_inv = st.session_state.data[current_user_id].get('inventory', [])
+                                if new_inv != current_inv:
+                                    st.session_state.data[current_user_id]['inventory'] = new_inv
+                        except: pass
+                        break
+        except Exception as e:
+            pass # Silent fail
+
+        # HIỂN THỊ KHO
+        raw_inv = st.session_state.data[current_user_id].get('inventory', [])
         inventory_list = raw_inv if isinstance(raw_inv, list) else list(raw_inv.values()) if isinstance(raw_inv, dict) else []
 
         if not inventory_list:
-            st.info("Kho đồ trống. (Nếu bạn chắc chắn có đồ, hãy bấm nút 'Đồng bộ Kho' ở trên)")
+            st.info("Kho đồ trống.")
         else:
             from collections import Counter
             counts = Counter(inventory_list)
@@ -594,20 +615,21 @@ def hien_thi_cho_den(current_user_id, save_data_func):
             with c1:
                 st.write("**Vật phẩm đang có:**")
                 for item_id, count in counts.items():
+                    # [FIX] Dùng hàm tra cứu để hiện Tên và Ảnh thay vì ID
                     display_name, img_url = get_item_info(item_id)
                     
                     if img_url:
-                        icon_display = f'<img src="{img_url}" style="width:35px; height:35px; object-fit:contain; vertical-align:middle; margin-right:10px; border-radius:4px; border:1px solid #444;">'
+                        icon_display = f'<img src="{img_url}" style="width:40px; height:40px; object-fit:contain; border-radius:4px; border:1px solid #444;">'
                     else:
-                        icon_display = f'<span style="font-size: 24px; vertical-align:middle; margin-right:10px;">📦</span>'
+                        icon_display = f'<span style="font-size: 30px;">📦</span>'
                     
                     st.markdown(f"""
-                    <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #45475a; display: flex; align-items: center; justify-content: space-between;">
-                        <div style="display: flex; align-items: center;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #45475a; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
                             {icon_display}
                             <div>
-                                <b style="color: #e0e0e0; font-size: 15px;">{display_name}</b><br>
-                                <span style="font-size: 11px; color: #888;">ID: {item_id}</span>
+                                <b style="color: #e0e0e0; font-size: 14px;">{display_name}</b><br>
+                                <span style="font-size: 10px; color: #888;">ID: {item_id}</span>
                             </div>
                         </div>
                         <span style="background: #313244; color: #a6adc8; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: bold;">x{count}</span>
@@ -618,12 +640,18 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                 with st.container(border=True):
                     st.write("**Treo bán mới:**")
                     
+                    # [FIX] Selectbox hiển thị tên đẹp
                     selected_id = st.selectbox(
                         "Chọn đồ:", 
                         list(counts.keys()), 
                         format_func=lambda x: get_item_info(x)[0], 
                         key="mk_sel"
                     )
+                    
+                    # Hiển thị ảnh preview khi chọn
+                    _, preview_img = get_item_info(selected_id)
+                    if preview_img:
+                        st.image(preview_img, width=50)
                     
                     price = st.number_input("Giá (KPI):", 1.0, 1000.0, step=0.5, key="mk_pr")
                     st.caption(f"Nhận về: {price*0.9:.1f} KPI (Phí 10%)")
@@ -649,7 +677,7 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                         
                         st.toast("Đã đăng bán!", icon="✅")
                         st.rerun()
-
+                        
 def generate_username(text):
     if not isinstance(text, str):
         return "user"
