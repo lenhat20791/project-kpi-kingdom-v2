@@ -976,66 +976,86 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
 
 def tinh_atk_tong_hop(user_info):
     """
-    ATK = (Level * 5) + (Tổng điểm các bài kiểm tra)
+    [CẬP NHẬT] Công thức cân bằng: 
+    ATK = (Tổng điểm * 1.5) + (Level * 1.2) + Bonus
     """
     level = user_info.get('level', 1)
-    # Tổng điểm các bài kiểm tra
+    
+    # Tổng điểm các bài kiểm tra (Hệ số 1.5)
     diem_kt = (
         user_info.get('KTTX', 0) + 
         user_info.get('KT Sản phẩm', 0) + 
         user_info.get('KT Giữa kỳ', 0) + 
         user_info.get('KT Cuối kỳ', 0)
     )
-    atk_tong = (level * 5) + diem_kt
-    return atk_tong
+    
+    # Bonus vĩnh viễn từ các nguồn khác (Item, Thuốc...)
+    bonus_atk = user_info.get('bonus_stats', {}).get('atk', 0)
+    
+    # === CÔNG THỨC CHỐT ===
+    # Điểm thi là nòng cốt (nhân 1.5)
+    # Level là bổ trợ (nhân 1.2)
+    atk_tong = (diem_kt * 1.5) + (level * 1.2) + bonus_atk
+    
+    return round(atk_tong, 1)
+
 
 def check_up_level(user_id):
     """
-    Công thức: Level tiếp theo cần (Level hiện tại * 100) EXP.
-    Tự động tăng chỉ số HP và ATK khi lên cấp.
+    [CẬP NHẬT] Cơ chế Level Up:
+    - Công thức: 70 + (Level * 15)
+    - Cơ chế: Tiêu hao EXP (Cộng dồn phần dư)
     """
-    if user_id not in st.session_state.data:
-        return
-
+    # Kiểm tra an toàn dữ liệu
+    if user_id not in st.session_state.data: return
     user = st.session_state.data[user_id]
+    
     current_lvl = user.get('level', 1)
     current_exp = user.get('exp', 0)
     
-    # Tính EXP cần thiết để lên cấp tiếp theo
-    exp_required = current_lvl * 100
+    # === CÔNG THỨC EXP CHỐT ===
+    # Lv 1 cần 85, Lv 10 cần 220...
+    exp_required = 70 + (current_lvl * 15)
     
+    # Kiểm tra lên cấp (Dùng vòng lặp while để xử lý trường hợp lên nhiều cấp 1 lúc)
     if current_exp >= exp_required:
-        # 1. Nâng cấp độ và trừ EXP
+        # 1. Trừ EXP tiêu hao và Tăng cấp
         user['level'] += 1
         user['exp'] = round(current_exp - exp_required, 2)
         
-        # 2. Cập nhật chỉ số Máu (HP) - Đổi max_hp thành hp_max cho khớp hàm Save Sheets
-        # Công thức của bạn: Máu tăng theo KPI và Level
+        # 2. Cập nhật Máu tối đa (HP Max)
+        # Công thức: KPI + (Level * 20) -> Giúp trâu hơn khi level cao
         current_kpi = user.get('kpi', 0.0)
         user['hp_max'] = int(current_kpi + (user['level'] * 20))
-        user['hp'] = user['hp_max'] # Hồi đầy máu khi lên cấp [cite: 17]
+        user['hp'] = user['hp_max'] # Hồi đầy máu ngay lập tức
         
-        # 3. Cập nhật chỉ số Tấn công (ATK) vĩnh viễn
-        # Giả sử mỗi cấp tăng thêm 5 ATK cơ bản
-        if 'bonus_stats' not in user:
+        # 3. Cộng chỉ số Bonus ẩn (Hoa lá cành)
+        # Mỗi cấp tặng thêm 0.2 ATK vĩnh viễn (nhỏ thôi vì đã có công thức Level * 1.2 rồi)
+        if 'bonus_stats' not in user: 
             user['bonus_stats'] = {"hp": 0, "atk": 0}
-        user['bonus_stats']['atk'] = user['bonus_stats'].get('atk', 0) + 5
         
-        # Thông báo hiệu ứng
-        st.toast(f"🎊 CHÚC MỪNG! Bạn đã đạt LEVEL {user['level']}!", icon="🔥")
+        user['bonus_stats']['atk'] = round(user['bonus_stats'].get('atk', 0) + 0.2, 1)
         
-        # 4. Đệ quy để kiểm tra nếu đủ EXP lên nhiều cấp liên tục
+        # Thông báo
+        st.toast(f"🎉 THĂNG CẤP! Bạn đã đạt Level {user['level']}!", icon="🆙")
+        
+        # 4. Đệ quy: Gọi lại chính nó để kiểm tra xem phần dư còn đủ lên cấp tiếp không
         check_up_level(user_id)
+
         
 def tinh_chi_so_chien_dau(level):
     """
-    Tính toán HP và ATK dựa trên Level. 
-    Công thức này độc lập hoàn toàn với KPI.
+    Tính toán HP và ATK dựa trên Level (Chỉ dùng cho hiển thị sơ bộ). 
+    Lưu ý: ATK thực tế nên dùng hàm tinh_atk_tong_hop.
     """
+    # HP Max = 100 + (Level * 20)
     hp_toi_da = 100 + (level * 20)
-    atk_co_ban = 10 + (level * 2)
+    
+    # ATK Cơ bản từ Level (Hệ số 1.2)
+    # Cộng thêm 10 khởi điểm để Newbie không bị yếu quá
+    atk_co_ban = 10 + (level * 1.2)
+    
     return hp_toi_da, atk_co_ban
-
 # Cách sử dụng trong giao diện:
 # level_hien_tai = player.get("level", 1)
 # max_hp, current_atk = tinh_chi_so_chien_dau(level_hien_tai)
@@ -2567,9 +2587,12 @@ import streamlit as st
 import pandas as pd
 
 def hien_thi_chi_so_chi_tiet(user_id):
+    # Đảm bảo import thư viện cần thiết
+    import pandas as pd 
+    
     user_info = st.session_state.data[user_id]
     
-    # === 🟢 BƯỚC 0: CHÈN LOGIC DỊCH CẤP BẬC (GIỮ NGUYÊN) ===
+    # === 🟢 BƯỚC 0: LOGIC DỊCH CẤP BẬC (GIỮ NGUYÊN) ===
     role_map = {
         "u1": "Tổ trưởng",
         "u2": "Tổ phó", 
@@ -2579,20 +2602,23 @@ def hien_thi_chi_so_chi_tiet(user_id):
     raw_role = str(user_info.get('role', 'u3')).lower()
     role_name = role_map.get(raw_role, "Học sĩ")
     
-    # --- 1. LOGIC TÍNH TOÁN (GIỮ NGUYÊN) ---
-    raw_exp = user_info.get('exp', 0)
-    try:
-        current_exp = float(raw_exp)
-        if current_exp != current_exp: current_exp = 0 
-    except:
-        current_exp = 0
+    # --- 1. LOGIC TÍNH TOÁN EXP & LEVEL (CẬP NHẬT MỚI) ---
+    current_level = user_info.get('level', 1)
+    current_exp = user_info.get('exp', 0)
     
-    current_level = int(current_exp // 100) 
-    if current_level < 1: current_level = 1 
+    # Công thức EXP yêu cầu: 70 + (Level * 15)
+    exp_required = 70 + (current_level * 15)
     
-    exp_in_level = current_exp % 100
-    progress_pct = exp_in_level / 100
+    # Tính % Tiến trình
+    if exp_required > 0:
+        progress_pct = current_exp / exp_required
+    else:
+        progress_pct = 0
     
+    # Giới hạn max 100% (đề phòng hiển thị lỗi trước khi check_level chạy)
+    if progress_pct > 1.0: progress_pct = 1.0
+    
+    # Lấy KPI
     raw_kpi = user_info.get('kpi', 0)
     try:
         base_kpi = float(raw_kpi)
@@ -2600,17 +2626,20 @@ def hien_thi_chi_so_chi_tiet(user_id):
     except:
         base_kpi = 0
 
-    # Giả định ATK
+    # --- TÍNH TOÁN ATK & HP (CẬP NHẬT MỚI) ---
+    # Gọi hàm tính ATK chuẩn xác (Hàm này bạn đã chốt ở trên)
     try:
-        # Nếu bạn có hàm tinh_atk_tong_hop thì gọi ở đây
-        # atk = tinh_atk_tong_hop(user_info)
-        atk = 10 
-    except:
-        atk = 10
+        # Giả định hàm tinh_atk_tong_hop đã được định nghĩa trong cùng module
+        atk = tinh_atk_tong_hop(user_info)
+    except NameError:
+        # Fallback nếu chưa import hàm
+        atk = (base_kpi * 1.5) + (current_level * 1.2) 
+        atk = round(atk, 1)
         
-    hp_current = base_kpi + (current_level * 20)
+    # HP hiện tại (Lấy từ DB hoặc tính theo công thức Level nếu chưa có)
+    hp_current = user_info.get('hp', int(base_kpi + (current_level * 20)))
 
-    # --- 2. GIAO DIỆN HIỂN THỊ CHÍNH (GIỮ NGUYÊN) ---
+    # --- 2. GIAO DIỆN HIỂN THỊ CHÍNH (UPDATE EXP BAR) ---
     col_img, col_info = st.columns([1, 2])
     
     with col_img:
@@ -2620,11 +2649,15 @@ def hien_thi_chi_so_chi_tiet(user_id):
         st.markdown(f"<h1 style='margin-bottom:0px;'>⚔️ {user_info.get('name', 'HỌC SĨ').upper()}</h1>", unsafe_allow_html=True)
         st.markdown(f"<p style='color:#f39c12; font-size:1.2em; font-weight:bold; margin-top:0px;'>🚩 Tổ đội: {user_info.get('team', 'Chưa phân tổ')}</p>", unsafe_allow_html=True)
         st.markdown(f"<p style='font-size:1.1em; font-weight:bold; margin-top:5px;'>🔰 Cấp bậc: <span style='color:#3498db'>{role_name}</span></p>", unsafe_allow_html=True)
-        st.markdown(f"❤️ **SINH MỆNH (HP):** <span style='color:#ff4b4b; font-size:1.2em; font-weight:bold;'>{hp_current}</span>", unsafe_allow_html=True)
+        st.markdown(f"❤️ **SINH MỆNH (HP):** <span style='color:#ff4b4b; font-size:1.2em; font-weight:bold;'>{hp_current} / {user_info.get('hp_max', hp_current)}</span>", unsafe_allow_html=True)
         st.markdown(f"⚔️ **CHIẾN LỰC (ATK):** <span style='color:#f1c40f; font-size:1.2em; font-weight:bold;'>{atk}</span>", unsafe_allow_html=True)
         
         st.write("") 
-        st.markdown(f"✨ **CẤP ĐỘ: {current_level}** <span style='float:right; color:#3498db; font-weight:bold;'>{exp_in_level} / 100 EXP</span>", unsafe_allow_html=True)
+        
+        # [CẬP NHẬT] Hiển thị số EXP thực tế / Yêu cầu
+        st.markdown(f"✨ **CẤP ĐỘ: {current_level}** <span style='float:right; color:#3498db; font-weight:bold;'>{int(current_exp)} / {exp_required} EXP</span>", unsafe_allow_html=True)
+        
+        # [CẬP NHẬT] Thanh Progress Bar chạy theo % mới
         st.markdown(f"""
             <div style="width: 100%; background-color: #dfe6e9; border-radius: 15px; padding: 4px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);">
                 <div style="width: {progress_pct*100}%; 
@@ -2637,7 +2670,7 @@ def hien_thi_chi_so_chi_tiet(user_id):
             </div>
         """, unsafe_allow_html=True)
         
-        # Best Time
+        # Best Time (Giữ nguyên)
         st.write("")
         best_times = user_info.get('best_time', {})
         if best_times:
@@ -2648,11 +2681,11 @@ def hien_thi_chi_so_chi_tiet(user_id):
                 with record_cols[idx % 3]:
                     st.markdown(f"<span style='font-size:12px; border:1px solid #ddd; padding:2px 5px; border-radius:5px;'>{mapping_names.get(l_id, l_id)}: <b>{time_val}s</b></span>", unsafe_allow_html=True)
 
-    # --- 3. BẢNG THÔNG SỐ & LOG GIÁM SÁT (PHẦN CẬP NHẬT) ---
+    # --- 3. BẢNG THÔNG SỐ & LOG GIÁM SÁT (GIỮ NGUYÊN) ---
     st.write("---")
     st.markdown("##### 📊 TÀI SẢN & THÀNH TÍCH")
     
-    # === HÀNG 1: TIỀN TỆ & KPI (GIỮ NGUYÊN) ===
+    # === HÀNG 1: TIỀN TỆ & KPI ===
     cols_1 = st.columns(5)
     badges_row_1 = [
         ("🏆 KPI Tổng", base_kpi, "#e74c3c"),        
@@ -2671,52 +2704,37 @@ def hien_thi_chi_so_chi_tiet(user_id):
                 </div>
             """, unsafe_allow_html=True)
 
-    # === HÀNG 2: NHẬT KÝ ĐIỂM SỐ & VI PHẠM (PHIÊN BẢN NÂNG CẤP GIAO DIỆN) ===
+    # === HÀNG 2: NHẬT KÝ ĐIỂM SỐ ===
     st.write("") 
     st.write("") 
     st.markdown("##### 📜 NHẬT KÝ ĐIỂM SỐ")
     st.caption("Danh sách chi tiết các lần cộng/trừ điểm. Hãy kiểm tra kỹ để đảm bảo quyền lợi.")
 
-    # Lấy dữ liệu log từ user_info
     logs = user_info.get('history_log', [])
 
     if logs:
-        # 1. Tạo DataFrame
         df_log = pd.DataFrame(logs)
-        
-        # 2. Xử lý dữ liệu
         if 'date' in df_log.columns:
             df_log['date'] = pd.to_datetime(df_log['date'])
             df_log = df_log.sort_values(by='date', ascending=False)
-            # Format lại thành chuỗi (String) để hiển thị đẹp
             df_log['date'] = df_log['date'].dt.strftime('%d/%m/%Y %H:%M')
 
-        # 3. [QUAN TRỌNG] TẠO STYLER ĐỂ CHỈNH MÀU VÀ CỠ CHỮ
-        # - font-size: 16px (To hơn bình thường)
-        # - font-weight: bold (In đậm)
-        # - color: black (Màu đen tuyệt đối)
         styled_df = df_log.style.set_properties(**{
             'font-size': '16px',
             'font-weight': 'bold', 
             'color': '#000000',
-            'background-color': '#ffffff', # Nền trắng cho dễ đọc
+            'background-color': '#ffffff',
             'border-color': '#dcdcdc'
         })
 
-        # 4. Hiển thị bảng với cấu hình cột
         st.dataframe(
-            styled_df, # Truyền vào bảng đã style thay vì df_log thô
+            styled_df,
             column_config={
                 "date": st.column_config.TextColumn("📅 Thời gian", width="medium"),
                 "category": st.column_config.TextColumn("📂 Phân loại", width="small"),
                 "item": st.column_config.TextColumn("📝 Nội dung chi tiết", width="large"),
-                "score": st.column_config.NumberColumn(
-                    "Điểm",
-                    format="%.1f",
-                    help="Điểm cộng (dương) hoặc phạt (âm)",
-                    width="small"
-                ),
-                "note": st.column_config.TextColumn("💬 Ghi chú của Tổ trưởng", width="medium")
+                "score": st.column_config.NumberColumn("Điểm", format="%.1f", width="small"),
+                "note": st.column_config.TextColumn("💬 Ghi chú", width="medium")
             },
             use_container_width=True,
             hide_index=True,
@@ -2724,7 +2742,6 @@ def hien_thi_chi_so_chi_tiet(user_id):
         )
     else:
         st.info("📭 Chưa có dữ liệu ghi nhận nào trong sổ nhật ký.")
-
 # --- 1. QUẢN LÝ NHÂN SỰ (ONLY U1) ---
 def hien_thi_nhan_su_to(user_id, my_team, save_data_func):
     st.subheader(f"👥 QUẢN TRỊ NỘI BỘ: {my_team}")
