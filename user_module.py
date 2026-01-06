@@ -396,21 +396,43 @@ def get_fallback_icon(name):
 # GIAO DIỆN CHỢ ĐEN (DARK RPG STYLE)
 # ==============================================================================
 def hien_thi_cho_den(current_user_id, save_data_func):
-    # Import thư viện cần thiết ngay trong hàm
+    """
+    [OPTIMIZED FIX] Hiển thị Chợ Đen sử dụng dữ liệu Shop đã tải sẵn.
+    - Không cần load lại từ Sheet (tiết kiệm quota).
+    - Lấy thông tin Tên/Ảnh trực tiếp từ st.session_state.shop_items.
+    """
     import uuid
     from datetime import datetime
     
-    # 1. Tải dữ liệu từ Cloud (có Cache)
+    # 1. Tải dữ liệu
     market_data = load_market()
     user_data = st.session_state.data.get(current_user_id, {})
     
-    # Giả định hàm lấy map ảnh đã có trong user_module (hoặc định nghĩa tạm ở đây)
-    try:
-        item_image_map = get_item_image_map() 
-    except:
-        item_image_map = {} # Fallback nếu hàm chưa tồn tại
+    # =================================================================================
+    # 🔗 LẤY TỪ ĐIỂN VẬT PHẨM TỪ DỮ LIỆU ĐÃ LOAD (st.session_state.shop_items)
+    # =================================================================================
+    
+    # Hàm tra cứu thông minh
+    def get_item_info(raw_id):
+        raw_id = str(raw_id).strip()
+        
+        # 1. Tìm trong danh sách Shop đã tải từ hàm load_data_from_sheets
+        shop_items = st.session_state.get('shop_items', {})
+        
+        if raw_id in shop_items:
+            item_data = shop_items[raw_id]
+            # Ưu tiên lấy tên và ảnh từ config shop
+            name = item_data.get('name', raw_id)
+            # Lấy ảnh: ưu tiên 'image_url', nếu không có thì thử 'img', 'icon'...
+            img = item_data.get('image_url') or item_data.get('image') or item_data.get('img')
+            return name, img
+            
+        # 2. Fallback: Nếu không tìm thấy, trả về ID gốc
+        return raw_id.upper(), None 
 
-    # --- 2. CSS (Giữ nguyên giao diện đẹp của bạn) ---
+    # =================================================================================
+
+    # --- CSS GIAO DIỆN (Giữ nguyên) ---
     st.markdown("""
         <style>
         .market-card {
@@ -420,9 +442,9 @@ def hien_thi_cho_den(current_user_id, save_data_func):
             transition: all 0.3s ease; overflow: hidden;
         }
         .market-card:hover { transform: translateY(-5px); border-color: #f9e2af; box-shadow: 0 10px 20px rgba(249, 226, 175, 0.15); }
-        .item-real-image { width: 100px; height: 100px; object-fit: contain; border-radius: 10px; margin: 0 auto 10px auto; display: block; background-color: rgba(255,255,255,0.05); padding: 5px; border: 1px dashed #585b70; }
-        .item-fallback-icon { font-size: 80px; text-align: center; margin-bottom: 10px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
-        .item-title { color: #cdd6f4; font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .item-real-image { width: 100px; height: 100px; object-fit: contain; margin: 0 auto 10px auto; display: block; filter: drop-shadow(0 0 5px rgba(255,255,255,0.1)); }
+        .item-fallback-icon { font-size: 80px; text-align: center; margin-bottom: 10px; }
+        .item-title { color: #f9e2af; font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
         .seller-info { color: #bac2de; font-size: 13px; text-align: center; margin-bottom: 15px; }
         .price-badge { background: rgba(249, 226, 175, 0.1); color: #f9e2af; border: 1px solid #f9e2af; padding: 5px 20px; border-radius: 50px; font-weight: bold; font-size: 16px; }
         .my-item-badge { position: absolute; top: 10px; right: 10px; background: linear-gradient(45deg, #a6da95, #8bd5ca); color: #1e1e2e; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 6px; z-index: 5; }
@@ -431,7 +453,7 @@ def hien_thi_cho_den(current_user_id, save_data_func):
 
     st.markdown("<h1 style='text-align: center; color: #f9e2af; text-shadow: 0 0 15px rgba(249,226,175,0.4);'>⚖️ THỊ TRƯỜNG CHỢ ĐEN</h1>", unsafe_allow_html=True)
     
-    tab1, tab2 = st.tabs(["🛒 SÀN GIAO DỊCH", "🎒 KHO & NIÊM YẾT"])
+    tab1, tab2 = st.tabs(["🛒 SÀN GIAO DỊCH", "🎒 KHO & TREO BÁN"])
 
     # --- TAB 1: MUA HÀNG ---
     with tab1:
@@ -441,26 +463,20 @@ def hien_thi_cho_den(current_user_id, save_data_func):
             st.markdown("""<div style="text-align: center; padding: 50px; opacity: 0.5;"><div style="font-size: 60px;">🕸️</div><h3>Chưa có ai bán gì cả...</h3></div>""", unsafe_allow_html=True)
         else:
             cols = st.columns(2) 
-            # Chuyển listings thành list để enumerate dễ dàng
             listing_items = list(listings.items())
             
             for idx, (item_id, info) in enumerate(listing_items):
                 is_mine = info['seller_id'] == current_user_id
-                item_name = info.get('item_name', 'Vật phẩm')
                 
-                # --- XỬ LÝ ẢNH ---
-                real_image_url = item_image_map.get(item_name)
+                # [FIX] Lấy tên hiển thị và ảnh từ Shop Config
+                raw_item_id = str(info.get('item_name', 'Unknown'))
+                display_name, real_image_url = get_item_info(raw_item_id)
                 
+                # Xử lý hiển thị ảnh
                 if real_image_url:
-                    image_html = f'<img src="{real_image_url}" class="item-real-image" alt="{item_name}">'
+                    image_html = f'<img src="{real_image_url}" class="item-real-image">'
                 else:
-                    # Fallback icon đơn giản nếu chưa có hàm get_fallback_icon
-                    try:
-                        fallback = get_fallback_icon(item_name)
-                    except:
-                        fallback = "📦"
-                    image_html = f'<div class="item-fallback-icon">{fallback}</div>'
-                # -----------------
+                    image_html = f'<div class="item-fallback-icon">📦</div>'
 
                 with cols[idx % 2]:
                     seller_name = st.session_state.data.get(info['seller_id'], {}).get('name', 'Ẩn danh')
@@ -470,7 +486,7 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                         <div class="market-card">
                             {mine_tag}
                             {image_html}
-                            <div class="item-title">{item_name}</div>
+                            <div class="item-title">{display_name}</div>
                             <div class="seller-info">Người bán: {seller_name}</div>
                             <div style="display: flex; justify-content: center;">
                                 <div class="price-badge">💎 {info['price']} KPI</div>
@@ -478,18 +494,19 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                         </div>
                     """, unsafe_allow_html=True)
                     
-                    # Nút bấm
+                    # Nút thao tác
                     if is_mine:
                         c1, c2 = st.columns([4, 1])
                         with c1: st.button("🔒 Đang niêm yết", key=f"st_{item_id}", disabled=True, use_container_width=True)
                         with c2:
                             if st.button("🗑️", key=f"rm_{item_id}", help="Gỡ xuống"):
-                                # Trả đồ về kho
-                                st.session_state.data[current_user_id].setdefault('inventory', []).append(item_name)
-                                # Xóa listing
+                                # Gỡ đồ: Trả ID gốc về kho
+                                current_user_data = st.session_state.data[current_user_id]
+                                if 'inventory' not in current_user_data or not isinstance(current_user_data['inventory'], list):
+                                    current_user_data['inventory'] = []
+                                current_user_data['inventory'].append(raw_item_id) # Trả lại ID gốc
+
                                 del market_data['listings'][item_id]
-                                
-                                # LƯU ĐỒNG BỘ CLOUD
                                 save_market(market_data)
                                 save_data_func(st.session_state.data)
                                 st.rerun()
@@ -497,19 +514,19 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                         if st.button(f"💸 MUA NGAY", key=f"buy_{item_id}", use_container_width=True, type="primary"):
                             price = float(info['price'])
                             if user_data.get('kpi', 0) >= price:
-                                # 1. Trừ tiền người mua
+                                # Trừ tiền & Cộng tiền
                                 st.session_state.data[current_user_id]['kpi'] -= price
-                                
-                                # 2. Cộng tiền người bán (90%)
                                 seller_id = info['seller_id']
                                 if seller_id in st.session_state.data:
                                     st.session_state.data[seller_id]['kpi'] += (price * 0.9)
                                 
-                                # 3. Chuyển đồ
-                                st.session_state.data[current_user_id].setdefault('inventory', []).append(item_name)
-                                del market_data['listings'][item_id]
+                                # Chuyển đồ (Lưu ID gốc vào kho người mua)
+                                buyer_data = st.session_state.data[current_user_id]
+                                if 'inventory' not in buyer_data or not isinstance(buyer_data['inventory'], list):
+                                    buyer_data['inventory'] = []
+                                buyer_data['inventory'].append(raw_item_id)
                                 
-                                # 4. LƯU ĐỒNG BỘ CLOUD (Cả Market và Player Data)
+                                del market_data['listings'][item_id]
                                 save_market(market_data)
                                 save_data_func(st.session_state.data)
                                 
@@ -521,40 +538,36 @@ def hien_thi_cho_den(current_user_id, save_data_func):
     # --- TAB 2: TREO BÁN ---
     with tab2:
         st.markdown("### 🎒 Kho đồ & Niêm yết")
-        # Xử lý inventory: hỗ trợ cả List và Dict
         raw_inv = user_data.get('inventory', [])
-        inventory_list = []
-        if isinstance(raw_inv, list):
-            inventory_list = raw_inv
-        elif isinstance(raw_inv, dict):
-            inventory_list = list(raw_inv.values())
+        inventory_list = raw_inv if isinstance(raw_inv, list) else list(raw_inv.values()) if isinstance(raw_inv, dict) else []
 
         if not inventory_list:
             st.info("Kho đồ trống.")
         else:
             from collections import Counter
+            # Đếm số lượng theo ID gốc
             counts = Counter(inventory_list)
             
             c1, c2 = st.columns([1.5, 1])
             with c1:
                 st.write("**Vật phẩm đang có:**")
-                for item, count in counts.items():
-                    img_url = item_image_map.get(item)
+                for item_id, count in counts.items():
+                    # [FIX] Tự động tra cứu từ session_state.shop_items
+                    display_name, img_url = get_item_info(item_id)
                     
                     if img_url:
-                        icon_display = f'<img src="{img_url}" style="width:30px; height:30px; object-fit:contain; vertical-align:middle; margin-right:10px; border-radius:4px;">'
+                        icon_display = f'<img src="{img_url}" style="width:35px; height:35px; object-fit:contain; vertical-align:middle; margin-right:10px; border-radius:4px; border:1px solid #444;">'
                     else:
-                        try:
-                            fallback = get_fallback_icon(item)
-                        except:
-                            fallback = "📦"
-                        icon_display = f'<span style="font-size: 24px; vertical-align:middle; margin-right:10px;">{fallback}</span>'
+                        icon_display = f'<span style="font-size: 24px; vertical-align:middle; margin-right:10px;">📦</span>'
                     
                     st.markdown(f"""
                     <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #45475a; display: flex; align-items: center; justify-content: space-between;">
                         <div style="display: flex; align-items: center;">
                             {icon_display}
-                            <b style="color: #e0e0e0; font-size: 15px;">{item}</b>
+                            <div>
+                                <b style="color: #e0e0e0; font-size: 15px;">{display_name}</b><br>
+                                <span style="font-size: 11px; color: #888;">ID: {item_id}</span>
+                            </div>
                         </div>
                         <span style="background: #313244; color: #a6adc8; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: bold;">x{count}</span>
                     </div>
@@ -563,26 +576,35 @@ def hien_thi_cho_den(current_user_id, save_data_func):
             with c2:
                 with st.container(border=True):
                     st.write("**Treo bán mới:**")
-                    item_to_sell = st.selectbox("Chọn đồ:", list(counts.keys()), key="mk_sel")
-                    price = st.number_input("Giá (KPI):", 1.0, 1000.0, step=0.5, key="mk_pr")
                     
+                    # [FIX] Selectbox hiển thị tên đẹp nhưng giá trị trả về là ID gốc
+                    selected_id = st.selectbox(
+                        "Chọn đồ:", 
+                        list(counts.keys()), 
+                        format_func=lambda x: get_item_info(x)[0], # Hiển thị tên đẹp
+                        key="mk_sel"
+                    )
+                    
+                    price = st.number_input("Giá (KPI):", 1.0, 1000.0, step=0.5, key="mk_pr")
                     st.caption(f"Nhận về: {price*0.9:.1f} KPI (Phí 10%)")
                     
                     if st.button("🚀 Đăng bán", use_container_width=True, type="primary"):
                         new_id = str(uuid.uuid4())[:8]
                         market_data['listings'][new_id] = {
-                            "item_name": item_to_sell,
+                            "item_name": selected_id, # Lưu ID gốc vào listing
                             "price": price,
                             "seller_id": current_user_id,
                             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         }
                         
-                        # Xóa 1 item khỏi kho (Hỗ trợ list)
-                        # Nếu dùng Dict inventory, logic sẽ phức tạp hơn chút, ở đây giả định list
-                        if item_to_sell in st.session_state.data[current_user_id].setdefault('inventory', []):
-                             st.session_state.data[current_user_id]['inventory'].remove(item_to_sell)
+                        # Trừ đồ trong kho (dựa trên ID gốc)
+                        current_user_data = st.session_state.data[current_user_id]
+                        if 'inventory' not in current_user_data or not isinstance(current_user_data['inventory'], list):
+                             current_user_data['inventory'] = []
                         
-                        # LƯU ĐỒNG BỘ CLOUD
+                        if selected_id in current_user_data['inventory']:
+                             current_user_data['inventory'].remove(selected_id)
+                        
                         save_market(market_data)
                         save_data_func(st.session_state.data)
                         
