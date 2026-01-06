@@ -691,7 +691,7 @@ def hien_thi_pho_ban(user_id, save_data_func):
                     )
             
 
-def hien_thi_sanh_pho_ban_hoc_si(user_id, save_data_func): # <--- Thêm tham số save_data_func
+def hien_thi_sanh_pho_ban_hoc_si(user_id, save_data_func):
     # Kiểm tra trạng thái trang để tắt combat nếu cần
     current_page = st.session_state.get("page", "")
     if "Phó bản" not in current_page and st.session_state.get("dang_danh_dungeon"):
@@ -846,6 +846,7 @@ def hien_thi_sanh_pho_ban_hoc_si(user_id, save_data_func): # <--- Thêm tham s�
                     on_click=start_combat_callback,
                     args=(land_id, target_phase_id)
                 )
+
 def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save_data_func, duration=None):
     """
     [FIXED] Hàm xử lý phần thưởng và mở khóa màn chơi tiếp theo.
@@ -3420,24 +3421,23 @@ import streamlit.components.v1 as components
 
 def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_func):
     """
-    [FIXED TYPE_ERROR] Phiên bản chạy ổn định:
-    1. Loại bỏ tham số 'key' trong components.html (nguyên nhân gây crash).
-    2. Fix lỗi Caching: Thêm random ID vào nội dung HTML để ép Streamlit vẽ lại đồng hồ mới.
-    3. Giữ nguyên logic săn tìm nút bấm (Aggressive Polling) để đảm bảo tự động chuyển câu.
+    [FULL FIX VERSION] 
+    1. Fix lỗi Feedback: Thêm time.sleep và thông báo rõ ràng cho người chơi.
+    2. Fix lỗi Logic: Gọi hàm xử_lý_hoàn_thành_phase để mở khóa màn chơi tiếp theo.
+    3. Fix lỗi Đồng hồ JS: Giữ nguyên logic ổn định.
     """
     
-    # 🔥 1. CẦU DAO TỰ ĐỘNG (GIỮ NGUYÊN)
+    # 🔥 1. CẦU DAO TỰ ĐỘNG
     current_page = st.session_state.get("page", "")
     if "Phó bản" not in current_page: 
         st.session_state.dang_danh_dungeon = False
-        keys_to_clean = ["dungeon_questions", "current_q_idx", "correct_count", "victory_processed"]
+        keys_to_clean = ["dungeon_questions", "current_q_idx", "correct_count", "victory_processed", "dungeon_start_time"]
         for k in keys_to_clean:
             if k in st.session_state: del st.session_state[k]
         return
 
-    # --- PHẦN 1: KHỞI TẠO DỮ LIỆU (GIỮ NGUYÊN) ---
+    # --- PHẦN 1: KHỞI TẠO DỮ LIỆU ---
     if "dungeon_questions" not in st.session_state:
-        # Load config phó bản
         p_data = dungeon_config[land_id]["phases"][p_id]
         p_num = int(p_id.split('_')[1])
         difficulty_map = {1: "easy", 2: "medium", 3: "hard", 4: "extreme"}
@@ -3446,7 +3446,6 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
         path_quiz = f"quiz_data/grade_6/{land_id}.json"
         all_quizzes = {}
         
-        # Load file câu hỏi an toàn
         if os.path.exists(path_quiz):
             try:
                 with open(path_quiz, 'r', encoding='utf-8') as f:
@@ -3454,25 +3453,23 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
             except Exception as e:
                 st.error(f"Lỗi đọc file câu hỏi: {e}")
         
-        # Lấy pool câu hỏi
         pool = all_quizzes.get(target_diff, [])
         if not pool:
             for alt in ["extreme", "hard", "medium", "easy"]:
                 pool = all_quizzes.get(alt, [])
                 if pool: break
         
-        # Normalize dữ liệu
         if pool:
             for q in pool:
                 if "answer" not in q and "correct_answer" in q:
                     q["answer"] = q["correct_answer"]
         
         if not pool: pool = [{"question": "1+1=?", "options": ["2","3"], "answer": "2"}]
-        
-        # [THÊM DÒNG NÀY] Lưu thời điểm bắt đầu làm bài
+
+        # Bắt đầu bấm giờ
         if "dungeon_start_time" not in st.session_state:
             st.session_state.dungeon_start_time = time.time()
-        # Chọn câu hỏi ngẫu nhiên
+
         num_q = p_data.get('num_questions', 5)
         st.session_state.dungeon_questions = random.sample(pool, min(len(pool), num_q)) if pool else []
         st.session_state.current_q_idx = 0
@@ -3493,19 +3490,19 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
         time_limit = p_data.get('time_limit', 15)
         
         # ==========================================================
-        # 🟢 CƠ CHẾ TIMEOUT [PHIÊN BẢN ỔN ĐỊNH]
+        # 🟢 CƠ CHẾ TIMEOUT + FEEDBACK
         # ==========================================================
-        
-        # 1. Nút Trigger (Python Side)
         trigger_label = f"TIMEOUT_TRIGGER_{idx}" 
         
-        # Logic Python nhận tín hiệu click từ JS
+        # Logic Python nhận tín hiệu Hết giờ
         if st.button(trigger_label, key=f"btn_hidden_{land_id}_{idx}"):
-            st.toast(f"⏰ HẾT GIỜ! Đáp án là: {q.get('answer', 'Unknown')}", icon="⚠️")
+            # [FIX] Hiện thông báo + Dừng hình
+            st.error(f"⏰ HẾT GIỜ! Đáp án đúng là: {q.get('answer', 'Unknown')}")
+            time.sleep(2.0) # Dừng 2s để đọc
             st.session_state.current_q_idx += 1
             st.rerun()
 
-        # 2. Giao diện & Bộ đếm JS
+        # Giao diện & Bộ đếm JS
         combat_placeholder = st.empty()
         
         with combat_placeholder.container():
@@ -3516,11 +3513,7 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
             
             # --- CỘT ĐỒNG HỒ ---
             with t_col1:
-                # [THỦ THUẬT QUAN TRỌNG] 
-                # Thêm một con số ngẫu nhiên vào HTML comment.
-                # Khi 'idx' thay đổi -> random_id thay đổi -> nội dung HTML thay đổi -> Streamlit tự động vẽ lại iframe mới.
                 random_id = random.randint(1, 1000000)
-                
                 timer_html = f"""
                 <div id="timer_display" style="font-size: 28px; font-weight: bold; color: #333; text-align: center; font-family: sans-serif; border: 2px solid #ddd; border-radius: 10px; padding: 10px; background: white;">
                     ⏳ {time_limit}
@@ -3530,47 +3523,39 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                     var timerElem = document.getElementById("timer_display");
                     var targetLabel = "{trigger_label}";
                     
-                    // Hàm săn tìm nút Trigger
                     function huntAndHideButton() {{
                         const buttons = window.parent.document.getElementsByTagName("button");
                         let found = null;
                         for (let btn of buttons) {{
                             if (btn.innerText.includes(targetLabel)) {{
                                 found = btn;
-                                btn.style.display = "none"; // Ẩn nút đi
+                                btn.style.display = "none"; 
                                 break; 
                             }}
                         }}
                         return found;
                     }}
 
-                    // 1. Chạy vòng lặp ẩn nút liên tục
-                    var hiderInterval = setInterval(() => {{
-                        huntAndHideButton();
-                    }}, 100);
+                    var hiderInterval = setInterval(() => {{ huntAndHideButton(); }}, 100);
 
-                    // 2. Bắt đầu đếm ngược
                     var countdownInterval = setInterval(() => {{
                         timeleft--;
                         if(timerElem) timerElem.innerText = "⏳ " + timeleft;
                         
-                        // Đổi màu đỏ
                         if(timeleft <= 5 && timerElem) {{
                             timerElem.style.color = "#ff4b4b"; 
                             timerElem.style.borderColor = "#ff4b4b";
                         }}
 
-                        // Hết giờ
                         if (timeleft <= 0) {{
                             clearInterval(countdownInterval);
                             clearInterval(hiderInterval);
                             if(timerElem) timerElem.innerText = "⌛ 0";
                             
-                            // Tìm và Click
                             const buttons = window.parent.document.getElementsByTagName("button");
                             for (let btn of buttons) {{
                                 if (btn.innerText.includes(targetLabel)) {{
-                                    btn.click(); // Kích hoạt sự kiện Python
+                                    btn.click(); 
                                     break;
                                 }}
                             }}
@@ -3578,10 +3563,9 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                     }}, 1000);
                 </script>
                 """
-                # [SỬA LỖI] Bỏ tham số 'key' đi vì components.html không hỗ trợ
                 components.html(timer_html, height=80)
 
-            # --- CỘT CÂU HỎI (GIỮ NGUYÊN) ---
+            # --- CỘT CÂU HỎI ---
             with t_col2:
                 st.markdown("""
                 <style>
@@ -3605,11 +3589,15 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                                     user_key = str(option).strip()[0].upper()
                                     ans_key = str(q['answer']).strip()[0].upper()
                                     
+                                    # [FIX] Logic thông báo & Sleep
                                     if user_key == ans_key:
                                         st.session_state.correct_count += 1
-                                        st.toast("🎯 CHÍNH XÁC!", icon="✅")
+                                        st.success("🎯 CHÍNH XÁC!")
+                                        time.sleep(0.5) # Đúng thì lướt nhanh
                                     else:
-                                        st.toast(f"❌ SAI! Đáp án: {q['answer']}", icon="⚠️")
+                                        # Sai thì dừng lâu để đọc đáp án
+                                        st.error(f"❌ SAI RỒI! Đáp án đúng là: {q['answer']}")
+                                        time.sleep(2.0)
                                     
                                     st.session_state.current_q_idx += 1
                                     st.rerun()
@@ -3621,30 +3609,16 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
         
         if correct >= required:
             if "victory_processed" not in st.session_state:
-                # 1. TÍNH GIỜ
+                # Tính giờ
                 start_t = st.session_state.get("dungeon_start_time", time.time())
                 duration = round(time.time() - start_t, 2)
                 
-                # 2. CẬP NHẬT KỶ LỤC (Best Time)
-                try:
-                    mon_hoc = land_id.split('_')[-1] # vd: grade_6_toan -> toan
-                except:
-                    mon_hoc = "unknown"
-
-                if 'best_time' not in st.session_state.data[user_id]:
-                    st.session_state.data[user_id]['best_time'] = {}
+                # [QUAN TRỌNG] Gọi hàm xử lý chung (Lưu Kỷ lục + Mở khóa Phase + Nhận quà)
+                # Đảm bảo hàm này (xử_lý_hoàn_thành_phase) đã được định nghĩa ở ngoài
+                xử_lý_hoàn_thành_phase(user_id, land_id, p_id, dungeon_config, save_data_func, duration)
                 
-                # Chỉ ghi đè nếu thời gian mới nhanh hơn (nhỏ hơn) thời gian cũ
-                current_record = st.session_state.data[user_id]['best_time'].get(mon_hoc, 9999)
-                if duration < current_record:
-                    st.session_state.data[user_id]['best_time'][mon_hoc] = duration
-                    st.toast(f"🏆 KỶ LỤC MỚI: {duration}s", icon="🚀")
-
-                # 3. LƯU DỮ LIỆU
-                save_data_func(st.session_state.data)
                 st.session_state.victory_processed = True
                 
-                # Xóa đồng hồ sau khi xong để tránh lỗi logic
                 if "dungeon_start_time" in st.session_state: 
                     del st.session_state["dungeon_start_time"]
             
@@ -3660,7 +3634,6 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
             c1, c2 = st.columns(2)
             with c1:
                 if st.button("🔄 THỬ LẠI", use_container_width=True):
-                    # [QUAN TRỌNG] Reset cả dungeon_start_time để bấm giờ lại từ đầu
                     keys_to_reset = ["dungeon_questions", "current_q_idx", "correct_count", "victory_processed", "dungeon_start_time"]
                     for k in keys_to_reset:
                         if k in st.session_state: del st.session_state[k]
@@ -3672,7 +3645,6 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                         if k.startswith("dungeon_") or "btn_hidden" in k:
                             del st.session_state[k]
                     st.rerun()
-
 
 def reset_dungeon_state():
     """Dọn dẹp triệt để bộ nhớ để bắt đầu trận đấu mới sạch sẽ"""
