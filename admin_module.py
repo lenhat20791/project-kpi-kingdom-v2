@@ -872,52 +872,96 @@ def admin_quan_ly_boss():
                             st.rerun()
 
     # ==========================================================================
-    # TAB 3: CẤU HÌNH RƯƠNG BÁU (BẢN FINAL: FIX TÌM ĐỒ + GHI THẲNG SHEET)
+    # TAB 3: CẤU HÌNH RƯƠNG BÁU (BẢN FINAL: CÓ ẢNH ĐẠI DIỆN + QUÀ)
     # ==========================================================================
     with tab_chest:
-        st.subheader("🎰 Cài đặt Ruột Rương Báu")
+        st.subheader("🎰 Cài đặt Rương Báu Hệ Thống")
         
-        # --- NÚT CẬP NHẬT (Để tải lại dữ liệu mới nhất từ Sheet) ---
+        # --- NÚT CẬP NHẬT DỮ LIỆU ---
         if st.button("🔄 Cập nhật dữ liệu Shop từ Google Sheet", use_container_width=True):
             if 'shop_config' in st.session_state:
                 del st.session_state.shop_config
             st.rerun()
 
-        # --- 0. TỰ ĐỘNG TẢI DỮ LIỆU TỪ SHOP ---
+        # [LOGIC] Tự động tải shop (Giữ nguyên như code cũ của bạn)
         if 'shop_config' not in st.session_state:
             try:
-                # 1. Kết nối & Mở file
                 from user_module import get_gspread_client
                 client = get_gspread_client()
-                
-                # Mở file Spreadsheet (Thử ID -> URL -> File đầu tiên)
                 secrets_gcp = st.secrets.get("gcp_service_account", {})
-                if "spreadsheet_id" in secrets_gcp:
-                    sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
-                elif "spreadsheet_url" in secrets_gcp:
-                    sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
-                else:
-                    sh = client.openall()[0]
+                if "spreadsheet_id" in secrets_gcp: sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+                elif "spreadsheet_url" in secrets_gcp: sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
+                else: sh = client.openall()[0]
 
-                # 2. Tìm tab Shop
                 wks = None
                 for name in ["Shop", "shop", "Cửa hàng", "Items"]:
-                    try:
-                        wks = sh.worksheet(name)
-                        break
+                    try: wks = sh.worksheet(name); break
                     except: continue
                 
                 if wks:
                     st.session_state.shop_config = wks.get_all_records()
-                    st.success("✅ Đã tải danh sách vật phẩm thành công!")
+                    st.success("✅ Đã tải danh sách vật phẩm!")
                 else:
-                    st.error("⚠️ Không tìm thấy tab 'Shop' trên Google Sheet.")
                     st.session_state.shop_config = []
-                    
             except Exception as e:
                 st.session_state.shop_config = []
 
-        # --- 1. HIỂN THỊ LIST HIỆN TẠI ---
+        st.divider()
+
+        # ======================================================================
+        # 🖼️ PHẦN MỚI: CẤU HÌNH HÌNH ẢNH RƯƠNG
+        # ======================================================================
+        st.markdown("#### 🖼️ Giao diện Rương")
+        
+        c_img, c_url = st.columns([1, 3])
+        
+        # Lấy ảnh hiện tại từ config (nếu chưa có thì dùng ảnh mặc định)
+        # Ảnh mặc định là icon rương vàng rất đẹp
+        default_chest_img = "https://cdn-icons-png.flaticon.com/512/9336/9336056.png"
+        current_img = sys_config.get('chest_image', default_chest_img)
+        
+        with c_img:
+            st.image(current_img, width=100, caption="Hình hiển thị")
+            
+        with c_url:
+            new_chest_img = st.text_input("Link ảnh Rương (URL):", value=current_img)
+            
+            if st.button("💾 Lưu Ảnh Rương"):
+                # 1. Cập nhật RAM
+                sys_config['chest_image'] = new_chest_img
+                
+                # 2. Ghi vào Sheet Settings
+                try:
+                    from user_module import get_gspread_client
+                    client = get_gspread_client()
+                    secrets_gcp = st.secrets.get("gcp_service_account", {})
+                    if "spreadsheet_id" in secrets_gcp: sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+                    else: sh = client.openall()[0]
+                    
+                    wks_set = sh.worksheet("Settings")
+                    
+                    # Tìm dòng 'chest_image' để ghi đè hoặc tạo mới
+                    try:
+                        cell = wks_set.find("chest_image")
+                        if cell:
+                            wks_set.update_cell(cell.row, cell.col + 1, new_chest_img)
+                        else:
+                            wks_set.append_row(["chest_image", new_chest_img])
+                    except:
+                        wks_set.append_row(["chest_image", new_chest_img])
+                        
+                    st.success("✅ Đã lưu ảnh rương mới!")
+                    time.sleep(0.5)
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Lỗi lưu ảnh: {e}")
+
+        st.divider()
+
+        # ======================================================================
+        # 🎁 PHẦN CŨ: DANH SÁCH QUÀ (Giữ nguyên logic của bạn)
+        # ======================================================================
+        st.markdown("#### 📋 Danh sách Quà trong Rương")
         if 'chest_rewards' not in sys_config:
             sys_config['chest_rewards'] = []
             

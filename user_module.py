@@ -1317,65 +1317,175 @@ def popup_ket_qua_mo_ruong(chest_name, rewards):
 # ==============================================================================
 def xu_ly_mo_ruong(user_id, item_name, item_info, all_data, save_func):
     """
-    Xử lý mở rương: Trừ kho -> Random quà từ System Config -> Cộng quà -> Lưu.
+    [FINAL HYBRID] Xử lý mở rương Đa Năng:
+    - Loại 1 (Gacha - Shop): Dùng 'loot_table' riêng trong món đồ (Tỷ lệ độc lập).
+    - Loại 2 (Rương Báu - Settings): Dùng 'chest_rewards' từ System Config (Quay 1 món theo trọng số).
     """
+    import random
+    
     user_info = all_data[user_id]
-    sys_config = all_data.get('system_config', {})
     
-    # 1. Trừ 1 rương khỏi kho (Hỗ trợ cả List và Dict)
-    inventory = user_info.get('inventory', {})
+    # ==========================================================
+    # 1. TRỪ RƯƠNG KHỎI KHO (Xử lý an toàn cho cả List và Dict)
+    # ==========================================================
+    inventory = user_info.get('inventory', [])
     
-    # Chuyển List -> Dict nếu cần (Backward compatibility)
+    # Chuyển đổi Inventory về dạng Dict để trừ cho dễ
     if isinstance(inventory, list):
-        temp = {}
-        for i in inventory: temp[i] = temp.get(i, 0) + 1
-        inventory = temp
+        inv_dict = {}
+        for i in inventory: inv_dict[i] = inv_dict.get(i, 0) + 1
         
-    # Trừ rương
-    if inventory.get(item_name, 0) > 0:
-        inventory[item_name] -= 1
-        if inventory[item_name] <= 0:
-            del inventory[item_name]
-    
-    # Lưu lại inventory dạng Dict chuẩn
-    user_info['inventory'] = inventory
-    
-    # 2. Lấy cấu hình quà (Loot Table) từ Admin
-    rewards_pool = sys_config.get('chest_rewards', [])
-    
-    # Fallback nếu chưa có cấu hình
-    if not rewards_pool:
-        rewards_pool = [
-            {"type": "kpi", "val": 10, "rate": 50, "msg": "💰 10 KPI"},
-            {"type": "exp", "val": 50, "rate": 50, "msg": "✨ 50 EXP"}
-        ]
-    
-    # 3. Quay thưởng (Weighted Random - Chọn 1 món)
-    # Nếu bạn muốn Rương mở ra nhiều món, có thể dùng logic loop như code cũ của bạn.
-    # Ở đây tôi dùng logic "Chọn 1 món theo trọng số" (Gacha chuẩn).
-    weights = [int(r.get('rate', 1)) for r in rewards_pool]
-    
-    # Chọn ngẫu nhiên 1 phần thưởng dựa trên tỷ lệ
-    chosen = random.choices(rewards_pool, weights=weights, k=1)[0]
-    
-    # 4. Cộng quà
-    r_type = chosen['type']
-    r_val = chosen['val']
-    
-    if r_type == 'kpi':
-        user_info['kpi'] = user_info.get('kpi', 0) + int(r_val)
-    elif r_type == 'exp':
-        user_info['exp'] = user_info.get('exp', 0) + int(r_val)
-    elif r_type == 'item':
-        # Cộng item vào túi
-        iname = str(r_val)
-        inventory[iname] = inventory.get(iname, 0) + 1
+        # Trừ rương
+        if inv_dict.get(item_name, 0) > 0:
+            inv_dict[item_name] -= 1
+            if inv_dict[item_name] <= 0: del inv_dict[item_name]
+            
+        # Chuyển lại thành List để lưu
+        new_inv = []
+        for k, v in inv_dict.items(): new_inv.extend([k]*v)
+        user_info['inventory'] = new_inv
         
-    # 5. Lưu dữ liệu
+    elif isinstance(inventory, dict):
+        if inventory.get(item_name, 0) > 0:
+            inventory[item_name] -= 1
+            if inventory[item_name] <= 0: del inventory[item_name]
+        user_info['inventory'] = inventory
+
+    # ==========================================================
+    # 2. PHÂN LOẠI RƯƠNG & QUAY THƯỞNG
+    # ==========================================================
+    received_rewards = []
+    
+    # Kiểm tra xem rương này có loot_table riêng (Gacha) không?
+    loot_table = []
+    
+    # Ưu tiên lấy từ thông tin item truyền vào
+    if item_info and 'properties' in item_info:
+        loot_table = item_info['properties'].get('loot_table', [])
+    
+    # Nếu không, tìm trong shop_items toàn cục
+    if not loot_table and 'shop_items' in all_data:
+        shop_item = all_data['shop_items'].get(item_name, {})
+        loot_table = shop_item.get('properties', {}).get('loot_table', [])
+
+    # ➤ TRƯỜNG HỢP 1: RƯƠNG GACHA (ADMIN TẠO TRONG SHOP)
+    # Cơ chế: Independent Drop (Mỗi món có % rơi riêng, có thể nhận nhiều món)
+    if loot_table:
+        for loot in loot_table:
+            rate = float(loot.get('rate', 0))
+            if random.uniform(0, 100) <= rate:
+                received_rewards.append({
+                    "type": loot.get('type', 'item'),
+                    "id": loot.get('id', 'unknown'),
+                    "val": int(loot.get('amount', 1)),
+                    "msg": "" # Gacha tự sinh msg sau
+                })
+
+    # ➤ TRƯỜNG HỢP 2: RƯƠNG BÁU (CẤU HÌNH TRONG SETTINGS)
+    # Cơ chế: Weighted Random (Chỉ nhận 1 món theo tỷ lệ từ chest_rewards)
+    else:
+        sys_config = all_data.get('system_config', {})
+        # Lấy list quà từ Settings: chest_rewards
+        rewards_pool = sys_config.get('chest_rewards', [])
+        
+        # Fallback nếu chưa cấu hình
+        if not rewards_pool:
+            rewards_pool = [
+                {"type": "kpi", "val": 10, "rate": 50, "msg": "💰 10 KPI (Mặc định)"},
+                {"type": "exp", "val": 20, "rate": 50, "msg": "✨ 20 EXP (Mặc định)"}
+            ]
+            
+        # Quay số chọn 1 món dựa trên 'rate'
+        weights = [int(r.get('rate', 1)) for r in rewards_pool]
+        chosen = random.choices(rewards_pool, weights=weights, k=1)[0]
+        
+        # Mapping dữ liệu từ JSON Settings sang chuẩn chung
+        # Format JSON Settings: {"type": "kpi", "val": 5, "msg": "..."}
+        r_type = chosen.get('type')
+        r_val_raw = chosen.get('val')
+        
+        # Xử lý ID và Số lượng
+        r_id = "unknown"
+        r_amount = 0
+        
+        if r_type == 'item':
+            r_id = str(r_val_raw) # Với item, val là ID món đồ (vd: "kiem_go")
+            r_amount = 1
+        else:
+            # Với kpi/exp, val là số lượng (vd: 5)
+            r_id = r_type # ID là tên loại tiền
+            r_amount = int(r_val_raw)
+            r_type = 'currency' # Đổi về chuẩn chung xử lý bên dưới
+            
+        received_rewards.append({
+            "type": r_type,
+            "id": r_id,
+            "val": r_amount,
+            "msg": chosen.get('msg', '') # Lấy câu thông báo từ Settings
+        })
+
+    # ==========================================================
+    # 3. CỘNG QUÀ VÀO TÀI KHOẢN & TẠO KẾT QUẢ HIỂN THỊ
+    # ==========================================================
+    final_results_for_popup = []
+    
+    for r in received_rewards:
+        r_type = r['type']
+        r_id = r['id']
+        r_val = int(r['val'])
+        
+        msg_display = ""
+        display_type = r_type
+
+        # A. Xử lý Tiền tệ (KPI, EXP...)
+        if r_type == 'currency' or r_type in ['kpi', 'exp', 'Tri_Thuc', 'Chien_Tich', 'Vinh_Du']:
+            key_map = {
+                "KPI": "kpi", "kpi": "kpi",
+                "EXP": "exp", "exp": "exp",
+                "Tri_Thuc": "Tri_Thuc", "Chien_Tich": "Chien_Tich", "Vinh_Du": "Vinh_Du"
+            }
+            user_key = key_map.get(r_id, r_id)
+            # Fallback nếu r_type chính là key (trường hợp Settings)
+            if user_key == "unknown" and r_type in key_map: 
+                user_key = key_map[r_type]
+
+            # Cộng tiền
+            user_info[user_key] = user_info.get(user_key, 0) + r_val
+            
+            # Tạo hiển thị
+            msg_display = f"+{r_val} {user_key.upper()}"
+            display_type = 'kpi' if user_key == 'kpi' else 'exp' if user_key == 'exp' else 'currency'
+
+        # B. Xử lý Vật phẩm (Item)
+        elif r_type == 'item':
+            current_inv = user_info.get('inventory', [])
+            
+            # Cộng item vào list/dict
+            if isinstance(current_inv, list):
+                for _ in range(r_val): current_inv.append(r_id)
+                user_info['inventory'] = current_inv
+            elif isinstance(current_inv, dict):
+                current_inv[r_id] = current_inv.get(r_id, 0) + r_val
+                user_info['inventory'] = current_inv
+            
+            msg_display = f"{r_id} (x{r_val})"
+            display_type = 'item'
+
+        # Ưu tiên lấy msg từ cấu hình (nếu có), nếu không thì dùng msg tự tạo
+        final_msg = r.get('msg') if r.get('msg') else msg_display
+        
+        final_results_for_popup.append({
+            "type": display_type,
+            "val": r_id if display_type == 'item' else r_val, # val này dùng để map ảnh
+            "msg": final_msg
+        })
+
+    # 4. Lưu dữ liệu
     save_func(all_data)
     
-    # Trả về list chứa món quà đã nhận để hiển thị
-    return [chosen]
+    return final_results_for_popup
+    
+    
 import streamlit as st
 from datetime import datetime, timedelta
 # Các hàm load_data, tinh_chi_so_chien_dau, trien_khai_tran_dau... giả định đã import từ module khác
