@@ -151,7 +151,60 @@ def emergency_fix_data_file():
 
 # 🔥 KÍCH HOẠT NGAY LẬP TỨC
 emergency_fix_data_file()
-        
+
+# --- BƯỚC 1: ĐỊNH NGHĨA DIALOG NHẬP LIỆU ---
+@st.dialog("🌍 LOA PHÁT THANH THẾ GIỚI")
+def show_world_chat_dialog(user_id):
+    st.markdown("### 📣 Bạn muốn hét gì cho cả lớp nghe nào?")
+    
+    # Logic trừ lượt và ghi file
+    msg_content = st.text_area("Nội dung tin nhắn (Tối đa 100 ký tự):", max_chars=100, height=100)
+    
+    col1, col2 = st.columns(2)
+    if col1.button("🚀 GỬI NGAY", type="primary", use_container_width=True):
+        if not msg_content.strip():
+            st.warning("⚠️ Đừng gửi tin nhắn trống nhé!")
+        else:
+            # 1. Trừ lượt
+            st.session_state.data[user_id]['special_permissions']['world_chat_count'] -= 1
+            
+            # 2. Ghi file JSON
+            new_msg = {
+                "user": st.session_state.data[user_id].get('name', 'Ẩn danh'),
+                "content": msg_content,
+                "time": datetime.now().strftime("%H:%M %d/%m"),
+                "expire_at": datetime.now().timestamp() + 3600 # Hết hạn sau 1 tiếng
+            }
+            try:
+                # Đọc file cũ
+                current_msgs = []
+                if os.path.exists('data/world_announcements.json'):
+                    with open('data/world_announcements.json', 'r', encoding='utf-8') as f:
+                        current_msgs = json.load(f)
+                
+                # Thêm tin mới
+                current_msgs.append(new_msg)
+                if len(current_msgs) > 20: current_msgs = current_msgs[-20:]
+                
+                # Ghi đè file
+                with open('data/world_announcements.json', 'w', encoding='utf-8') as f:
+                    json.dump(current_msgs, f, ensure_ascii=False, indent=4)
+                
+                st.success("✅ Đã gửi tin nhắn thành công!")
+                
+                # Lưu data user
+                # save_data_func(st.session_state.data) <-- Bỏ comment nếu có hàm save
+                
+                # Tắt cờ và reload
+                del st.session_state.trigger_world_chat
+                st.rerun()
+            except Exception as e:
+                st.error(f"Lỗi: {e}")
+
+    if col2.button("Đóng", use_container_width=True):
+        del st.session_state.trigger_world_chat
+        st.rerun()
+       
 # ==============================================================================
 # 🏟️ POPUP: SẢNH VINH QUANG ĐẤU TRƯỜNG (Kết nối Google Sheets)
 # ==============================================================================
@@ -1018,20 +1071,19 @@ if os.path.exists('data/world_announcements.json'):
     except Exception as e:
         pass 
 
-# --- 2. KIỂM TRA & HIỂN THỊ KHUNG NHẬP LIỆU (MICRO) ---
-# Đoạn này nằm ngang hàng với if os.path.exists... bên trên
-if "trigger_world_chat" in st.session_state and st.session_state.trigger_world_chat:
-    # Import hàm dialog
-    from user_module import show_world_chat_input 
+# --- ĐOẠN KIỂM TRA TRIGGER (Đặt ở Main, sau phần Login) ---
+if st.session_state.get("trigger_world_chat", False):
     
-    # Gọi hàm hiển thị khung nhập (Dùng biến user_id từ ngữ cảnh đăng nhập)
-    # Đảm bảo biến 'user_id' đã được định nghĩa ở phần đăng nhập bên trên
-    if 'user_id' in locals() or 'user_id' in globals():
-        show_world_chat_input(user_id)
-    elif 'user_id' in st.session_state:
-        show_world_chat_input(st.session_state.user_id)
+    # Lấy ID người dùng hiện tại
+    # (Đảm bảo biến user_id hoặc current_user_id có giá trị)
+    current_uid = st.session_state.get('user_id') 
+    
+    if current_uid:
+        # GỌI TRỰC TIẾP (Không cần import vì nó nằm ngay đầu file này rồi)
+        show_world_chat_dialog(current_uid)
     else:
-        st.error("Không xác định được người dùng. Vui lòng đăng nhập lại.")
+        st.error("⚠️ Lỗi: Không xác định được người dùng.")
+        del st.session_state.trigger_world_chat # Tắt cờ để tránh kẹt
 
 
 # --- KIỂM TRA QUYỀN ADMIN ---
