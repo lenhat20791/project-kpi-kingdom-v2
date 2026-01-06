@@ -1660,15 +1660,18 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
         trien_khai_tran_dau(boss, player, atk_p, save_data_func, user_id, all_data)        
 
 
+import streamlit.components.v1 as components
+
 def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_data):
     import os
     import json
     import time
     import random
+    import streamlit as st
     
     st.divider()
 
-    # --- 1. XÁC ĐỊNH FILE CÂU HỎI (THÔNG MINH) ---
+    # --- 1. XÁC ĐỊNH FILE CÂU HỎI (GIỮ NGUYÊN) ---
     mon_boss = boss.get('mon', 'Toán')
     map_mon = {
         "Toán": "toan", "Văn": "van", "Ngữ Văn": "van",
@@ -1698,7 +1701,7 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
         st.error(f"❌ Không tìm thấy dữ liệu câu hỏi môn {mon_boss}")
         return
 
-    # --- 2. ĐỌC VÀ GOM CÂU HỎI ---
+    # --- 2. ĐỌC VÀ GOM CÂU HỎI (GIỮ NGUYÊN) ---
     try:
         with open(path_quiz, 'r', encoding='utf-8') as f:
             raw_data = json.load(f)
@@ -1716,121 +1719,157 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
         st.warning(f"⚠️ File rỗng.")
         return
 
-    # --- 3. KHỞI TẠO CÂU HỎI ---
+    # --- 3. KHỞI TẠO CÂU HỎI (CẬP NHẬT) ---
     if "cau_hoi_active" not in st.session_state:
         st.session_state.cau_hoi_active = random.choice(pool)
-        st.session_state.thoi_gian_bat_dau = time.time()
+        # Bỏ đếm giây Python cũ để JS xử lý hoàn toàn
 
     q = st.session_state.cau_hoi_active
-    
-    # --- 4. ĐỒNG HỒ ĐẾM NGƯỢC (ĐÃ CHỈNH 30S) ---
-    THOI_GIAN = 30  # <--- 🔥 Đã sửa thành 30 giây
-    elapsed = time.time() - st.session_state.get("thoi_gian_bat_dau", time.time())
-    remaining = int(THOI_GIAN - elapsed)
-    
-    # UI Thời gian
-    # Sắp hết giờ (dưới 10s) thì chuyển màu đỏ cho kịch tính
-    color_timer = "#ff4b4b" if remaining <= 10 else "#00d2ff"
-    
-    st.markdown(f"<h1 style='text-align: center; color: {color_timer}; font-size: 40px;'>⏳ {max(0, remaining)}s</h1>", unsafe_allow_html=True)
+    THOI_GIAN_LIMIT = 30
+    current_q_id = q.get('id', str(hash(q['question'])))
+    answered_key = f"answered_{current_q_id}"
 
-    # XỬ LÝ HẾT GIỜ
-    if remaining <= 0:
+    # ==========================================================
+    # 🟢 CƠ CHẾ TIMEOUT JAVASCRIPT (CẬP NHẬT MỚI)
+    # ==========================================================
+    trigger_label = f"BOSS_TIMEOUT_TRIGGER_{current_q_id}"
+    
+    # Nút ẩn để JS kích hoạt khi hết giờ
+    if st.button(trigger_label, key=f"btn_hidden_boss_{current_q_id}"):
         st.error("⏰ Hết giờ! Boss tấn công!")
         dmg_boss = boss.get('damage', 10)
         player['hp'] = max(0, player.get('hp', 100) - dmg_boss)
         st.session_state.combo = 0
-        
         save_data_func(st.session_state.data)
         
         if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
-        if "thoi_gian_bat_dau" in st.session_state: del st.session_state.thoi_gian_bat_dau
-        
-        if player['hp'] <= 0:
-             xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data)
-        else:
-            time.sleep(1.5)
-            st.rerun()
-        return
+        time.sleep(1.5)
+        st.rerun()
 
-    # --- 5. HIỂN THỊ CÂU HỎI & NÚT BẤM ---
-    st.info(f"🔥 **COMBO: x{st.session_state.get('combo', 0)}**")
-    st.markdown(f"### ❓ {q['question']}")
+    # --- 4. GIAO DIỆN ĐỒNG HỒ & CÂU HỎI ---
+    t_col1, t_col2 = st.columns([1, 4])
     
-    options = q.get('options', [])
-    user_choice = None
+    with t_col1:
+        # Nhúng bộ đếm JS (Full logic từ phó bản)
+        timer_html = f"""
+        <div id="boss_timer_display" style="font-size: 28px; font-weight: bold; color: #333; text-align: center; font-family: sans-serif; border: 2px solid #ddd; border-radius: 10px; padding: 10px; background: white;">
+            ⏳ {THOI_GIAN_LIMIT}
+        </div>
+        <script>
+            var timeleft = {THOI_GIAN_LIMIT};
+            var timerElem = document.getElementById("boss_timer_display");
+            var targetLabel = "{trigger_label}";
+            
+            function huntAndHide() {{
+                const buttons = window.parent.document.getElementsByTagName("button");
+                for (let btn of buttons) {{
+                    if (btn.innerText.includes(targetLabel)) {{
+                        btn.style.display = "none"; 
+                        return btn;
+                    }}
+                }}
+            }}
+            var hiderInterval = setInterval(huntAndHide, 100);
 
-    if options:
-        c1, c2 = st.columns(2)
-        for i, opt in enumerate(options):
-            col = c1 if i % 2 == 0 else c2
-            
-            # Key cố định theo ID câu hỏi hoặc index (Không dùng remaining để tránh lỗi nút)
-            btn_key = f"ans_{q.get('id', 'unknown')}_{i}"
-            
-            if col.button(opt, key=btn_key, use_container_width=True):
-                user_choice = opt
+            var countdownInterval = setInterval(() => {{
+                timeleft--;
+                if(timerElem) timerElem.innerText = "⏳ " + timeleft;
+                
+                if(timeleft <= 10 && timerElem) {{
+                    timerElem.style.color = "#ff4b4b"; 
+                    timerElem.style.borderColor = "#ff4b4b";
+                }}
+
+                if (timeleft <= 0) {{
+                    clearInterval(countdownInterval);
+                    clearInterval(hiderInterval);
+                    const buttons = window.parent.document.getElementsByTagName("button");
+                    for (let btn of buttons) {{
+                        if (btn.innerText.includes(targetLabel)) {{
+                            btn.click(); 
+                            break;
+                        }}
+                    }}
+                }}
+            }}, 1000);
+        </script>
+        """
+        components.html(timer_html, height=100)
+
+    # --- 5. HIỂN THỊ CÂU HỎI & NÚT BẤM (GIỮ NGUYÊN GIAO DIỆN) ---
+    with t_col2:
+        st.info(f"🔥 **COMBO: x{st.session_state.get('combo', 0)}**")
+        st.markdown(f"### ❓ {q['question']}")
         
-        # --- 6. XỬ LÝ ĐÁP ÁN ---
-        if user_choice:
-            user_key = str(user_choice).strip()[0].upper()
-            raw_ans = q.get('answer', q.get('correct_answer', ''))
-            ans_key = str(raw_ans).strip()[0].upper()
-            
-            if user_key == ans_key:
-                # --- ĐÚNG ---
-                st.session_state.combo = st.session_state.get('combo', 0) + 1
-                he_so = 1 + (st.session_state.combo - 1) * 0.1
-                dmg_deal = int(current_atk * he_so)
-                
-                boss['hp_current'] = max(0, boss['hp_current'] - dmg_deal)
-                if "contributions" not in boss: boss["contributions"] = {}
-                boss["contributions"][user_id] = boss["contributions"].get(user_id, 0) + dmg_deal
-                
-                # 🔥 [THÊM MỚI] GỌI HÀM LOG (Nằm cùng file nên gọi trực tiếp)
-                # rewards=None để chỉ ghi nhận sát thương
-                try:
-                    ghi_log_boss(user_id, boss.get('name', 'Boss'), dmg_deal, rewards=None)
-                except Exception as e:
-                    print(f"Log Error: {e}")
-                    
-                save_data_func(st.session_state.data)
-                st.success(f"🎯 Chính xác! Gây {dmg_deal} sát thương!")
-                
-                if boss['hp_current'] <= 0:
-                    del st.session_state.cau_hoi_active
-                    
-                    xu_ly_boss_chet(user_id, all_data, save_data_func)
-                else:
-                    del st.session_state.cau_hoi_active
-                    del st.session_state.thoi_gian_bat_dau
-                    time.sleep(0.5) 
-                    st.rerun()
-            else:
-                # --- SAI ---
-                st.session_state.combo = 0
-                dmg_boss = boss.get('damage', 10)
-                player['hp'] = max(0, player.get('hp', 100) - dmg_boss)
-                save_data_func(st.session_state.data)
-                
-                real_ans = q.get('answer', q.get('correct_answer', '...'))
-                st.error(f"❌ Sai rồi! Đáp án: {real_ans}")
-                st.warning(f"🛡️ Boss đánh trả: -{dmg_boss} HP")
-                
-                if player['hp'] <= 0:
-                    if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
-                    xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data)
-                else:
-                    if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
-                    if "thoi_gian_bat_dau" in st.session_state: del st.session_state.thoi_gian_bat_dau
-                    time.sleep(2.0)
-                    st.rerun()
-            return
+        options = q.get('options', [])
+        user_choice = None
 
-    # --- 7. CƠ CHẾ TỰ ĐỘNG ĐẾM NGƯỢC (AUTO-RERUN) ---
-    if remaining > 0 and not user_choice:
-        time.sleep(1) 
-        st.rerun()        
+        if options:
+            c1, c2 = st.columns(2)
+            for i, opt in enumerate(options):
+                col = c1 if i % 2 == 0 else c2
+                btn_key = f"ans_{current_q_id}_{i}"
+                if col.button(opt, key=btn_key, use_container_width=True):
+                    # 🛡️ KHÓA CHẶN LẶP SÁT THƯƠNG
+                    if st.session_state.get(answered_key):
+                        st.rerun()
+                    st.session_state[answered_key] = True
+                    user_choice = opt
+        
+            # --- 6. XỬ LÝ ĐÁP ÁN (CẬP NHẬT GIỚI HẠN X2) ---
+            if user_choice:
+                user_key = str(user_choice).strip()[0].upper()
+                raw_ans = q.get('answer', q.get('correct_answer', ''))
+                ans_key = str(raw_ans).strip()[0].upper()
+                
+                if user_key == ans_key:
+                    # --- ĐÚNG ---
+                    st.session_state.combo = st.session_state.get('combo', 0) + 1
+                    
+                    # Giới hạn hệ số tối đa x2
+                    he_so_raw = 1 + (st.session_state.combo - 1) * 0.1
+                    he_so_final = min(he_so_raw, 2.0) 
+                    
+                    dmg_deal = int(current_atk * he_so_final)
+                    
+                    boss['hp_current'] = max(0, boss['hp_current'] - dmg_deal)
+                    if "contributions" not in boss: boss["contributions"] = {}
+                    boss["contributions"][user_id] = boss["contributions"].get(user_id, 0) + dmg_deal
+                    
+                    try:
+                        ghi_log_boss(user_id, boss.get('name', 'Boss'), dmg_deal, rewards=None)
+                    except: pass
+                        
+                    save_data_func(st.session_state.data)
+                    st.success(f"🎯 Chính xác! Gây {dmg_deal} sát thương!")
+                    
+                    if boss['hp_current'] <= 0:
+                        if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
+                        xu_ly_boss_chet(user_id, all_data, save_data_func)
+                    else:
+                        if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
+                        time.sleep(0.5) 
+                        st.rerun()
+                else:
+                    # --- SAI ---
+                    st.session_state.combo = 0
+                    dmg_boss = boss.get('damage', 10)
+                    player['hp'] = max(0, player.get('hp', 100) - dmg_boss)
+                    save_data_func(st.session_state.data)
+                    
+                    real_ans = q.get('answer', q.get('correct_answer', '...'))
+                    st.error(f"❌ Sai rồi! Đáp án: {real_ans}")
+                    st.warning(f"🛡️ Boss đánh trả: -{dmg_boss} HP")
+                    
+                    if player['hp'] <= 0:
+                        if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
+                        xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data)
+                    else:
+                        if "cau_hoi_active" in st.session_state: del st.session_state.cau_hoi_active
+                        time.sleep(2.0)
+                        st.rerun()
+                return
+
 # --- HÀM PHỤ TRỢ (Để code gọn hơn) ---
 def xu_ly_thua_cuoc(player, boss, save_data_func, user_id, all_data):
     # 1. Cập nhật thông tin trọng thương
@@ -2643,6 +2682,7 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
         st.table(pd.DataFrame(my_matches))
     else:
         st.caption("Bạn chưa tham gia trận lôi đài nào.")
+
 def hien_thi_giao_dien_hoc_si(user_id, save_data_func):
     page = st.session_state.get("page")
     # Lấy thông tin người dùng từ data (Sửa lỗi NameError)
@@ -2903,7 +2943,7 @@ def hien_thi_nhan_su_to(user_id, my_team, save_data_func):
 import streamlit as st
 import pandas as pd
 import altair as alt
-from datetime import datetime, timedelta # <--- Cần thêm thư viện timedelta
+from datetime import datetime, timedelta
 
 def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
     # 0. LẤY THÔNG TIN NGƯỜI ĐANG THAO TÁC (TỔ TRƯỞNG)
@@ -3071,6 +3111,7 @@ def hien_thi_kpi_to(user_id, my_team, role, save_data_func):
                         save_data_func() 
                         st.success(f"Đã ghi nhận vi phạm cho {user_data['name']}!")
                         st.rerun()
+
 @st.dialog("XÁC NHẬN SỬ DỤNG")
 def confirm_use_dialog(item_name, item_info, current_user_id, save_func):    # --- LỚP BẢO VỆ 1: KIỂM TRA DỮ LIỆU TỔNG ---
     # Kiểm tra xem 'data' có tồn tại trong session_state không và có bị None không
