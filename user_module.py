@@ -3221,77 +3221,58 @@ def confirm_use_dialog(item_name, item_info, current_user_id, save_func):    # -
             del st.session_state.pending_use
         st.rerun()
 
+# --- BƯỚC 1: ĐỊNH NGHĨA DIALOG NHẬP LIỆU ---
 @st.dialog("🌍 LOA PHÁT THANH THẾ GIỚI")
-def show_world_chat_input(user_id):
+def show_world_chat_dialog(user_id):
     st.markdown("### 📣 Bạn muốn hét gì cho cả lớp nghe nào?")
     
-    # Kiểm tra số lượt còn lại
-    user_data = st.session_state.data.get(user_id, {})
-    perm = user_data.get('special_permissions', {})
-    count = perm.get('world_chat_count', 0)
-    
-    st.info(f"⚡ Bạn đang có: **{count}** lượt phát thanh.")
-    
-    if count <= 0:
-        st.error("❌ Bạn đã hết lượt phát thanh! Hãy mua thêm thẻ.")
-        if st.button("Đóng"):
-            del st.session_state.trigger_world_chat
-            st.rerun()
-        return
-
-    # Form nhập liệu
-    msg_content = st.text_area("Nội dung tin nhắn:", max_chars=100, placeholder="Nhập tối đa 100 ký tự...")
+    # Logic trừ lượt và ghi file
+    msg_content = st.text_area("Nội dung tin nhắn (Tối đa 100 ký tự):", max_chars=100, height=100)
     
     col1, col2 = st.columns(2)
-    
-    if col1.button("🚀 GỬI NGAY", use_container_width=True):
+    if col1.button("🚀 GỬI NGAY", type="primary", use_container_width=True):
         if not msg_content.strip():
             st.warning("⚠️ Đừng gửi tin nhắn trống nhé!")
         else:
-            # 1. TRỪ LƯỢT CHAT
+            # 1. Trừ lượt
             st.session_state.data[user_id]['special_permissions']['world_chat_count'] -= 1
             
-            # 2. GHI VÀO FILE WORLD_ANNOUNCEMENTS.JSON
+            # 2. Ghi file JSON
             new_msg = {
-                "user": user_data.get('name', 'Ẩn danh'),
+                "user": st.session_state.data[user_id].get('name', 'Ẩn danh'),
                 "content": msg_content,
-                "time": datetime.now().strftime("%H:%M %d/%m")
+                "time": datetime.now().strftime("%H:%M %d/%m"),
+                "expire_at": datetime.now().timestamp() + 3600 # Hết hạn sau 1 tiếng
             }
-            
             try:
                 # Đọc file cũ
-                try:
+                current_msgs = []
+                if os.path.exists('data/world_announcements.json'):
                     with open('data/world_announcements.json', 'r', encoding='utf-8') as f:
-                        msgs = json.load(f)
-                except (FileNotFoundError, json.JSONDecodeError):
-                    msgs = []
+                        current_msgs = json.load(f)
                 
-                # Thêm tin mới và chỉ giữ lại 20 tin gần nhất
-                msgs.append(new_msg)
-                if len(msgs) > 20: 
-                    msgs = msgs[-20:]
-                    
-                # Ghi lại file
+                # Thêm tin mới
+                current_msgs.append(new_msg)
+                if len(current_msgs) > 20: current_msgs = current_msgs[-20:]
+                
+                # Ghi đè file
                 with open('data/world_announcements.json', 'w', encoding='utf-8') as f:
-                    json.dump(msgs, f, ensure_ascii=False, indent=4)
-                    
+                    json.dump(current_msgs, f, ensure_ascii=False, indent=4)
+                
                 st.success("✅ Đã gửi tin nhắn thành công!")
                 
-                # Lưu data người dùng (đã trừ lượt)
-                # (Giả sử bạn có hàm save_data_func import từ main hoặc truyền vào)
-                # save_data_func() 
+                # Lưu data user
+                # save_data_func(st.session_state.data) <-- Bỏ comment nếu có hàm save
                 
-                # Tắt cờ hiệu và reload
+                # Tắt cờ và reload
                 del st.session_state.trigger_world_chat
                 st.rerun()
-                
             except Exception as e:
-                st.error(f"Lỗi khi gửi tin: {e}")
+                st.error(f"Lỗi: {e}")
 
     if col2.button("Đóng", use_container_width=True):
         del st.session_state.trigger_world_chat
         st.rerun()
-
 # --- 3. TIỆM TẠP HÓA & KHO ĐỒ (ALL) ---
 def hien_thi_tiem_va_kho(user_id, save_data_func):
     st.subheader("🏪 TIỆM TẠP HÓA & 🎒 TÚI ĐỒ")

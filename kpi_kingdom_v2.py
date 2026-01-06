@@ -1658,58 +1658,31 @@ elif st.session_state.user_role in ["u1", "u2", "u3"]:
             except Exception as e:
                 pass 
 
-        # --- PHẦN 2: LOGIC NHẬP LIỆU & GỬI TIN ---
+        # --- PHẦN 2: LOGIC HIỂN THỊ BANNER & KÍCH HOẠT DIALOG ---
         if current_user_id and current_user_id in st.session_state.data:
             
-            # 1. Tính toán số lượt chat TRƯỚC khi dùng
+            # 1. Lấy thông tin user
             user_info = st.session_state.data.get(current_user_id, {})
             chat_count = user_info.get('special_permissions', {}).get('world_chat_count', 0)
             
-            # 2. Chỉ hiện khung nhập nếu còn lượt
+            # 2. Hiển thị Banner nhắc nhở (Thay cho st.expander cũ)
             if chat_count > 0:
-                with st.expander(f"✨ BẠN ĐANG CÓ {chat_count} LƯỢT PHÁT THANH THẾ GIỚI"):
-                    world_msg = st.text_input("Nhập thông điệp muốn truyền tin (tối đa 100 ký tự):", 
-                                            max_chars=100, 
-                                            key="world_chat_input_main")
-                    
-                    if st.button("🚀 XÁC NHẬN PHÁT TIN", use_container_width=True):
-                        if world_msg.strip():
-                            # A. Tạo tin nhắn mới
-                            new_msg = {
-                                "user": current_user_id,
-                                "content": world_msg,
-                                "time": datetime.now().strftime("%H:%M"),
-                                "expire_at": (datetime.now() + timedelta(minutes=60)).timestamp()
-                            }
-                            
-                            # B. Đọc và Cập nhật file JSON
-                            current_msgs = []
-                            if os.path.exists('data/world_announcements.json'):
-                                try:
-                                    with open('data/world_announcements.json', 'r', encoding='utf-8') as f:
-                                        current_msgs = json.load(f)
-                                except:
-                                    current_msgs = []
-                            
-                            current_msgs.append(new_msg)
-                            current_msgs = current_msgs[-10:] # Giữ 10 tin gần nhất
-                            
-                            with open('data/world_announcements.json', 'w', encoding='utf-8') as f:
-                                json.dump(current_msgs, f, indent=4, ensure_ascii=False)
-                            
-                            # C. Trừ lượt trong data
-                            if 'special_permissions' in st.session_state.data[current_user_id]:
-                                st.session_state.data[current_user_id]['special_permissions']['world_chat_count'] -= 1
-                            
-                            # D. Lưu dữ liệu
-                            save_data(st.session_state.data) 
-                            
-                            st.success("Tin nhắn của bạn đã được lan tỏa khắp vương quốc!")
+                with st.container(border=True):
+                    c_text, c_btn = st.columns([3, 1])
+                    with c_text:
+                        st.info(f"🎙️ **BẠN ĐANG CÓ {chat_count} LƯỢT PHÁT THANH!**")
+                    with c_btn:
+                        # Nút này bấm vào sẽ bật cờ trigger
+                        if st.button("🗣️ DÙNG NGAY", use_container_width=True, type="primary"):
+                            st.session_state.trigger_world_chat = True
                             st.rerun()
-                        else:
-                            st.warning("Vui lòng nhập nội dung!")
 
-            # 3. Gọi hàm hiển thị Tiệm & Kho (Nằm trong if user check)
+            # 3. Kích hoạt Dialog (Nếu cờ trigger đang bật)
+            if st.session_state.get('trigger_world_chat', False):
+                # Đảm bảo bạn đã định nghĩa hàm show_world_chat_dialog ở đầu file main.py
+                show_world_chat_dialog(current_user_id)
+
+            # 4. Gọi hàm hiển thị Tiệm & Kho (Giữ nguyên)
             user_module.hien_thi_tiem_va_kho(current_user_id, save_data)
         
     # chợ đen
