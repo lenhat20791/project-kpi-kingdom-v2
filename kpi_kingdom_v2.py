@@ -694,20 +694,20 @@ def initialize_accounts_from_excel(file_path):
                 "password": pwd_val, 
                 "role": role_val, 
                 "team": team_val, 
-                "kpi": kpi_val,      # Điểm dùng để mua sắm/xếp hạng lớp 
-                "exp": 0,            # Kinh nghiệm tích lũy từ phó bản (Mới)
-                "level": 1,          # Cấp độ sức mạnh phó bản (Mới)
-                "hp": 100,           # Sinh mệnh thực tế khi đi phó bản
-                "dungeon_progress": { # --- PHẦN MỚI: LƯU TIẾN TRÌNH PHÓ BẢN ---
+                "kpi": kpi_val,      
+                "exp": 0,            
+                "level": 1,          
+                "hp": 100,           
+                "dungeon_progress": { 
                     "toan": 1, "van": 1, "anh": 1, "ly": 1, "hoa": 1, "sinh": 1
                 },
                 "Bonus": 0, "Vi_Pham": 0, 
                 "KTTX": 0, "KT Sản phẩm": 0, "KT Giữa kỳ": 0, "KT Cuối kỳ": 0, 
                 "Tri_Thuc": 0, "Chien_Tich": 0, "Vinh_Du": 0, "Vinh_Quang": 0, 
                 "titles": ["Tân Thủ Học Sĩ"], 
-                "inventory": [],     # Kho đồ chuyển sang dạng List để dễ quản lý số lượng 
-                "purchase_history": {}, # Lịch sử mua đồ để check giới hạn tháng/1 lần
-                "unlocked_ranks": []  # Danh hiệu đã mở khóa
+                "inventory": {}, 
+                "purchase_history": {},
+                "unlocked_ranks": [] 
             }
         
         # 5. BẢO VỆ TÀI KHOẢN ADMIN (Giữ lại thông tin Admin cũ nếu có)
