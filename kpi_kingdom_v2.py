@@ -1729,11 +1729,6 @@ elif st.session_state.user_role in ["u1", "u2", "u3"]:
                             st.session_state.trigger_world_chat = True
                             st.rerun()
 
-            # 3. Kích hoạt Dialog (Nếu cờ trigger đang bật)
-            if st.session_state.get('trigger_world_chat', False):
-                # Đảm bảo bạn đã định nghĩa hàm show_world_chat_dialog ở đầu file main.py
-                show_world_chat_dialog(current_user_id)
-
             # 4. Gọi hàm hiển thị Tiệm & Kho (Giữ nguyên)
             user_module.hien_thi_tiem_va_kho(current_user_id, save_data)
         
