@@ -3509,9 +3509,36 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                             except Exception as e:
                                 st.error(f"Lỗi khi mở rương: {e}")
                             
-                    elif item_type in ["CONSUMABLE", "BUFF_STAT"]:
+                    # --- ĐOẠN CODE KẾT NỐI LOGIC SỬ DỤNG VẬT PHẨM ---
+                    elif item_type in ["CONSUMABLE", "BUFF_STAT", "FUNCTIONAL", "BOSS_RESET"]:
+                        # Tạo nút bấm
                         if st.button("⚡ SỬ DỤNG", key=f"use_{i}", use_container_width=True):
-                             st.toast("Chức năng đang phát triển", icon="🔨")
+                            import item_system  # Import module logic (đảm bảo file item_system.py cùng thư mục)
+                            import time
+
+                            # 1. GỌI HÀM XỬ LÝ TÁC DỤNG
+                            # Hàm này sẽ cộng chỉ số, cộng KPI, v.v... vào st.session_state.data
+                            st.session_state.data = item_system.apply_item_effect(
+                                user_id, 
+                                item_info, 
+                                st.session_state.data
+                            )
+
+                            # 2. TRỪ SỐ LƯỢNG TRONG KHO
+                            # Lưu ý: inventory đang là reference đến data gốc, nên sửa ở đây là sửa luôn trong data
+                            inventory[item_name] -= 1
+                            
+                            # Nếu hết thì xóa khỏi kho
+                            if inventory[item_name] <= 0:
+                                del inventory[item_name]
+
+                            # 3. LƯU DỮ LIỆU
+                            save_data_func(st.session_state.data)
+
+                            # 4. THÔNG BÁO VÀ RELOAD
+                            st.toast(f"✅ Đã sử dụng {item_name} thành công!", icon="🎉")
+                            time.sleep(0.5) # Ngủ xíu cho mượt
+                            st.rerun()
                     else:
                         st.button("🔒 Đã sở hữu", disabled=True, key=f"lock_{i}")
 
