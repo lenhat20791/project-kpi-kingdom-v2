@@ -2583,15 +2583,31 @@ def hien_thi_giao_dien_hoc_si(user_id, save_data_func):
     
 
 # --- GIAO DIỆN CHỈ SỐ HỌC SĨ LUNG LINH ---
-import streamlit as st
-import pandas as pd
 
 def hien_thi_chi_so_chi_tiet(user_id):
     # Đảm bảo import thư viện cần thiết
     import pandas as pd 
     
+    # Lấy dữ liệu user
     user_info = st.session_state.data[user_id]
     
+    # =========================================================================
+    # 🟢 [MỚI] LOGIC TỰ ĐỘNG CÂN BẰNG LEVEL (AUTO-HEALING)
+    # Khắc phục lỗi: EXP cao nhưng Level thấp (do quên gọi hàm check level ở đâu đó)
+    # =========================================================================
+    current_lvl_check = user_info.get('level', 1)
+    current_exp_check = user_info.get('exp', 0)
+    # Công thức EXP hiện tại: 70 + (Level * 15)
+    exp_req_check = 70 + (current_lvl_check * 15)
+    
+    # Nếu thấy EXP bị thừa -> Gọi hàm check_up_level xử lý ngay lập tức
+    if current_exp_check >= exp_req_check:
+        # Gọi hàm xử lý lên cấp (Đảm bảo hàm check_up_level đã có trong file này)
+        check_up_level(user_id) 
+        st.rerun() # Tải lại trang ngay để cập nhật số liệu mới
+        return # Dừng render giao diện cũ
+    # =========================================================================
+
     # === 🟢 BƯỚC 0: LOGIC DỊCH CẤP BẬC (GIỮ NGUYÊN) ===
     role_map = {
         "u1": "Tổ trưởng",
@@ -2742,6 +2758,7 @@ def hien_thi_chi_so_chi_tiet(user_id):
         )
     else:
         st.info("📭 Chưa có dữ liệu ghi nhận nào trong sổ nhật ký.")
+
 # --- 1. QUẢN LÝ NHÂN SỰ (ONLY U1) ---
 def hien_thi_nhan_su_to(user_id, my_team, save_data_func):
     st.subheader(f"👥 QUẢN TRỊ NỘI BỘ: {my_team}")
