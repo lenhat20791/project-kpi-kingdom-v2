@@ -3515,7 +3515,10 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                     q["answer"] = q["correct_answer"]
         
         if not pool: pool = [{"question": "1+1=?", "options": ["2","3"], "answer": "2"}]
-
+        
+        # [THÊM DÒNG NÀY] Lưu thời điểm bắt đầu làm bài
+        if "dungeon_start_time" not in st.session_state:
+            st.session_state.dungeon_start_time = time.time()
         # Chọn câu hỏi ngẫu nhiên
         num_q = p_data.get('num_questions', 5)
         st.session_state.dungeon_questions = random.sample(pool, min(len(pool), num_q)) if pool else []
@@ -3658,21 +3661,45 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
                                     st.session_state.current_q_idx += 1
                                     st.rerun()
 
-    # --- PHẦN 3: TỔNG KẾT (GIỮ NGUYÊN) ---
+    # --- PHẦN 3: TỔNG KẾT ---
     else:
         correct = st.session_state.correct_count
         required = p_data['num_questions']
         
         if correct >= required:
             if "victory_processed" not in st.session_state:
+                # 1. TÍNH GIỜ
+                start_t = st.session_state.get("dungeon_start_time", time.time())
+                duration = round(time.time() - start_t, 2)
+                
+                # 2. CẬP NHẬT KỶ LỤC (Best Time)
+                try:
+                    mon_hoc = land_id.split('_')[-1] # vd: grade_6_toan -> toan
+                except:
+                    mon_hoc = "unknown"
+
+                if 'best_time' not in st.session_state.data[user_id]:
+                    st.session_state.data[user_id]['best_time'] = {}
+                
+                # Chỉ ghi đè nếu thời gian mới nhanh hơn (nhỏ hơn) thời gian cũ
+                current_record = st.session_state.data[user_id]['best_time'].get(mon_hoc, 9999)
+                if duration < current_record:
+                    st.session_state.data[user_id]['best_time'][mon_hoc] = duration
+                    st.toast(f"🏆 KỶ LỤC MỚI: {duration}s", icon="🚀")
+
+                # 3. LƯU DỮ LIỆU
                 save_data_func(st.session_state.data)
                 st.session_state.victory_processed = True
+                
+                # Xóa đồng hồ sau khi xong để tránh lỗi logic
+                if "dungeon_start_time" in st.session_state: 
+                    del st.session_state["dungeon_start_time"]
             
             st.success("🏆 CHIẾN THẮNG!")
             if st.button("🌟 TIẾP TỤC", type="primary", use_container_width=True):
                 st.session_state.dang_danh_dungeon = False
                 for k in list(st.session_state.keys()):
-                    if k.startswith("dungeon_") or "btn_hidden" in k or k in ["current_q_idx", "correct_count", "victory_processed"]:
+                    if k.startswith("dungeon_") or "btn_hidden" in k or k in ["current_q_idx", "correct_count", "victory_processed", "dungeon_start_time"]:
                         del st.session_state[k]
                 st.rerun()
         else:
@@ -3680,7 +3707,8 @@ def trien_khai_combat_pho_ban(user_id, land_id, p_id, dungeon_config, save_data_
             c1, c2 = st.columns(2)
             with c1:
                 if st.button("🔄 THỬ LẠI", use_container_width=True):
-                    keys_to_reset = ["dungeon_questions", "current_q_idx", "correct_count", "victory_processed"]
+                    # [QUAN TRỌNG] Reset cả dungeon_start_time để bấm giờ lại từ đầu
+                    keys_to_reset = ["dungeon_questions", "current_q_idx", "correct_count", "victory_processed", "dungeon_start_time"]
                     for k in keys_to_reset:
                         if k in st.session_state: del st.session_state[k]
                     st.rerun()
