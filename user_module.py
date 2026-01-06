@@ -3194,8 +3194,7 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
     # Lấy thông tin người dùng hiện tại
     user_info = st.session_state.data[user_id]
     
-    # --- PHẦN 1: HIỂN THỊ SỐ DƯ TÀI SẢN ---
-    # --- PHẦN 1: GỘP CSS CHUNG & HIỂN THỊ SỐ DƯ TÀI SẢN ---
+    # --- PHẦN 1: CSS & HIỂN THỊ SỐ DƯ (ĐÃ SỬA LỖI & CĂN TRÁI) ---
     st.markdown(f"""
         <style>
         /* =========================================
@@ -3233,7 +3232,7 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
             display: flex; align-items: center; justify-content: center; overflow: hidden;
         }}
         
-        /* CLASS MÔ TẢ MÀ BẠN ĐANG HỎI ĐÂY */
+        /* CLASS MÔ TẢ (Sửa lỗi hiển thị text) */
         .item-desc {{
             font-size: 13px;
             color: #e0f7fa;
@@ -3266,28 +3265,35 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
         }}
 
         /* =========================================
-           2. CSS CHO THANH TÀI SẢN (HEADER)
+           2. CSS CHO THANH TÀI SẢN (CĂN TRÁI)
            ========================================= */
         .stat-container {{
             display: flex; 
-            justify-content: space-around; 
+            justify-content: flex-start; /* <--- ĐẨY HẾT SANG TRÁI */
             align-items: center;
+            gap: 20px; /* Khoảng cách giữa các ô */
             background: linear-gradient(90deg, #141e30 0%, #243b55 100%);
-            padding: 15px 10px; 
+            padding: 15px 20px; 
             border-radius: 12px; 
             border: 2px solid #f1c40f;
             box-shadow: 0 0 15px rgba(241, 196, 15, 0.2);
             margin-bottom: 25px;
+            flex-wrap: wrap; /* Xuống dòng nếu màn hình nhỏ */
         }}
         
         .stat-box {{
-            text-align: center; transition: transform 0.2s;
-            padding: 5px; border-radius: 8px; width: 18%;
+            text-align: center; 
+            transition: transform 0.2s;
+            padding: 10px; 
+            border-radius: 8px; 
+            min-width: 120px; /* Đảm bảo ô không bị bé quá */
+            background: rgba(255, 255, 255, 0.05); /* Thêm nền nhẹ để nhìn rõ khung */
         }}
         
         .stat-box:hover {{
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.15);
             transform: translateY(-3px);
+            cursor: pointer;
         }}
 
         .stat-icon {{ font-size: 1.8em; margin-bottom: 5px; display: block; }}
