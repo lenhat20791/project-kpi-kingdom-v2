@@ -982,7 +982,11 @@ def hien_thi_thong_bao_he_thong():
                     </div>
                 """, unsafe_allow_html=True)
 
-# --- 1. HIỂN THỊ THÔNG BÁO THẾ GIỚI (ĐẶT Ở ĐẦU) ---
+# --- 1. HIỂN THỊ THÔNG BÁO THẾ GIỚI (ĐẶT Ở ĐẦU MAIN) ---
+import os
+import json
+from datetime import datetime
+
 if os.path.exists('data/world_announcements.json'):
     try:
         with open('data/world_announcements.json', 'r', encoding='utf-8') as f:
@@ -990,12 +994,11 @@ if os.path.exists('data/world_announcements.json'):
             if msgs:
                 last_msg = msgs[-1]
                 # Kiểm tra xem tin nhắn còn hạn không (Ví dụ: 60 phút)
-                # Nếu file JSON chưa có expire_at thì bỏ qua check này hoặc thêm mặc định
                 current_ts = datetime.now().timestamp()
                 expire_at = last_msg.get('expire_at', current_ts + 3600)
                 
                 if current_ts < expire_at:
-                    # Giao diện thông báo nổi bật (Style PULSE của bạn)
+                    # Giao diện thông báo nổi bật (Style PULSE)
                     st.markdown(f"""
                         <div style="background: linear-gradient(90deg, #ff8a00, #e52e71); padding: 15px; 
                                     border-radius: 10px; text-align: center; color: white; font-weight: bold;
@@ -1013,7 +1016,22 @@ if os.path.exists('data/world_announcements.json'):
                         </style>
                     """, unsafe_allow_html=True)
     except Exception as e:
-        pass # Bỏ qua nếu lỗi file
+        pass 
+
+# --- 2. KIỂM TRA & HIỂN THỊ KHUNG NHẬP LIỆU (MICRO) ---
+# Đoạn này nằm ngang hàng với if os.path.exists... bên trên
+if "trigger_world_chat" in st.session_state and st.session_state.trigger_world_chat:
+    # Import hàm dialog
+    from user_module import show_world_chat_input 
+    
+    # Gọi hàm hiển thị khung nhập (Dùng biến user_id từ ngữ cảnh đăng nhập)
+    # Đảm bảo biến 'user_id' đã được định nghĩa ở phần đăng nhập bên trên
+    if 'user_id' in locals() or 'user_id' in globals():
+        show_world_chat_input(user_id)
+    elif 'user_id' in st.session_state:
+        show_world_chat_input(st.session_state.user_id)
+    else:
+        st.error("Không xác định được người dùng. Vui lòng đăng nhập lại.")
 
 
 # --- KIỂM TRA QUYỀN ADMIN ---

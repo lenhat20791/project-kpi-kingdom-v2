@@ -3513,7 +3513,7 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                     elif item_type in ["CONSUMABLE", "BUFF_STAT", "FUNCTIONAL", "BOSS_RESET"]:
                         # Tạo nút bấm
                         if st.button("⚡ SỬ DỤNG", key=f"use_{i}", use_container_width=True):
-                            import item_system  # Import module logic (đảm bảo file item_system.py cùng thư mục)
+                            import item_system
                             import time
 
                             # 1. GỌI HÀM XỬ LÝ TÁC DỤNG
@@ -3534,6 +3534,9 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
 
                             # 3. LƯU DỮ LIỆU
                             save_data_func(st.session_state.data)
+                            # Nếu là thẻ Chat Thế Giới -> Bật cờ để mở Dialog ngay sau khi rerun
+                            if item_info.get('feature') == 'world_chat':
+                                st.session_state.trigger_world_chat = True
 
                             # 4. THÔNG BÁO VÀ RELOAD
                             st.toast(f"✅ Đã sử dụng {item_name} thành công!", icon="🎉")
