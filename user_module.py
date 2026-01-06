@@ -847,66 +847,43 @@ def hien_thi_sanh_pho_ban_hoc_si(user_id, save_data_func): # <--- Thêm tham s�
                     args=(land_id, target_phase_id)
                 )
 def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save_data_func, duration=None):
+    """
+    [FIXED] Hàm xử lý phần thưởng và mở khóa màn chơi tiếp theo.
+    - Đã fix lỗi Logic cập nhật tiến độ.
+    - Đã loại bỏ các biến Log chưa định nghĩa gây crash.
+    """
     import random
     
     # 1. Lấy data người chơi
     if user_id not in st.session_state.data: return
     user_info = st.session_state.data[user_id]
     
-    # Lấy thông tin phase an toàn
+    # Lấy thông tin phase
     try:
         p_data = dungeon_config[land_id]["phases"][phase_id]
     except:
         return 
 
-    # 2. Đảm bảo các chỉ số cơ bản tồn tại
+    # 2. Chuẩn hóa chỉ số cơ bản
     for field in ['exp', 'level', 'kpi', 'inventory', 'hp']:
         if field not in user_info:
             user_info[field] = 0 if field != 'inventory' else []
     
     old_lv = user_info.get('level', 1)
-    old_atk = tinh_atk_tong_hop(user_info)
-    old_hp_max = 100 + (old_lv * 20) 
-    user_info['hp_max'] = old_hp_max 
     
-    # ==========================================================
-    # 🔥 KHẮC PHỤC LỖI Attribute Error (QUAN TRỌNG NHẤT) 🔥
-    # ==========================================================
-    # Bước 1: Lấy dữ liệu ra một biến tạm
-    raw_best_time = user_info.get('best_time')
+    # 3. Cộng thưởng KPI & EXP
+    kpi_reward = p_data.get('reward_kpi', 0)
+    exp_reward = p_data.get('reward_exp', 0)
+    
+    user_info['kpi'] += kpi_reward
+    user_info['exp'] += exp_reward
+    
+    # [QUAN TRỌNG] Gọi hàm check_up_level để xử lý lên cấp đúng chuẩn
+    # Thay vì tự tính toán thủ công dễ sai sót
+    from user_module import check_up_level 
+    check_up_level(user_info) # Tự động hồi máu, tăng stat nếu lên cấp
 
-    # Bước 2: Kiểm tra kiểu dữ liệu của biến tạm
-    # Nếu nó không phải là Dict (nó là None, hoặc List, hoặc rỗng...) -> Reset ngay
-    if not isinstance(raw_best_time, dict):
-        raw_best_time = {} 
-        user_info['best_time'] = raw_best_time # Lưu ngược lại vào data gốc để sửa lỗi vĩnh viễn
-    
-    # Từ giờ, ta chỉ thao tác với biến 'raw_best_time' (chắc chắn là Dict)
-    # ==========================================================
-
-    # 3. Logic so sánh và lưu kỷ lục
-    if duration is not None:
-        # Dùng raw_best_time thay vì user_info['best_time'] để tránh lỗi
-        old_record = raw_best_time.get(land_id, 999)
-        
-        if duration < old_record:
-            raw_best_time[land_id] = duration # Cập nhật vào biến tạm (nó tham chiếu tới data gốc)
-            st.toast(f"🔥 KỶ LỤC MỚI: {duration}s!", icon="🏆")
-        else:
-            st.write(f"⏱️ Thời gian hoàn thành: {duration}s (Kỷ lục hiện tại: {old_record}s)")
-    
-    # 4. Cộng thưởng
-    user_info['kpi'] += p_data.get('reward_kpi', 0)
-    user_info['exp'] += p_data.get('reward_exp', 0)
-    
-    # 5. Tính Level mới
-    new_lv = 1 + (user_info['exp'] // 100)
-    user_info['level'] = new_lv
-    new_atk = tinh_atk_tong_hop(user_info)
-    new_hp_max = 100 + (new_lv * 20)
-    user_info['hp'] = new_hp_max 
-
-    # 6. Loot đồ
+    # 4. Loot đồ
     loot_msg = "Không có"
     item_id = p_data.get('item_drop_id', "none")
     if item_id not in ["none", "Không rơi đồ"]:
@@ -918,62 +895,38 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
             inv.append(item_id)
             loot_msg = f"📦 {item_id}"
 
-    # 7. Hiển thị kết quả
+    # 5. Hiển thị kết quả
     st.write("---")
     st.subheader("🎁 PHẦN THƯỞNG CHIẾN THẮNG")
     c1, c2, c3 = st.columns(3)
-    c1.metric("KPI Nhận", f"+{p_data.get('reward_kpi', 0)}")
-    c2.metric("EXP Nhận", f"+{p_data.get('reward_exp', 0)}")
+    c1.metric("KPI Nhận", f"+{kpi_reward}")
+    c2.metric("EXP Nhận", f"+{exp_reward}")
     c3.metric("Vật phẩm", loot_msg)
 
-    # 8. Hiệu ứng Level Up
-    if new_lv > old_lv:
-        st.balloons()
-        st.toast(f"🎊 LEVEL UP! Cấp {new_lv}", icon="🆙")
-        st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #f1c40f, #f39c12); padding: 15px; border-radius: 10px; color: white; text-align: center;">
-            <h3>🎊 LÊN CẤP {new_lv} 🎊</h3>
-            <p>HP: {old_hp_max} ➔ {new_hp_max} | ATK: {old_atk} ➔ {new_atk}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # 9. Cập nhật tiến trình
-    try: current_p_num = int(phase_id.split("_")[1]) 
-    except: current_p_num = 1
+    # 6. MỞ KHÓA MÀN TIẾP THEO (UNLOCK NEXT PHASE)
+    try: 
+        current_p_num = int(phase_id.split("_")[1]) 
+    except: 
+        current_p_num = 1
     
-    # Fix luôn lỗi tiềm ẩn cho dungeon_progress
-    raw_prog = user_info.get('dungeon_progress')
-    if not isinstance(raw_prog, dict):
-        raw_prog = {}
-        user_info['dungeon_progress'] = raw_prog
+    # Chuẩn hóa dungeon_progress
+    if 'dungeon_progress' not in user_info or not isinstance(user_info['dungeon_progress'], dict):
+        user_info['dungeon_progress'] = {}
     
-    actual_progress = raw_prog.get(land_id, 1)
+    # Lấy tiến độ hiện tại của vùng đất này
+    actual_progress = user_info['dungeon_progress'].get(land_id, 1)
 
+    # Nếu vừa đánh xong màn đang kẹt -> Mở khóa màn sau
     if current_p_num == actual_progress:
-        if current_p_num < 4:
-            raw_prog[land_id] = current_p_num + 1
-    # ======================================================
-    # 🕵️‍♂️ ĐẶT MÁY GHI ÂM TẠI ĐÂY (LOGGING)
-    # ======================================================
-    kpi_sau = user_info.get('kpi', 0)
-    bonus_sau = user_info.get('Bonus', 0)
-    
-    log_detail = f"KPI: {kpi_truoc}->{kpi_sau} (+{kpi_nhan}) | EXP: +{exp_nhan} | Item: {loot_msg}"
-    log_note = ""
-    
-    # BẮT QUẢ TANG NẾU BONUS TĂNG
-    if bonus_sau > bonus_truoc:
-        log_detail += f" | ⚠️ BONUS TĂNG BẤT THƯỜNG: {bonus_truoc}->{bonus_sau}"
-        log_note = "CHECK NGAY! Có code lạ cộng Bonus."
-    else:
-        log_detail += f" | Bonus giữ nguyên: {bonus_sau}"
+        if current_p_num < 4: # Giả sử max là 4 phase
+            user_info['dungeon_progress'][land_id] = current_p_num + 1
+            st.toast(f"🔓 ĐÃ MỞ KHÓA PHASE {current_p_num + 1}!", icon="🔓")
+        else:
+            st.toast("🏆 BẠN ĐÃ PHÁ ĐẢO VÙNG ĐẤT NÀY!", icon="👑")
 
-    # Ghi log
-    ghi_log_he_thong(user_id, f"WIN_PHASE_{land_id}", log_detail, log_note)
-    # ======================================================
-    # Lưu dữ liệu
+    # 7. Lưu dữ liệu NGAY LẬP TỨC
     save_data_func(st.session_state.data)
-
+    
 def tinh_atk_tong_hop(user_info):
     """
     [CẬP NHẬT] Công thức cân bằng: 
