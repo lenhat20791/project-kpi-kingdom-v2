@@ -2144,94 +2144,124 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
 
     # --- 4. GIAO DIỆN LÀM BÀI ---
     q_idx = st.session_state.current_q
-    
+
     if q_idx < len(questions):
         q = questions[q_idx]
         
-        # Thanh tiến độ
+        # 1. Thanh tiến độ
         progress = (q_idx / len(questions))
         st.progress(progress, text=f"Tiến độ: Câu {q_idx + 1}/{len(questions)}")
         
         st.subheader(f"⚔️ CÂU HỎI {q_idx + 1}")
         st.caption(f"🔥 Độ khó: {raw_level} | 📚 Môn: {raw_subject}")
-        
-        # Hiển thị nội dung câu hỏi đẹp hơn
         st.info(f"❓ {q['question']}")
+
+        # ==========================================================
+        # 🟢 CƠ CHẾ TIMEOUT JAVASCRIPT (Học tập từ cơ chế Boss)
+        # ==========================================================
+        # Tạo label duy nhất cho mỗi câu hỏi để tránh trùng lặp
+        trigger_label = f"ARENA_TIMEOUT_TRIGGER_{match_id}_{q_idx}"
         
-        # --- [MỚI] BỘ ĐẾM NGƯỢC JAVASCRIPT ---
-        # Tạo một key duy nhất cho mỗi câu hỏi để JS reset lại mỗi lần chuyển câu
-        flip_flop = q_idx % 2
-        
-        # 2. Định nghĩa nội dung HTML (Giữ nguyên logic của bạn)
+        # NÚT ẨN: JS sẽ tìm nút có tên này để kích hoạt khi hết giờ
+        # Nút này sẽ được JS ẩn đi ngay khi render để người dùng không thấy
+        if st.button(trigger_label, key=f"btn_hidden_arena_{q_idx}"):
+            st.warning(f"⏰ HẾT GIỜ! Bạn chưa kịp chọn đáp án cho câu {q_idx + 1}.")
+            raw_correct_ans = q.get('answer', q.get('correct_answer', ''))
+            st.error(f"✅ Đáp án đúng là: {raw_correct_ans}")
+            
+            # Tạm dừng để học sinh xem đáp án đúng
+            import time
+            time.sleep(2.0)
+            
+            # Chuyển câu và reset trạng thái
+            st.session_state.current_q += 1
+            st.rerun()
+
+        # --- HIỂN THỊ ĐỒNG HỒ ---
+        # Nhúng bộ đếm JS (Full logic xử lý ẩn nút và tự động kích hoạt)
+        # Thêm fingerprint để buộc Streamlit reload component mỗi câu mới
         timer_html = f"""
-            <div id="timer-box" style="text-align: center; font-family: sans-serif;">
-                <div style="font-size: 18px; color: #555;">⏳ Thời gian còn lại</div>
-                <div id="countdown" style="font-size: 35px; font-weight: bold; color: #2ecc71;">{time_limit}s</div>
-            </div>
-            <script>
-                var seconds = {int(time_limit)};
-                if (window.timerInterval) clearInterval(window.timerInterval);
-                window.timerInterval = setInterval(function() {{
-                    seconds--;
-                    var display = document.getElementById('countdown');
-                    if(display) {{
-                        display.innerHTML = seconds + "s";
-                        if (seconds <= 3) display.style.color = "#e74c3c";
-                        if (seconds <= 0) {{
-                            clearInterval(window.timerInterval);
-                            var buttons = window.parent.document.querySelectorAll('button');
-                            for (var i = 0; i < buttons.length; i++) {{
-                                if (buttons[i].innerText.includes("CHỐT ĐÁP ÁN")) {{
-                                    buttons[i].click();
-                                    break;
-                                }}
-                            }}
+        <div id="arena_timer_display" style="font-size: 28px; font-weight: bold; color: #2ecc71; text-align: center; font-family: sans-serif; border: 2px solid #ddd; border-radius: 10px; padding: 10px; background: white;">
+            ⏳ {time_limit}
+        </div>
+        <script>
+            var timeleft = {int(time_limit)};
+            var timerElem = document.getElementById("arena_timer_display");
+            var targetLabel = "{trigger_label}";
+            
+            // Hàm tìm và ẩn nút trigger ngay lập tức khỏi giao diện người dùng
+            function huntAndHide() {{
+                const buttons = window.parent.document.getElementsByTagName("button");
+                for (let btn of buttons) {{
+                    if (btn.innerText.includes(targetLabel)) {{
+                        btn.style.display = "none"; 
+                        return btn;
+                    }}
+                }}
+            }}
+            var hiderInterval = setInterval(huntAndHide, 100);
+
+            // Logic đếm ngược
+            var countdownInterval = setInterval(() => {{
+                timeleft--;
+                if(timerElem) timerElem.innerText = "⏳ " + timeleft;
+                
+                // Đổi màu cảnh báo khi dưới 5 giây
+                if(timeleft <= 5 && timerElem) {{
+                    timerElem.style.color = "#ff4b4b"; 
+                    timerElem.style.borderColor = "#ff4b4b";
+                }}
+
+                // Khi hết giờ
+                if (timeleft <= 0) {{
+                    clearInterval(countdownInterval);
+                    clearInterval(hiderInterval);
+                    
+                    // Tìm lại nút ẩn một lần nữa để click
+                    const buttons = window.parent.document.getElementsByTagName("button");
+                    for (let btn of buttons) {{
+                        if (btn.innerText.includes(targetLabel)) {{
+                            btn.click(); 
+                            break;
                         }}
                     }}
-                }}, 1000);
-            </script>
+                }}
+            }}, 1000);
+        </script>
         """
+        
+        # Hiển thị component đồng hồ
+        import streamlit.components.v1 as components
+        components.html(timer_html, height=100)
 
-        # 3. Gọi component thông qua container và BỎ THAM SỐ 'key'
-        placeholder = st.empty()
-        with placeholder.container():
-            # Mỗi câu hỏi sẽ nhảy vào một "vùng nhớ" khác nhau của Streamlit
-            if flip_flop == 0:
-                st.write("", unsafe_allow_html=True)
-                components.html(timer_html, height=120)
-            else:
-                st.write("", unsafe_allow_html=True)
-                components.html(timer_html, height=120)
-
-        # Form trả lời
+        # --- FORM TRẢ LỜI CỦA PLAYER ---
+        # Form này dùng để người chơi chủ động bấm "CHỐT ĐÁP ÁN"
         with st.form(key=f"quiz_form_{match_id}_{q_idx}"):
             ans = st.radio("Lựa chọn của bạn:", q['options'], index=None)
-            # Nút bấm này sẽ được JS "click" hộ khi hết giờ
             submitted = st.form_submit_button("CHỐT ĐÁP ÁN 🚀", type="primary", use_container_width=True)
 
-        # --- XỬ LÝ KẾT QUẢ ---
         if submitted:
-            # Xử lý đáp án
+            # Xử lý kết quả (Logic tính điểm giữ nguyên như cũ)
             raw_correct_ans = q.get('answer', q.get('correct_answer', ''))
             user_key = str(ans).strip()[0].upper() if ans else ""
             ans_key = str(raw_correct_ans).strip()[0].upper()
             
-            if not ans:
-                st.warning(f"⏰ HẾT GIỜ! Bạn chưa kịp chọn đáp án.")
-                st.error(f"✅ Đáp án đúng là: {raw_correct_ans}")
-            elif user_key == ans_key:
-                st.balloons(); st.success("🎉 CHÍNH XÁC! +1 Điểm")
+            if user_key == ans_key:
+                st.balloons()
+                st.success("🎉 CHÍNH XÁC! +1 Điểm")
                 st.session_state.user_score += 1
             else:
-                st.error("❌ SAI RỒI!"); st.info(f"✅ Đáp án đúng là: {raw_correct_ans}")
+                st.error("❌ SAI RỒI!")
+                st.info(f"✅ Đáp án đúng là: {raw_correct_ans}")
             
             if 'explanation' in q:
-                with st.expander("💡 Xem giải thích"): st.write(q['explanation'])
+                with st.expander("💡 Xem giải thích chi tiết"):
+                    st.write(q['explanation'])
             
-            with st.spinner("Đang chuyển câu..."):
-                time.sleep(2.0)
+            with st.spinner("Đang chuyển câu hỏi..."):
+                import time
+                time.sleep(2.0) 
             
-            # 5. Chuyển câu
             st.session_state.current_q += 1
             st.rerun()
             
