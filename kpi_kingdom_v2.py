@@ -2124,7 +2124,7 @@ else:
             return ""
 
         # --- 2. LOGIC HIỂN THỊ BOSS UI (Nằm trong luồng chính) ---
-        # Lấy dữ liệu Boss từ Session State (Đã được hàm load_live_boss_data cập nhật ở trên)
+        # Lấy dữ liệu Boss từ Session State
         if 'system_config' not in st.session_state.data:
             st.session_state.data['system_config'] = {}
             
@@ -2137,13 +2137,11 @@ else:
             # --- XỬ LÝ ẢNH ---
             boss_img_source = boss.get("anh", "assets/teachers/toan.png")
             
-            # Logic: Nếu là link online -> Dùng luôn. Nếu là file -> Convert Base64
             if str(boss_img_source).startswith("http"):
                 img_src = boss_img_source
             else:
-                # Nếu đường dẫn file không tồn tại, dùng ảnh placeholder mặc định để không lỗi
                 if not os.path.exists(boss_img_source):
-                     img_src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" # Ảnh mặc định online
+                     img_src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
                 else:
                     img_b64 = get_base64(boss_img_source)
                     img_src = f"data:image/png;base64,{img_b64}"
@@ -2154,27 +2152,33 @@ else:
                 hp_max = int(boss.get("hp_max", 10000))
                 percent = (hp_cur / hp_max) * 100 if hp_max > 0 else 0
             except:
-                hp_cur, hp_max, percent = 0, 10000, 0 # Fallback nếu dữ liệu lỗi
+                hp_cur, hp_max, percent = 0, 10000, 0 
             
-            # --- DANH SÁCH TOP 10 ---
+            # --- DANH SÁCH TOP 10 (SẮP XẾP CHUẨN) ---
             contributions = boss.get("contributions", {})
-            # Sắp xếp giảm dần theo damage
-            top_10 = sorted(contributions.items(), key=lambda x: x[1], reverse=True)[:10]
+            # Sắp xếp ép kiểu int để chính xác (100 > 9)
+            if not contributions:
+                top_10 = []
+            else:
+                top_10 = sorted(contributions.items(), key=lambda x: int(x[1]), reverse=True)[:10]
             
             top_list_html = ""
             for i, (uid, dmg) in enumerate(top_10):
-                # Lấy tên user an toàn
                 user_info = st.session_state.data.get(str(uid), {})
-                name = user_info.get("name", f"Chiến binh {uid[-4:]}") # Lấy tên hoặc 4 số cuối ID
+                name = user_info.get("name", f"Chiến binh {uid[-4:]}") 
                 
-                color = "#f1c40f" if i < 3 else "#ffffff" 
+                color = "#f1c40f" if i < 3 else "#ffffff"
+                
+                # --- [CHỈNH SỬA 1] Font chữ nhỏ lại (16px) và Margin bé lại (5px) ---
                 top_list_html += f"""
-                <div style='display:flex; justify-content:space-between; color:{color}; font-size:22px; margin-bottom:12px; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom:5px;'>
-                    <span><b>#{i+1}</b> {name}</span> 
-                    <span style='color:#00d2ff; font-weight:bold;'>{dmg:,} <small style='font-size:12px;'>DMG</small></span>
+                <div style='display:flex; justify-content:space-between; align-items:center; color:{color}; font-size:16px; margin-bottom:5px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:2px;'>
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%;">
+                        <b>#{i+1}</b> {name}
+                    </span> 
+                    <span style='color:#00d2ff; font-weight:bold;'>{int(dmg):,} <small style='font-size:10px;'>DMG</small></span>
                 </div>"""
 
-            # --- RENDER HTML (Giữ nguyên CSS đẹp của bạn) ---
+            # --- RENDER HTML ---
             boss_ui_html = f"""
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Permanent+Marker&display=swap');
@@ -2184,7 +2188,7 @@ else:
                     background: linear-gradient(135deg, #6c5ce7 0%, #00d2ff 50%, #ff4d4d 100%);
                     border-left: 18px solid #fff;
                     border-radius: 0 50px 50px 0;
-                    padding: 35px;
+                    padding: 25px; /* Giảm padding từ 35 -> 25 */
                     display: flex;
                     height: 600px; 
                     box-shadow: 25px 25px 50px rgba(0,0,0,0.7);
@@ -2194,9 +2198,9 @@ else:
                 }}
 
                 .boss-avatar-box {{
-                    flex: 0 0 50%; 
+                    flex: 0 0 45%; /* Giảm chiều rộng ảnh một chút để nhường chỗ text */
                     height: 100%;
-                    border: 10px solid white;
+                    border: 8px solid white;
                     border-radius: 30px;
                     overflow: hidden;
                     box-shadow: 0 0 40px rgba(0,0,0,0.6);
@@ -2205,8 +2209,8 @@ else:
                 .boss-avatar-box img {{ width: 100%; height: 100%; object-fit: cover; background-color: #1a1a1a; }}
 
                 .boss-main-content {{
-                    flex: 0 0 50%;
-                    padding-left: 50px;
+                    flex: 0 0 55%;
+                    padding-left: 30px; /* Giảm padding trái */
                     display: flex;
                     flex-direction: column;
                     justify-content: flex-start;
@@ -2215,67 +2219,76 @@ else:
 
                 .boss-prefix {{
                     font-family: 'Permanent Marker', cursive;
-                    font-size: 65px;
+                    font-size: 40px; /* [CHỈNH SỬA 2] Giảm từ 65px -> 40px */
                     color: #fff;
-                    text-shadow: 8px 8px 0px #ff4d4d, 12px 12px 0px #000;
+                    text-shadow: 4px 4px 0px #ff4d4d, 6px 6px 0px #000;
                     margin: 0;
                     line-height: 1;
                 }}
 
                 .boss-header {{
                     font-family: 'Bangers', cursive;
-                    font-size: 55px; 
+                    font-size: 40px; /* [CHỈNH SỬA 3] Giảm từ 55px -> 40px */
                     color: #2c3e50;
                     -webkit-text-stroke: 1px #ffffff; 
-                    text-shadow: 4px 4px 0px #1a1a1a, 
-                                 0px 0px 10px rgba(255, 255, 255, 0.3);
-                    margin-bottom: 25px;
-                    letter-spacing: 3px;
-                    line-height: 1.2;
+                    text-shadow: 2px 2px 0px #1a1a1a, 
+                                 0px 0px 5px rgba(255, 255, 255, 0.3);
+                    margin-bottom: 10px; /* Giảm margin bottom */
+                    letter-spacing: 2px;
+                    line-height: 1.1;
                     font-weight: bold;
                     text-transform: uppercase;
                 }}
+                
                 .hp-mini-container {{
                     background: rgba(0,0,0,0.8);
-                    border-radius: 20px;
-                    height: 55px; 
+                    border-radius: 15px;
+                    height: 35px; /* [CHỈNH SỬA 4] Giảm chiều cao thanh máu 55px -> 35px */
                     width: 100%;
                     position: relative;
                     overflow: hidden;
-                    border: 4px solid white;
-                    margin-bottom: 20px;
+                    border: 3px solid white;
+                    margin-bottom: 15px;
                 }}
                 .hp-mini-bar {{
                     background: linear-gradient(90deg, #ff4d4d, #f1c40f);
                     width: {percent}%;
                     height: 100%;
-                    box-shadow: 0 0 30px #ff4d4d;
+                    box-shadow: 0 0 20px #ff4d4d;
                     transition: width 0.5s ease-in-out;
                 }}
                 .hp-mini-text {{
                     position: absolute; width:100%; text-align:center; top:0;
-                    font-size: 26px; font-weight: bold; line-height: 55px;
-                    text-shadow: 2px 2px 4px #000;
+                    font-size: 18px; /* Giảm font chữ HP */
+                    font-weight: bold; 
+                    line-height: 35px; /* Căn giữa theo chiều cao mới */
+                    text-shadow: 1px 1px 2px #000;
                     color: white; z-index: 2;
                 }}
 
                 .damage-leaderboard {{
                     background: rgba(0,0,0,0.5);
-                    border-radius: 30px;
-                    padding: 25px;
+                    border-radius: 20px;
+                    padding: 15px; /* Giảm padding 25 -> 15 */
                     flex-grow: 1;
                     border: 2px solid rgba(255,255,255,0.3);
                     display: flex;
                     flex-direction: column;
+                    overflow: hidden; /* Ẩn nếu tràn khung cha */
                 }}
                 .leaderboard-title {{
-                    font-size: 26px; font-weight: bold; text-transform: uppercase;
-                    margin-bottom: 20px; color: #f1c40f; border-bottom: 4px solid #f1c40f;
-                    padding-bottom: 10px; text-align: center;
+                    font-size: 20px; /* Giảm font title 26 -> 20 */
+                    font-weight: bold; text-transform: uppercase;
+                    margin-bottom: 10px; 
+                    color: #f1c40f; border-bottom: 2px solid #f1c40f;
+                    padding-bottom: 5px; text-align: center;
                 }}
-                .list-container {{ overflow-y: auto; flex-grow: 1; }}
+                .list-container {{ 
+                    overflow-y: auto; 
+                    flex-grow: 1; 
+                }}
                 
-                .list-container::-webkit-scrollbar {{ width: 5px; }}
+                .list-container::-webkit-scrollbar {{ width: 4px; }}
                 .list-container::-webkit-scrollbar-thumb {{ background: rgba(255,255,255,0.5); border-radius: 10px; }}
             </style>
 
@@ -2294,7 +2307,7 @@ else:
                     <div class="damage-leaderboard">
                         <div class="leaderboard-title">🏆 TOP 10 CHIẾN BINH</div>
                         <div class="list-container">
-                            {top_list_html if top_list_html else "<div style='text-align:center; margin-top:20px; color:#ddd;'><i style='font-size:22px;'>Đang chờ anh hùng xuất trận...</i></div>"}
+                            {top_list_html if top_list_html else "<div style='text-align:center; margin-top:20px; color:#ddd;'><i style='font-size:16px;'>Đang chờ anh hùng xuất trận...</i></div>"}
                         </div>
                     </div>
                 </div>
@@ -2302,7 +2315,6 @@ else:
             """
             components.html(boss_ui_html, height=630)
         else:
-            # Nếu không có boss active thì hiện thông báo đẹp một chút
             st.markdown("""
                 <div style="text-align: center; padding: 40px; border: 2px dashed #ccc; border-radius: 10px; margin-top: 20px;">
                     <h2 style="color: #7f8c8d;">🚫 KHÔNG CÓ TRẬN ĐẤU NÀO</h2>
