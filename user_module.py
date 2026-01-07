@@ -1275,176 +1275,103 @@ def popup_ket_qua_mo_ruong(chest_name, rewards):
 # ==============================================================================
 # 2. LOGIC MỞ RƯƠNG (Backend - Dùng Admin Config)
 # ==============================================================================
-def xu_ly_mo_ruong(user_id, item_name, item_info, all_data, save_func):
+def xu_ly_mo_ruong(user_id, item_name, item_info, all_data, save_func=None):
     """
-    [FINAL HYBRID] Xử lý mở rương Đa Năng:
-    - Loại 1 (Gacha - Shop): Dùng 'loot_table' riêng trong món đồ (Tỷ lệ độc lập).
-    - Loại 2 (Rương Báu - Settings): Dùng 'chest_rewards' từ System Config (Quay 1 món theo trọng số).
+    [FINAL LOGIC] Chỉ tính toán quà rơi ra từ rương (RNG).
+    KHÔNG can thiệp vào kho đồ hay lưu dữ liệu ở đây nữa (để bên ngoài xử lý).
     """
     import random
     
-    user_info = all_data[user_id]
-    
-    # ==========================================================
-    # 1. TRỪ RƯƠNG KHỎI KHO (Xử lý an toàn cho cả List và Dict)
-    # ==========================================================
-    inventory = user_info.get('inventory', [])
-    
-    # Chuyển đổi Inventory về dạng Dict để trừ cho dễ
-    if isinstance(inventory, list):
-        inv_dict = {}
-        for i in inventory: inv_dict[i] = inv_dict.get(i, 0) + 1
-        
-        # Trừ rương
-        if inv_dict.get(item_name, 0) > 0:
-            inv_dict[item_name] -= 1
-            if inv_dict[item_name] <= 0: del inv_dict[item_name]
-            
-        # Chuyển lại thành List để lưu
-        new_inv = []
-        for k, v in inv_dict.items(): new_inv.extend([k]*v)
-        user_info['inventory'] = new_inv
-        
-    elif isinstance(inventory, dict):
-        if inventory.get(item_name, 0) > 0:
-            inventory[item_name] -= 1
-            if inventory[item_name] <= 0: del inventory[item_name]
-        user_info['inventory'] = inventory
-
-    # ==========================================================
-    # 2. PHÂN LOẠI RƯƠNG & QUAY THƯỞNG
-    # ==========================================================
     received_rewards = []
-    
-    # Kiểm tra xem rương này có loot_table riêng (Gacha) không?
     loot_table = []
     
-    # Ưu tiên lấy từ thông tin item truyền vào
+    # 1. Kiểm tra xem rương này có loot_table riêng (Gacha Shop) không?
     if item_info and 'properties' in item_info:
         loot_table = item_info['properties'].get('loot_table', [])
-    
+        
     # Nếu không, tìm trong shop_items toàn cục
     if not loot_table and 'shop_items' in all_data:
         shop_item = all_data['shop_items'].get(item_name, {})
         loot_table = shop_item.get('properties', {}).get('loot_table', [])
 
-    # ➤ TRƯỜNG HỢP 1: RƯƠNG GACHA (ADMIN TẠO TRONG SHOP)
-    # Cơ chế: Independent Drop (Mỗi món có % rơi riêng, có thể nhận nhiều món)
+    # ➤ TRƯỜNG HỢP 1: RƯƠNG GACHA (ADMIN TẠO)
+    # Cơ chế: Independent Drop
     if loot_table:
         for loot in loot_table:
-            rate = float(loot.get('rate', 0))
-            if random.uniform(0, 100) <= rate:
-                received_rewards.append({
-                    "type": loot.get('type', 'item'),
-                    "id": loot.get('id', 'unknown'),
-                    "val": int(loot.get('amount', 1)),
-                    "msg": "" # Gacha tự sinh msg sau
-                })
+            try:
+                rate = float(loot.get('rate', 0))
+                if random.uniform(0, 100) <= rate:
+                    received_rewards.append({
+                        "type": loot.get('type', 'item'),
+                        "id": loot.get('id', 'unknown'), # ID item hoặc loại tiền (kpi, exp)
+                        "val": int(loot.get('value', 0)) if loot.get('value') else 0, # Giá trị (VD: 100 kpi)
+                        "amount": int(loot.get('amount', 1)), # Số lượng (VD: 1 cái kiếm)
+                        "msg": "" # Để trống để tự sinh sau
+                    })
+            except: continue
 
-    # ➤ TRƯỜNG HỢP 2: RƯƠNG BÁU (CẤU HÌNH TRONG SETTINGS)
-    # Cơ chế: Weighted Random (Chỉ nhận 1 món theo tỷ lệ từ chest_rewards)
+    # ➤ TRƯỜNG HỢP 2: RƯƠNG BÁU (SETTINGS CŨ)
+    # Cơ chế: Weighted Random
     else:
         sys_config = all_data.get('system_config', {})
-        # Lấy list quà từ Settings: chest_rewards
         rewards_pool = sys_config.get('chest_rewards', [])
         
-        # Fallback nếu chưa cấu hình
+        # Fallback
         if not rewards_pool:
             rewards_pool = [
-                {"type": "kpi", "val": 10, "rate": 50, "msg": "💰 10 KPI (Mặc định)"},
-                {"type": "exp", "val": 20, "rate": 50, "msg": "✨ 20 EXP (Mặc định)"}
+                {"type": "kpi", "val": 10, "rate": 50, "msg": "💰 10 KPI"},
+                {"type": "exp", "val": 20, "rate": 50, "msg": "✨ 20 EXP"}
             ]
             
-        # Quay số chọn 1 món dựa trên 'rate'
+        # Quay số
         weights = [int(r.get('rate', 1)) for r in rewards_pool]
         chosen = random.choices(rewards_pool, weights=weights, k=1)[0]
         
-        # Mapping dữ liệu từ JSON Settings sang chuẩn chung
-        # Format JSON Settings: {"type": "kpi", "val": 5, "msg": "..."}
+        # Chuẩn hóa dữ liệu về format chung
         r_type = chosen.get('type')
-        r_val_raw = chosen.get('val')
+        r_val = chosen.get('val', 0)
         
-        # Xử lý ID và Số lượng
-        r_id = "unknown"
-        r_amount = 0
-        
-        if r_type == 'item':
-            r_id = str(r_val_raw) # Với item, val là ID món đồ (vd: "kiem_go")
-            r_amount = 1
-        else:
-            # Với kpi/exp, val là số lượng (vd: 5)
-            r_id = r_type # ID là tên loại tiền
-            r_amount = int(r_val_raw)
-            r_type = 'currency' # Đổi về chuẩn chung xử lý bên dưới
-            
-        received_rewards.append({
-            "type": r_type,
-            "id": r_id,
-            "val": r_amount,
-            "msg": chosen.get('msg', '') # Lấy câu thông báo từ Settings
-        })
+        # Nếu là KPI/EXP/Currency -> type="currency", id="kpi", val=giá trị
+        if r_type in ['kpi', 'exp', 'currency']:
+            received_rewards.append({
+                "type": 'currency', # Đặt chung là currency để dễ xử lý
+                "id": r_type if r_type != 'currency' else 'kpi',
+                "val": r_val, # Giá trị cộng thêm
+                "amount": 1,
+                "msg": chosen.get('msg', '')
+            })
+        # Nếu là Item -> type="item", id="ten_item", amount=số lượng
+        elif r_type == 'item':
+            received_rewards.append({
+                "type": 'item',
+                "id": str(r_val), # Với item cũ, val chính là ID/Tên item
+                "val": 0, 
+                "amount": 1,
+                "msg": chosen.get('msg', '')
+            })
 
-    # ==========================================================
-    # 3. CỘNG QUÀ VÀO TÀI KHOẢN & TẠO KẾT QUẢ HIỂN THỊ
-    # ==========================================================
-    final_results_for_popup = []
-    
+    # 3. SINH MESSAGES HIỂN THỊ CHO ĐẸP
+    final_results = []
     for r in received_rewards:
         r_type = r['type']
         r_id = r['id']
-        r_val = int(r['val'])
+        r_val = r.get('val', 0)
+        r_amt = r.get('amount', 1)
+        r_msg = r.get('msg', '')
         
-        msg_display = ""
-        display_type = r_type
-
-        # A. Xử lý Tiền tệ (KPI, EXP...)
-        if r_type == 'currency' or r_type in ['kpi', 'exp', 'Tri_Thuc', 'Chien_Tich', 'Vinh_Du']:
-            key_map = {
-                "KPI": "kpi", "kpi": "kpi",
-                "EXP": "exp", "exp": "exp",
-                "Tri_Thuc": "Tri_Thuc", "Chien_Tich": "Chien_Tich", "Vinh_Du": "Vinh_Du"
-            }
-            user_key = key_map.get(r_id, r_id)
-            # Fallback nếu r_type chính là key (trường hợp Settings)
-            if user_key == "unknown" and r_type in key_map: 
-                user_key = key_map[r_type]
-
-            # Cộng tiền
-            user_info[user_key] = user_info.get(user_key, 0) + r_val
-            
-            # Tạo hiển thị
-            msg_display = f"+{r_val} {user_key.upper()}"
-            display_type = 'kpi' if user_key == 'kpi' else 'exp' if user_key == 'exp' else 'currency'
-
-        # B. Xử lý Vật phẩm (Item)
-        elif r_type == 'item':
-            current_inv = user_info.get('inventory', [])
-            
-            # Cộng item vào list/dict
-            if isinstance(current_inv, list):
-                for _ in range(r_val): current_inv.append(r_id)
-                user_info['inventory'] = current_inv
-            elif isinstance(current_inv, dict):
-                current_inv[r_id] = current_inv.get(r_id, 0) + r_val
-                user_info['inventory'] = current_inv
-            
-            msg_display = f"{r_id} (x{r_val})"
-            display_type = 'item'
-
-        # Ưu tiên lấy msg từ cấu hình (nếu có), nếu không thì dùng msg tự tạo
-        final_msg = r.get('msg') if r.get('msg') else msg_display
+        if not r_msg:
+            if r_type == 'currency' or r_id in ['kpi', 'exp']:
+                if r_id == 'kpi': r_msg = f"💰 +{r_val} KPI"
+                elif r_id == 'exp': r_msg = f"✨ +{r_val} EXP"
+                else: r_msg = f"💎 +{r_val} {r_id}"
+            elif r_type == 'item':
+                r_msg = f"🎁 {r_id} (x{r_amt})"
+                
+        # Cập nhật lại msg
+        r['msg'] = r_msg
+        final_results.append(r)
         
-        final_results_for_popup.append({
-            "type": display_type,
-            "val": r_id if display_type == 'item' else r_val, # val này dùng để map ảnh
-            "msg": final_msg
-        })
-
-    # 4. Lưu dữ liệu
-    save_func(all_data)
-    
-    return final_results_for_popup
-
+    return final_results
 @st.cache_data(ttl=10)
 def get_realtime_boss_stats(boss_name):
     """
@@ -3688,17 +3615,18 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                 confirm_dialog(p_name, p_info)
                 
                 
-    # === TAB 2: TÚI ĐỒ ===
+    # === TAB 2: TÚI ĐỒ (Logic tìm ảnh thông minh & Mở rương chuẩn) ===
     with tab_kho:
         inventory = user_info.get('inventory', {})
         
-        # [FIX LỖI DỮ LIỆU CŨ] Chuyển List -> Dict
+        # [FIX LỖI DỮ LIỆU CŨ] Chuyển List -> Dict (Gộp số lượng item giống nhau)
         if isinstance(inventory, list):
             new_inv = {}
-            for item in inventory:
+            for item in inventory: 
                 new_inv[item] = new_inv.get(item, 0) + 1
             inventory = new_inv
             user_info['inventory'] = inventory
+            # Lưu ngay định dạng mới để lần sau không phải chuyển đổi nữa
             save_data_func(st.session_state.data)
             st.rerun()
 
@@ -3707,89 +3635,143 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
         else:
             st.write(f"### 📦 Đồ đạc của bạn")
             
-            # Lấy data shop để tra cứu thông tin item trong kho
+            # Lấy data shop (đã update mới nhất) để tra cứu
             shop_data = st.session_state.data.get('shop_items', {})
             cols_kho = st.columns(4)
             
-            for i, (item_name, count) in enumerate(inventory.items()):
-                item_info = shop_data.get(item_name, {})
+            # Duyệt qua từng món trong kho
+            for i, (inv_key, count) in enumerate(inventory.items()):
                 
-                # --- [FIX ẢNH & LOẠI RƯƠNG] ---
+                # --- 🔥 LOGIC TRA CỨU ẢNH THÔNG MINH ---
+                # 1. Tìm chính xác theo ID (key)
+                item_info = shop_data.get(inv_key)
+                
+                # 2. Nếu không tìm thấy theo ID, thử tìm theo TÊN (Name)
+                # (Phòng trường hợp kho lưu tên cũ: "Rương Chào Mừng" thay vì ID "chest_01")
+                if not item_info:
+                    for s_id, s_info in shop_data.items():
+                        if s_info.get('name') == inv_key:
+                            item_info = s_info
+                            # Kế thừa ID thực từ shop để xử lý logic sau này
+                            inv_key = s_id 
+                            break
+                
+                # 3. Nếu vẫn không thấy -> Tạo thông tin giả để không lỗi giao diện
+                if not item_info:
+                    item_info = {
+                        "name": inv_key, 
+                        "image": "https://cdn-icons-png.flaticon.com/512/9630/9630454.png", 
+                        "desc": "Vật phẩm chưa cập nhật", 
+                        "type": "ITEM"
+                    }
+                # ---------------------------------------------
+
+                # Lấy dữ liệu hiển thị từ item_info đã tìm được
+                display_name = item_info.get('name', inv_key)
                 img_url = item_info.get('image', '')
-                item_type = item_info.get('type', 'ITEM')
+                desc = item_info.get('desc', '')
+                i_type = item_info.get('type', 'ITEM')
 
-                # Fix ảnh
-                if not img_url: 
-                    img_url = "https://cdn-icons-png.flaticon.com/512/9630/9630454.png"
-                if "via.placeholder" in img_url: # Fix ảnh lỗi
-                     img_url = "https://cdn-icons-png.flaticon.com/512/9336/9336056.png"
+                # Fix ảnh lỗi/trống
+                if not img_url: img_url = "https://cdn-icons-png.flaticon.com/512/9630/9630454.png"
+                if "via.placeholder" in img_url: img_url = "https://cdn-icons-png.flaticon.com/512/9336/9336056.png"
 
-                # Fix loại rương (bắt buộc nhận diện rương qua tên nếu type sai)
-                if "Rương" in item_name or "ruong" in item_name.lower() or "GACHA" in item_type: 
-                    item_type = "GACHA_BOX"
-                # ------------------------------
-                description = item_info.get('desc', 'Vật phẩm')
+                # Logic nhận diện rương (nếu tên có chữ Rương hoặc Gacha)
+                if "Rương" in display_name or "ruong" in str(inv_key).lower() or "GACHA" in i_type: 
+                    i_type = "GACHA_BOX"
+
                 with cols_kho[i % 4]:
                     st.markdown(f"""
-<div style="background:#3e2723; border:2px solid #8d6e63; border-radius:10px; padding:10px; text-align:center; position:relative; height: 200px; display: flex; flex-direction: column; justify-content: space-between;">
-<div style="position:absolute; top:5px; right:5px; background:#e74c3c; color:white; border-radius:50%; width:25px; height:25px; line-height:25px; font-weight:bold; font-size:12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">{count}</div>
-<div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
-<img src="{img_url}" style="width:60px; height:60px; object-fit:contain;">
-</div>
-<div style="font-weight:bold; color:#f1c40f; font-size:13px; margin-top: 5px;">{item_name}</div>
-<div class="item-desc" style="font-size:11px; min-height:30px;">{description}</div>
-</div>
-""", unsafe_allow_html=True)
+                    <div style="background:#3e2723; border:2px solid #8d6e63; border-radius:10px; padding:10px; text-align:center; position:relative; height: 210px; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div style="position:absolute; top:5px; right:5px; background:#e74c3c; color:white; border-radius:50%; width:25px; height:25px; line-height:25px; font-weight:bold; font-size:12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">{count}</div>
+                        <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+                            <img src="{img_url}" style="width:65px; height:65px; object-fit:contain;">
+                        </div>
+                        <div style="font-weight:bold; color:#f1c40f; font-size:13px; margin-top:5px; min-height:35px;">{display_name}</div>
+                        <div class="item-desc" style="font-size:11px;">{desc}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # === XỬ LÝ NÚT BẤM ===
                     
-                    # Nút hành động
-                    if item_type == "GACHA_BOX":
+                    # 1. NÚT MỞ RƯƠNG (GACHA)
+                    if i_type == "GACHA_BOX":
                         if st.button("🎲 MỞ NGAY", key=f"open_{i}", use_container_width=True, type="primary"):
-                            # Gọi hàm mở rương (đảm bảo hàm này đã import đúng)
                             try:
-                                from user_module import xu_ly_mo_ruong # Import tại chỗ để chắc chắn
-                                rewards = xu_ly_mo_ruong(user_id, item_name, item_info, st.session_state.data, save_data_func)
-                                st.session_state.gacha_result = {"name": item_name, "rewards": rewards}
+                                from user_module import xu_ly_mo_ruong
+                                
+                                # A. Tính toán quà (Chỉ lấy danh sách, chưa cộng)
+                                rewards = xu_ly_mo_ruong(user_id, inv_key, item_info, st.session_state.data)
+                                
+                                # B. Trừ rương khỏi kho (Quan trọng!)
+                                inventory[inv_key] -= 1
+                                if inventory[inv_key] <= 0:
+                                    del inventory[inv_key]
+                                
+                                # C. Cộng quà vào tài khoản
+                                for reward in rewards:
+                                    r_type = reward.get('type')     # 'currency' hoặc 'item'
+                                    r_id = reward.get('id')         # 'kpi', 'exp', 'kiem_go'...
+                                    r_val = int(reward.get('val', 0)) # Giá trị cộng (KPI/EXP)
+                                    r_amt = int(reward.get('amount', 1)) # Số lượng item
+                                    
+                                    # Nếu là Tiền tệ (KPI, EXP, Tri Thức...)
+                                    if r_type == 'currency' or r_id in ['kpi', 'exp', 'Tri_Thuc', 'Chien_Tich', 'Vinh_Du']:
+                                        # Map tên ID về key chuẩn trong user_info
+                                        key_map = {
+                                            "KPI": "kpi", "kpi": "kpi",
+                                            "EXP": "exp", "exp": "exp",
+                                            "Tri_Thuc": "Tri_Thuc", "Chien_Tich": "Chien_Tich", "Vinh_Du": "Vinh_Du"
+                                        }
+                                        user_key = key_map.get(r_id, r_id)
+                                        # Cộng dồn
+                                        user_info[user_key] = user_info.get(user_key, 0) + r_val
+
+                                    # Nếu là Vật phẩm (Item)
+                                    elif r_type == 'item':
+                                        # Lấy kho hiện tại (sau khi đã trừ rương)
+                                        curr_inv = user_info.get('inventory', {})
+                                        # Cộng thêm item mới
+                                        curr_inv[r_id] = curr_inv.get(r_id, 0) + r_amt
+                                        user_info['inventory'] = curr_inv
+
+                                # D. Lưu toàn bộ thay đổi lên Sheet
+                                save_data_func(st.session_state.data)
+                                
+                                # E. Hiển thị kết quả
+                                st.session_state.gacha_result = {"name": display_name, "rewards": rewards}
                                 st.rerun()
-                            except ImportError:
-                                st.error("Lỗi hệ thống: Không tìm thấy hàm mở rương.")
+
                             except Exception as e:
-                                st.error(f"Lỗi khi mở rương: {e}")
-                            
-                    # --- ĐOẠN CODE KẾT NỐI LOGIC SỬ DỤNG VẬT PHẨM ---
-                    elif item_type in ["CONSUMABLE", "BUFF_STAT", "FUNCTIONAL", "BOSS_RESET"]:
-                        # Tạo nút bấm
-                        if st.button("⚡ SỬ DỤNG", key=f"use_{i}", use_container_width=True):
-                            import item_system
-                            import time
+                                st.error(f"Lỗi mở rương: {e}")
+                    
+                    # 2. NÚT SỬ DỤNG (ITEM)
+                    elif i_type in ["CONSUMABLE", "BUFF_STAT", "BOSS_RESET", "FUNCTIONAL"]:
+                         if st.button("⚡ DÙNG", key=f"use_{i}", use_container_width=True):
+                             import item_system
+                             import time
+                             
+                             # A. Áp dụng hiệu ứng
+                             st.session_state.data = item_system.apply_item_effect(
+                                 user_id, item_info, st.session_state.data
+                             )
+                             
+                             # B. Trừ kho
+                             inventory[inv_key] -= 1
+                             if inventory[inv_key] <= 0: del inventory[inv_key]
+                             
+                             # C. Lưu
+                             save_data_func(st.session_state.data)
+                             
+                             # D. Xử lý đặc biệt (Chat thế giới)
+                             if item_info.get('feature') == 'world_chat':
+                                 st.session_state.trigger_world_chat = True
 
-                            # 1. GỌI HÀM XỬ LÝ TÁC DỤNG
-                            # Hàm này sẽ cộng chỉ số, cộng KPI, v.v... vào st.session_state.data
-                            st.session_state.data = item_system.apply_item_effect(
-                                user_id, 
-                                item_info, 
-                                st.session_state.data
-                            )
-
-                            # 2. TRỪ SỐ LƯỢNG TRONG KHO
-                            # Lưu ý: inventory đang là reference đến data gốc, nên sửa ở đây là sửa luôn trong data
-                            inventory[item_name] -= 1
-                            
-                            # Nếu hết thì xóa khỏi kho
-                            if inventory[item_name] <= 0:
-                                del inventory[item_name]
-
-                            # 3. LƯU DỮ LIỆU
-                            save_data_func(st.session_state.data)
-                            # Nếu là thẻ Chat Thế Giới -> Bật cờ để mở Dialog ngay sau khi rerun
-                            if item_info.get('feature') == 'world_chat':
-                                st.session_state.trigger_world_chat = True
-
-                            # 4. THÔNG BÁO VÀ RELOAD
-                            st.toast(f"✅ Đã sử dụng {item_name} thành công!", icon="🎉")
-                            time.sleep(0.5) # Ngủ xíu cho mượt
-                            st.rerun()
+                             st.toast(f"✅ Đã dùng {display_name}", icon="⚡")
+                             time.sleep(0.5)
+                             st.rerun()
                     else:
-                        st.button("🔒 Đã sở hữu", disabled=True, key=f"lock_{i}")
+                        st.button("🔒", key=f"lock_{i}", disabled=True)
 
         # Hiển thị Popup kết quả mở rương
         if "gacha_result" in st.session_state:
