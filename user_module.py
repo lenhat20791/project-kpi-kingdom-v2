@@ -1444,6 +1444,56 @@ def xu_ly_mo_ruong(user_id, item_name, item_info, all_data, save_func):
     save_func(all_data)
     
     return final_results_for_popup
+
+@st.cache_data(ttl=10)
+def get_realtime_boss_stats(boss_name):
+    """
+    Tính toán Máu Boss và Top 10 trực tiếp từ BossLogs (Chính xác 100%)
+    Thay vì tin vào dữ liệu JSON dễ bị ghi đè.
+    """
+    client = None
+    sheet_name = None
+    if 'CLIENT' in st.session_state: client = st.session_state.CLIENT
+    if 'SHEET_NAME' in st.session_state: sheet_name = st.session_state.SHEET_NAME
+    
+    if not client or not sheet_name: return {}, 0 # Trả về rỗng nếu lỗi
+
+    try:
+        sh = client.open(sheet_name)
+        wks = sh.worksheet("BossLogs")
+        
+        # Lấy toàn bộ log (Bỏ dòng tiêu đề)
+        logs = wks.get_all_values()
+        if len(logs) < 2: return {}, 0
+        
+        # Dictionary lưu tổng sát thương: { "user_id": total_dmg }
+        dmg_map = {}
+        total_dmg_taken = 0
+        
+        for row in logs[1:]:
+            # Cấu trúc Log: [Thời gian, Tên Boss, ID Người chơi, Sát thương, ...]
+            if len(row) < 4: continue
+            
+            log_boss_name = str(row[1]).strip()
+            user_id = str(row[2]).strip()
+            try:
+                dmg = int(str(row[3]).replace(",", "")) # Xử lý số có dấu phẩy nếu có
+            except:
+                dmg = 0
+            
+            # Chỉ tính damage cho Boss hiện tại
+            if log_boss_name == boss_name:
+                total_dmg_taken += dmg
+                if user_id in dmg_map:
+                    dmg_map[user_id] += dmg
+                else:
+                    dmg_map[user_id] = dmg
+                    
+        return dmg_map, total_dmg_taken
+
+    except Exception as e:
+        print(f"Lỗi tính damage log: {e}")
+        return {}, 0
     
 @st.cache_data(ttl=10)
 def load_live_boss_data():

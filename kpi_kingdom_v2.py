@@ -2124,6 +2124,10 @@ else:
             return ""
 
         # --- 2. LOGIC HIỂN THỊ BOSS UI (Nằm trong luồng chính) ---
+
+        # Đảm bảo import thư viện hiển thị HTML
+        import streamlit.components.v1 as components 
+
         # Lấy dữ liệu Boss từ Session State
         if 'system_config' not in st.session_state.data:
             st.session_state.data['system_config'] = {}
@@ -2133,8 +2137,31 @@ else:
 
         # Kiểm tra xem có Boss không
         if boss and boss.get("status") == "active":
+            boss_name = boss.get('ten', 'BOSS')
+
+            # =========================================================================
+            # 🔥 BƯỚC 1: LẤY DỮ LIỆU SÁT THƯƠNG THỰC TẾ TỪ LOG (FIX LỖI MẤT DATA)
+            # =========================================================================
+            from user_module import get_realtime_boss_stats
             
-            # --- XỬ LÝ ẢNH ---
+            # Hàm này sẽ quét lại toàn bộ BossLogs để cộng dồn sát thương chuẩn xác
+            real_contributions, total_dmg_taken = get_realtime_boss_stats(boss_name)
+
+            if real_contributions:
+                # Nếu Log có dữ liệu -> Dùng Log
+                contributions = real_contributions
+                # Tính lại máu hiện tại dựa trên tổng sát thương đã nhận
+                hp_max = int(boss.get("hp_max", 10000))
+                hp_cur = max(0, hp_max - total_dmg_taken) # Không để máu âm
+            else:
+                # Fallback: Nếu chưa kết nối được Log thì dùng dữ liệu cũ trong JSON
+                contributions = boss.get("contributions", {})
+                hp_cur = int(boss.get("hp_current", 10000))
+                hp_max = int(boss.get("hp_max", 10000))
+
+            # =========================================================================
+            # 🔥 BƯỚC 2: XỬ LÝ HÌNH ẢNH (Hỗ trợ cả Link Online & File Local)
+            # =========================================================================
             boss_img_source = boss.get("anh", "assets/teachers/toan.png")
             
             if str(boss_img_source).startswith("http"):
@@ -2143,31 +2170,39 @@ else:
                 if not os.path.exists(boss_img_source):
                      img_src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
                 else:
+                    # Hàm get_base64 phải được định nghĩa ở trên cùng file
                     img_b64 = get_base64(boss_img_source)
                     img_src = f"data:image/png;base64,{img_b64}"
             
-            # --- TÍNH TOÁN HP ---
+            # Tính phần trăm HP để vẽ thanh máu
             try:
-                hp_cur = int(boss.get("hp_current", 0))
-                hp_max = int(boss.get("hp_max", 10000))
                 percent = (hp_cur / hp_max) * 100 if hp_max > 0 else 0
             except:
-                hp_cur, hp_max, percent = 0, 10000, 0 
+                percent = 0
             
-            # --- DANH SÁCH TOP 10 (SẮP XẾP CHUẨN) ---
-            contributions = boss.get("contributions", {})
-            # Sắp xếp ép kiểu int để chính xác (100 > 9)
+            # =========================================================================
+            # 🔥 BƯỚC 3: XỬ LÝ DANH SÁCH TOP 10 (SẮP XẾP CHUẨN SỐ HỌC)
+            # =========================================================================
             if not contributions:
                 top_10 = []
             else:
+                # Ép kiểu int để sắp xếp đúng (100 > 9)
                 top_10 = sorted(contributions.items(), key=lambda x: int(x[1]), reverse=True)[:10]
             
             top_list_html = ""
             for i, (uid, dmg) in enumerate(top_10):
+                # Lấy tên user an toàn
                 user_info = st.session_state.data.get(str(uid), {})
                 name = user_info.get("name", f"Chiến binh {uid[-4:]}") 
                 
+                # Màu sắc: Top 3 Vàng, còn lại Trắng
                 color = "#f1c40f" if i < 3 else "#ffffff"
+                
+                # Icon huy chương
+                medal = f"#{i+1}"
+                if i == 0: medal = "🥇"
+                elif i == 1: medal = "🥈"
+                elif i == 2: medal = "🥉"
                 
                 # --- [CHỈNH SỬA 1] Font chữ nhỏ lại (16px) và Margin bé lại (5px) ---
                 top_list_html += f"""
