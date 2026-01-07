@@ -4627,43 +4627,61 @@ def save_all_to_sheets(all_data):
                 return False
 
             # =========================================================
-            # --- 2. ĐỒNG BỘ SETTINGS & BOSS ---
+            # --- 2. ĐỒNG BỘ SETTINGS & BOSS (PHIÊN BẢN BẢO VỆ DỮ LIỆU) ---
             # =========================================================
             try:
-                try: wks_settings = sh.worksheet("Settings")
-                except: wks_settings = None
+                try: 
+                    wks_settings = sh.worksheet("Settings")
+                except: 
+                    wks_settings = None
 
                 if wks_settings:
-                    settings_rows = [["Config_Key", "Value"]]
-                    
-                    if "rank_settings" in all_data:
-                        settings_rows.append(["rank_settings", json.dumps(all_data["rank_settings"], ensure_ascii=False)])
-                    
+                    # Kiểm tra xem có dữ liệu Settings trong bộ nhớ không trước khi xóa Sheet
+                    rank_data = all_data.get("rank_settings")
                     sys_conf = all_data.get('system_config', {})
-                    for key, val in sys_conf.items():
-                        if key == 'active_boss':
-                            if val: 
-                                final_boss_json = {"active_boss": val}
-                                settings_rows.append(["active_boss", json.dumps(final_boss_json, ensure_ascii=False)])
-                        else:
-                            settings_rows.append([key, json.dumps(val, ensure_ascii=False)])
-                    
-                    if len(settings_rows) >= 1: 
-                        wks_settings.clear()
-                        wks_settings.update('A1', settings_rows)
+
+                    # --- CHỐT CHẶN AN TOÀN --- 
+                    # Nếu cả 2 nguồn dữ liệu đều rỗng, HỦY LỆNH LƯU để tránh xóa trắng tab
+                    if not rank_data and not sys_conf:
+                        st.warning("⚠️ Cảnh báo: Dữ liệu Settings trong RAM trống. Đã hủy lệnh lưu tab Settings để bảo vệ dữ liệu trên GSheet!")
+                    else:
+                        settings_rows = [["Config_Key", "Value"]]
+                        
+                        # 1. Thêm rank_settings
+                        if rank_data:
+                            settings_rows.append(["rank_settings", json.dumps(rank_data, ensure_ascii=False)])
+                        
+                        # 2. Thêm các key trong system_config (bao gồm active_boss)
+                        for key, val in sys_conf.items():
+                            if val: # Chỉ thêm nếu có giá trị
+                                # Giữ nguyên cấu trúc JSON hiện tại của bạn
+                                if key == 'active_boss':
+                                    final_boss_json = {"active_boss": val}
+                                    settings_rows.append(["active_boss", json.dumps(final_boss_json, ensure_ascii=False)])
+                                else:
+                                    settings_rows.append([key, json.dumps(val, ensure_ascii=False)])
+                        
+                        # 3. Thực hiện ghi đè khi đã đảm bảo có ít nhất 1 dòng dữ liệu (ngoài header)
+                        if len(settings_rows) > 1:
+                            wks_settings.clear() # Bây giờ mới an tâm xóa để ghi mới
+                            wks_settings.update('A1', settings_rows)
+                            st.write(f"✅ Tab Settings: Đã đồng bộ {len(settings_rows)-1} mục cấu hình.")
                         
             except Exception as e:
                 st.warning(f"⚠️ Lỗi tab Settings: {e}")
 
             # =========================================================
-            # --- 3. ĐỒNG BỘ SHOP ---
+            # --- 3. ĐỒNG BỘ SHOP (PHIÊN BẢN BẢO VỆ DỮ LIỆU) ---
             # =========================================================
             try:
                 wks_shop = sh.worksheet("Shop")
                 shop_items = all_data.get('shop_items', {})
-                shop_rows = [["ID", "Name", "Type", "Price", "Currency", "Full_Data_JSON"]]
                 
-                if shop_items:
+                # CHỐT CHẶN AN TOÀN: Nếu shop_items rỗng, TUYỆT ĐỐI không xóa tab
+                if not shop_items:
+                    st.warning("⚠️ Không tìm thấy dữ liệu Shop trong bộ nhớ. Bỏ qua lưu tab này để tránh xóa trắng!")
+                else:
+                    shop_rows = [["ID", "Name", "Type", "Price", "Currency", "Full_Data_JSON"]]
                     for item_id, info in shop_items.items():
                         if isinstance(info, dict):
                             full_json_str = json.dumps(info, ensure_ascii=False)
@@ -4675,8 +4693,13 @@ def save_all_to_sheets(all_data):
                                 str(info.get('currency_buy', 'kpi')), 
                                 full_json_str 
                             ])
-                wks_shop.clear()
-                wks_shop.update('A1', shop_rows)
+                    
+                    # CHỈ thực hiện xóa và ghi khi đã chắc chắn có dữ liệu mới
+                    if len(shop_rows) > 1:
+                        wks_shop.clear()
+                        wks_shop.update('A1', shop_rows)
+                        st.write(f"✅ Tab Shop: Đã đồng bộ {len(shop_rows)-1} vật phẩm.")
+                        
             except Exception as e:
                 st.warning(f"⚠️ Lỗi tab Shop: {e}")
 
