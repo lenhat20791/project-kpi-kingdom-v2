@@ -12,7 +12,97 @@ import zipfile
 from datetime import datetime, timedelta
 import streamlit.components.v1 as components
 import importlib 
+import gspread
+from google.oauth2.service_account import Credentials
+# --- CẤU HÌNH KẾT NỐI GOOGLE SHEETS ---
+SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+SHEET_NAME = "Data_KPI_Kingdom"
 
+# 🔥 [QUAN TRỌNG] Thêm cache để không bị connect lại liên tục gây lag
+@st.cache_resource(show_spinner=False)
+def get_gspread_client():
+    try:
+        # Ưu tiên 1: Lấy từ Streamlit Secrets (Online)
+        gcp_info = st.secrets.get("gcp_service_account")
+        if gcp_info:
+            creds_dict = dict(gcp_info)
+            # Fix lỗi xuống dòng trong private key
+            if "private_key" in creds_dict:
+                creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+            
+            creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
+            client = gspread.authorize(creds)
+            # print("✅ Đã kết nối Google Sheets (Online Mode)")
+            return client
+
+        # Ưu tiên 2: Lấy từ file JSON (Offline/Local)
+        elif os.path.exists("service_account.json"):
+            creds = Credentials.from_service_account_file("service_account.json", scopes=SCOPE)
+            client = gspread.authorize(creds)
+            # print("✅ Đã kết nối Google Sheets (Local JSON)")
+            return client
+
+        else:
+            st.warning("⚠️ Không tìm thấy cấu hình kết nối (Secret hoặc JSON missing)")
+            return None
+
+    except Exception as e:
+        st.error(f"⚠️ Lỗi kết nối: {e}")
+        return None
+
+# 🔥 [QUAN TRỌNG] Khởi tạo biến CLIENT toàn cục tại đây
+# Để các hàm bên dưới (load_loi_dai, save_loi_dai) có thể gọi CLIENT.open(...)
+CLIENT = get_gspread_client()
+# --- HÀM ĐỌC DỮ LIỆU ĐA NĂNG CÓ CACHE ---
+@st.cache_data(ttl=60) # 🔄 Lưu dữ liệu 60 giây để tránh lỗi 429
+def fetch_data_from_tab(tab_name):
+    """
+    Hàm này dùng để đọc dữ liệu từ bất kỳ tab nào bạn có: 
+    Players, BossLogs, admin_notices, PVP, Shop, Settings, Market, Logs, Dungeon.
+    """
+    if CLIENT:
+        try:
+            # Mở đúng tab dựa trên tên bạn truyền vào
+            sheet = CLIENT.open(SHEET_NAME).worksheet(tab_name)
+            data = sheet.get_all_records()
+            return data
+        except Exception as e:
+            st.error(f"⚠️ Lỗi khi tải dữ liệu từ tab '{tab_name}': {e}")
+            return []
+    return []
+
+# --- CẬP NHẬT LOGIC LOAD DỮ LIỆU ĐẦU TRANG (PHIÊN BẢN ĐA TAB) ---
+
+# 1. Load dữ liệu người chơi từ tab "Players"
+if "data" not in st.session_state:
+    st.session_state.data = fetch_data_from_tab("Players")
+
+# 2. Load dữ liệu Boss từ tab "BossLogs" (Nếu code cũ của bạn dùng biến này)
+if "boss_data" not in st.session_state:
+    st.session_state.boss_data = fetch_data_from_tab("BossLogs")
+
+# 3. Load dữ liệu Cửa hàng từ tab "Shop"
+if "shop_data" not in st.session_state:
+    st.session_state.shop_data = fetch_data_from_tab("Shop")
+    
+# 4. Load dữ liệu Phó bản
+if "dungeon_data" not in st.session_state:
+    st.session_state.dungeon_data = fetch_data_from_tab("Dungeon")
+
+# --- ĐỊNH NGHĨA BÍ DANH ĐỂ TƯƠNG THÍCH VỚI CODE CŨ ---
+
+# 1. Nếu code cũ dùng st.session_state.data (Bạn đã gán Players vào data rồi nên dòng này là để chắc chắn)
+if "data" not in st.session_state:
+    st.session_state.data = st.session_state.get('data', [])
+
+# 2. Đồng bộ hóa Boss: Gán dữ liệu từ "boss_data" vào "bosses" (tên mà code cũ hay dùng)
+st.session_state.bosses = st.session_state.get('boss_data', [])
+
+# 3. Đồng bộ hóa Cửa hàng: Gán dữ liệu từ "shop_data" vào "items"
+st.session_state.items = st.session_state.get('shop_data', [])
+
+# 4. Tạo thêm bí danh 'players' nếu cần thiết (phòng hờ code cũ dùng tên này)
+st.session_state.players = st.session_state.data
 # 2. --- [QUAN TRỌNG] IMPORT MODULE CỦA BẠN TRƯỚC ---
 # Phải import thì Python mới biết admin_module là gì
 import admin_module
