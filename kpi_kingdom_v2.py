@@ -1906,19 +1906,30 @@ elif st.session_state.user_role in ["u1", "u2", "u3"]:
         # F5 lại trang để áp dụng
         st.rerun() 
         
+    import user_module
+    import item_system # Import thêm cái này để chạy Shop
+
     # 1. Trang Thám hiểm Phó bản
     if st.session_state.page == "🗺️ Thám hiểm Phó bản":
-        # CHỈ CẦN GỌI ĐÚNG 1 HÀM NÀY (Vì nó đã bao gồm cả Combat và Sảnh chờ bên trong)
-        # Nhớ truyền hàm 'save_data' vào tham số thứ 2
-        user_module.hien_thi_sanh_pho_ban_hoc_si(st.session_state.user_id, save_all_to_sheets)
+        # Truyền user_module.save_all_to_sheets vào tham số thứ 2
+        user_module.hien_thi_sanh_pho_ban_hoc_si(
+            st.session_state.user_id, 
+            user_module.save_all_to_sheets 
+        )
 
     # 2. Trang Đấu Lôi Đài
     elif st.session_state.page == "🏟️ Đấu Lôi Đài":
-        user_module.hien_thi_loi_dai(st.session_state.user_id, save_all_to_sheets)
+        user_module.hien_thi_loi_dai(
+            st.session_state.user_id, 
+            user_module.save_all_to_sheets
+        )
         
     # 3. Trang Boss Giáo viên
     elif st.session_state.page == "⚔️ Đại chiến Giáo viên":
-        user_module.hien_thi_san_dau_boss(st.session_state.user_id, save_all_to_sheets)
+        user_module.hien_thi_san_dau_boss(
+            st.session_state.user_id, 
+            user_module.save_all_to_sheets
+        )
       
     # 4. Trang Tiệm tạp hóa & Kho đồ
     elif st.session_state.page == "🏪 Tiệm tạp hóa & Kho đồ":
