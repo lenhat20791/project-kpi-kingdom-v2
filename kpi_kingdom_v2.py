@@ -1020,7 +1020,7 @@ st.markdown("""
 
 # --- HEADER CHÍNH ---
 st.markdown("## 👑 KPI-KINGDOM: THCS PHAN VĂN TRỊ - LỚP 6/1")
-hien_thi_thong_bao_he_thong()
+hien_thi_thong_bao_he_thong(fetch_data_from_tab)
 st.warning("✨ CHÀO MỪNG ĐẾN VỚI KPI KINGDOM! Hiện chưa có trận Lôi Đài nào diễn ra. Các tổ hãy mau chóng khiêu chiến!")
 
 def hien_thi_thong_bao_he_thong():
