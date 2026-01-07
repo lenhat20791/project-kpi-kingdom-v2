@@ -2114,46 +2114,58 @@ else:
 
         # 3. KHIÊU CHIẾN BOSS HỌC KỲ - PHIÊN BẢN CAM NEON RỰC RỠ
 
+        # --- 1. HÀM PHỤ TRỢ (Giữ nguyên, chỉ làm nhiệm vụ convert ảnh) ---
         def get_base64(bin_file):
+            import base64
+            import os
             if os.path.exists(bin_file):
                 with open(bin_file, 'rb') as f:
                     return base64.b64encode(f.read()).decode()
             return ""
 
-        # --- [SỬA ĐOẠN NÀY] BƯỚC 1: LẤY DỮ LIỆU TỪ SESSION STATE (GGSHEET) ---
-        # Thay vì đọc file json, ta lấy từ system_config đã tải từ Sheet về
-        sys_config = st.session_state.get('system_config', {})
+        # --- 2. LOGIC HIỂN THỊ BOSS UI (Nằm trong luồng chính) ---
+        # Lấy dữ liệu Boss từ Session State (Đã được hàm load_live_boss_data cập nhật ở trên)
+        if 'system_config' not in st.session_state.data:
+            st.session_state.data['system_config'] = {}
+            
+        sys_config = st.session_state.data['system_config']
         boss = sys_config.get('active_boss', {})
 
         # Kiểm tra xem có Boss không
         if boss and boss.get("status") == "active":
             
-            # --- XỬ LÝ ẢNH (Hỗ trợ cả Link Online và File Local) ---
+            # --- XỬ LÝ ẢNH ---
             boss_img_source = boss.get("anh", "assets/teachers/toan.png")
             
-            # Nếu là link online (http...) thì dùng luôn
+            # Logic: Nếu là link online -> Dùng luôn. Nếu là file -> Convert Base64
             if str(boss_img_source).startswith("http"):
                 img_src = boss_img_source
-            # Nếu là file local thì convert sang base64
             else:
-                img_b64 = get_base64(boss_img_source)
-                img_src = f"data:image/png;base64,{img_b64}"
+                # Nếu đường dẫn file không tồn tại, dùng ảnh placeholder mặc định để không lỗi
+                if not os.path.exists(boss_img_source):
+                     img_src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" # Ảnh mặc định online
+                else:
+                    img_b64 = get_base64(boss_img_source)
+                    img_src = f"data:image/png;base64,{img_b64}"
             
-            # --- LẤY CHỈ SỐ ---
-            hp_cur = int(boss.get("hp_current", 0))
-            hp_max = int(boss.get("hp_max", 10000))
-            # Tránh chia cho 0
-            percent = (hp_cur / hp_max) * 100 if hp_max > 0 else 0
+            # --- TÍNH TOÁN HP ---
+            try:
+                hp_cur = int(boss.get("hp_current", 0))
+                hp_max = int(boss.get("hp_max", 10000))
+                percent = (hp_cur / hp_max) * 100 if hp_max > 0 else 0
+            except:
+                hp_cur, hp_max, percent = 0, 10000, 0 # Fallback nếu dữ liệu lỗi
             
+            # --- DANH SÁCH TOP 10 ---
             contributions = boss.get("contributions", {})
+            # Sắp xếp giảm dần theo damage
             top_10 = sorted(contributions.items(), key=lambda x: x[1], reverse=True)[:10]
             
-            # --- BƯỚC 2: DANH SÁCH TOP 10 (22PX) ---
             top_list_html = ""
             for i, (uid, dmg) in enumerate(top_10):
-                # Lấy tên user từ data (nếu có)
+                # Lấy tên user an toàn
                 user_info = st.session_state.data.get(str(uid), {})
-                name = user_info.get("name", uid) # Fallback về ID nếu không tìm thấy tên
+                name = user_info.get("name", f"Chiến binh {uid[-4:]}") # Lấy tên hoặc 4 số cuối ID
                 
                 color = "#f1c40f" if i < 3 else "#ffffff" 
                 top_list_html += f"""
@@ -2162,7 +2174,7 @@ else:
                     <span style='color:#00d2ff; font-weight:bold;'>{dmg:,} <small style='font-size:12px;'>DMG</small></span>
                 </div>"""
 
-            # --- BƯỚC 3: HTML & CSS (CAM NEON) ---
+            # --- RENDER HTML (Giữ nguyên CSS đẹp của bạn) ---
             boss_ui_html = f"""
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Permanent+Marker&display=swap');
@@ -2190,7 +2202,6 @@ else:
                     box-shadow: 0 0 40px rgba(0,0,0,0.6);
                     background: #000;
                 }}
-                /* Thêm cover để ảnh không bị méo */
                 .boss-avatar-box img {{ width: 100%; height: 100%; object-fit: cover; background-color: #1a1a1a; }}
 
                 .boss-main-content {{
@@ -2211,19 +2222,13 @@ else:
                     line-height: 1;
                 }}
 
-                /* Tên Boss Màu Xám Kim Loại Đậm có Viền Trắng */
                 .boss-header {{
                     font-family: 'Bangers', cursive;
                     font-size: 55px; 
-                    color: #2c3e50; /* Màu xám kim loại đậm (Gunmetal) */
-                    
-                    /* Viền trắng mảnh lại (1px) */
+                    color: #2c3e50;
                     -webkit-text-stroke: 1px #ffffff; 
-                    
-                    /* Bóng đổ khối 3D */
                     text-shadow: 4px 4px 0px #1a1a1a, 
                                  0px 0px 10px rgba(255, 255, 255, 0.3);
-                                 
                     margin-bottom: 25px;
                     letter-spacing: 3px;
                     line-height: 1.2;
@@ -2245,7 +2250,7 @@ else:
                     width: {percent}%;
                     height: 100%;
                     box-shadow: 0 0 30px #ff4d4d;
-                    transition: width 0.5s ease-in-out; /* Hiệu ứng mượt */
+                    transition: width 0.5s ease-in-out;
                 }}
                 .hp-mini-text {{
                     position: absolute; width:100%; text-align:center; top:0;
@@ -2270,8 +2275,6 @@ else:
                 }}
                 .list-container {{ overflow-y: auto; flex-grow: 1; }}
                 
-                /* Ẩn thanh cuộn cho đẹp */
-                /* Phải nhân đôi ngoặc lên */
                 .list-container::-webkit-scrollbar {{ width: 5px; }}
                 .list-container::-webkit-scrollbar-thumb {{ background: rgba(255,255,255,0.5); border-radius: 10px; }}
             </style>
@@ -2291,7 +2294,7 @@ else:
                     <div class="damage-leaderboard">
                         <div class="leaderboard-title">🏆 TOP 10 CHIẾN BINH</div>
                         <div class="list-container">
-                            {top_list_html if top_list_html else "<div style='text-align:center; margin-top:20px;'><i style='font-size:22px;'>Đang chờ anh hùng xuất trận...</i></div>"}
+                            {top_list_html if top_list_html else "<div style='text-align:center; margin-top:20px; color:#ddd;'><i style='font-size:22px;'>Đang chờ anh hùng xuất trận...</i></div>"}
                         </div>
                     </div>
                 </div>
@@ -2299,7 +2302,13 @@ else:
             """
             components.html(boss_ui_html, height=630)
         else:
-            st.info("Hiện không có Boss nào hoạt động.")
+            # Nếu không có boss active thì hiện thông báo đẹp một chút
+            st.markdown("""
+                <div style="text-align: center; padding: 40px; border: 2px dashed #ccc; border-radius: 10px; margin-top: 20px;">
+                    <h2 style="color: #7f8c8d;">🚫 KHÔNG CÓ TRẬN ĐẤU NÀO</h2>
+                    <p>Hiện tại không có Boss nào đang hoạt động. Hãy quay lại sau!</p>
+                </div>
+            """, unsafe_allow_html=True)
             
         # --- 4. SẢNH CHỌN VÙNG ĐẤT PHÓ BẢN ---
         import streamlit.components.v1 as components
