@@ -4520,41 +4520,59 @@ def save_all_to_sheets(all_data):
             else: sh = client.openall()[0]
 
             # =========================================================
-            # 🔥 CHỐT CHẶN: TỰ ĐỘNG PHỤC HỒI DỮ LIỆU THIẾU TỪ GSHEET
+            # 🔥 CHỐT CHẶN TOÀN DIỆN: TỰ ĐỘNG PHỤC HỒI MỌI CẤU HÌNH
             # =========================================================
-            # 1. Phục hồi Settings & Rank nếu RAM đang thiếu
-            if not all_data.get("rank_settings") or not all_data.get("system_config"):
-                try:
-                    wks_set = sh.worksheet("Settings")
-                    raw_settings = wks_set.get_all_values()
-                    if "system_config" not in all_data: all_data["system_config"] = {}
+            try:
+                # 1. Phục hồi TOÀN BỘ tab Settings (bao gồm rương, quyền, boss, ảnh...)
+                wks_set = sh.worksheet("Settings")
+                raw_settings = wks_set.get_all_values()
+                
+                if "system_config" not in all_data: 
+                    all_data["system_config"] = {}
+                
+                # Danh sách các từ khóa chính để xử lý riêng
+                main_keys = ['rank_settings', 'active_boss']
+                
+                for row in raw_settings:
+                    if len(row) < 2: continue
+                    key = str(row[0]).strip()
+                    val = row[1]
                     
-                    for row in raw_settings:
-                        if len(row) < 2: continue
-                        key = str(row[0]).strip()
-                        val = row[1]
-                        if key == 'rank_settings':
-                            all_data['rank_settings'] = json.loads(val)
-                        elif key == 'active_boss':
-                            # Giải mã để lấy dữ liệu Boss gốc
-                            boss_json = json.loads(val)
-                            all_data['system_config']['active_boss'] = boss_json.get('active_boss', boss_json)
-                except: pass
+                    # Nếu trong RAM đang thiếu key này hoặc key chưa có trong system_config, ta nạp bù
+                    if key != "Config_Key":
+                        try:
+                            if key == 'rank_settings' and not all_data.get('rank_settings'):
+                                all_data['rank_settings'] = json.loads(val)
+                            elif key == 'active_boss' and not all_data.get('system_config', {}).get('active_boss'):
+                                boss_json = json.loads(val)
+                                all_data['system_config']['active_boss'] = boss_json.get('active_boss', boss_json)
+                            elif key not in all_data.get('system_config', {}):
+                                # Nạp bù các hàng: chest_rewards, chest_image, special_permissions...
+                                try:
+                                    all_data['system_config'][key] = json.loads(val)
+                                except:
+                                    all_data['system_config'][key] = val
+                        except:
+                            continue
 
-            # 2. Phục hồi Shop nếu RAM đang thiếu
-            if not all_data.get("shop_items"):
-                try:
-                    wks_s = sh.worksheet("Shop")
-                    raw_shop = wks_s.get_all_records()
-                    all_data['shop_items'] = {str(r['ID']): json.loads(r['Full_Data_JSON']) for r in raw_shop if r.get('Full_Data_JSON')}
-                except: pass
+                # 2. Phục hồi Shop nếu RAM đang thiếu
+                if not all_data.get("shop_items"):
+                    try:
+                        wks_s = sh.worksheet("Shop")
+                        raw_shop = wks_s.get_all_records()
+                        all_data['shop_items'] = {str(r['ID']): json.loads(r['Full_Data_JSON']) for r in raw_shop if r.get('Full_Data_JSON')}
+                    except: pass
 
-            # 3. Phục hồi Admin Notices nếu RAM đang thiếu
-            if not all_data.get("admin_notices"):
-                try:
-                    wks_n = sh.worksheet("admin_notices")
-                    all_data['admin_notices'] = wks_n.get_all_records()
-                except: pass
+                # 3. Phục hồi Admin Notices nếu RAM đang thiếu
+                if not all_data.get("admin_notices"):
+                    try:
+                        wks_n = sh.worksheet("admin_notices")
+                        all_data['admin_notices'] = wks_n.get_all_records()
+                    except: pass
+
+            except Exception as e:
+                st.error(f"⚠️ Lỗi phục hồi cấu hình hệ thống: {e}")
+                return False
 
             # =========================================================
             # --- 1. ĐỒNG BỘ TAB "Players" ---
