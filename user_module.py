@@ -4562,9 +4562,15 @@ def load_data_from_sheets():
         print("☁️ Đang kết nối tới Google Sheets...")
         import json
         import streamlit as st
-        from user_module import get_gspread_client
-        
-        client = get_gspread_client()
+        # ✅ THAY BẰNG LOGIC LẤY TỪ SESSION:
+        if 'CLIENT' in st.session_state:
+            client = st.session_state.CLIENT
+        else:
+            client = globals().get('CLIENT') # Fallback
+            
+        if not client:
+            st.error("⚠️ Mất kết nối Session. Vui lòng F5 tải lại trang!")
+            return None
         
         # Mở file Sheet
         secrets_gcp = st.secrets.get("gcp_service_account", {})
