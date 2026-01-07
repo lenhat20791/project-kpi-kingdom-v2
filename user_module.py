@@ -3417,82 +3417,89 @@ def load_shop_items_from_sheet():
 # --- hàm lưu bắn tỉa vào ggsheet ---
 def save_user_data_direct(user_id):
     """
-    Hàm lưu dữ liệu CHUYÊN BIỆT: Chỉ lưu KPI, EXP, và Kho đồ của 1 user cụ thể.
-    Giúp tránh lỗi khi lưu cả file lớn và đảm bảo chính xác từng cột.
+    Hàm lưu dữ liệu BẮN TỈA: Tìm đúng dòng, đúng cột để cập nhật.
+    Khắc phục triệt để lỗi lệch cột và ghi đè mật khẩu.
     """
     import json
-    
-    # 1. Lấy dữ liệu mới nhất từ Session State
-    if user_id not in st.session_state.data:
-        print(f"Không tìm thấy data của {user_id} để lưu.")
-        return False
+    import streamlit as st
+    from datetime import datetime
 
+    # 1. Lấy dữ liệu từ Session State
+    if user_id not in st.session_state.data:
+        return False
     user_data = st.session_state.data[user_id]
     
-    # 2. Kết nối Google Sheet
-    client = None
-    sheet_name = None
-    if 'CLIENT' in st.session_state: client = st.session_state.CLIENT
-    if 'SHEET_NAME' in st.session_state: sheet_name = st.session_state.SHEET_NAME
-    
-    if not client and 'CLIENT' in globals(): client = globals()['CLIENT']
-    if not sheet_name and 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
+    # 2. Kết nối Google Sheet an toàn
+    client = st.session_state.get('CLIENT')
+    sheet_name = st.session_state.get('SHEET_NAME')
+    if not client or not sheet_name:
+        client = globals().get('CLIENT')
+        sheet_name = globals().get('SHEET_NAME')
 
     if not client or not sheet_name: 
-        print("Mất kết nối GSheet.")
         return False
 
     try:
         sh = client.open(sheet_name)
         wks = sh.worksheet("Players")
         
-        # 3. Tìm dòng của User (Cột A)
-        try:
-            cell = wks.find(user_id, in_column=1)
-        except:
-            print(f"Không tìm thấy user {user_id} trên Sheet.")
+        # 3. Lấy dòng tiêu đề (Header) để xác định vị trí cột động
+        # Điều này giúp tránh lỗi khi cột password, kpi bị thay đổi vị trí
+        headers = wks.row_values(1)
+        
+        def get_col_idx(name):
+            return headers.index(name) + 1 if name in headers else None
+
+        col_pw = get_col_idx('password')   # Thường là cột E (5)
+        col_kpi = get_col_idx('kpi')        # Thường là cột F (6)
+        col_exp = get_col_idx('exp')        # Thường là cột G (7)
+        col_inv = get_col_idx('inventory_json') # Thường là cột M (13)
+        col_stats = get_col_idx('stats_json')   # Thường là cột L (12)
+
+        # 4. Tìm dòng của User (Dựa vào cột A - user_id)
+        all_ids = wks.col_values(1)
+        if user_id not in all_ids:
             return False
-            
-        if cell:
-            row_idx = cell.row
-            
-            # 4. Chuẩn bị dữ liệu để update
-            # - inventory: Phải dump sang JSON string
-            current_inv = user_data.get('inventory', {})
-            # Fix lỗi nếu inventory đang là list -> dict
-            if isinstance(current_inv, list):
-                temp_dict = {}
-                for x in current_inv: temp_dict[x] = temp_dict.get(x, 0) + 1
-                current_inv = temp_dict
-                
-            inv_json_str = json.dumps(current_inv, ensure_ascii=False)
-            
-            # - kpi, exp...
-            kpi_val = user_data.get('kpi', 0)
-            exp_val = user_data.get('exp', 0)
-            
-            # 5. Cập nhật vào đúng cột (Dựa vào ảnh của bạn)
-            # Cột E (5) = kpi
-            # Cột G (7) = exp
-            # Cột M (13) = inventory_json
-            
-            # Để chắc chắn, ta update theo batch (1 lần gọi) cho nhanh và đỡ lỗi
-            updates = [
-                {'range': f'E{row_idx}', 'values': [[kpi_val]]},
-                {'range': f'G{row_idx}', 'values': [[exp_val]]},
-                {'range': f'M{row_idx}', 'values': [[inv_json_str]]}
-            ]
+        row_idx = all_ids.index(user_id) + 1
+
+        # 5. Chuẩn bị dữ liệu JSON
+        # Xử lý Inventory (Chuyển List sang Dict nếu cần)
+        current_inv = user_data.get('inventory', {})
+        if isinstance(current_inv, list):
+            temp_dict = {}
+            for x in current_inv: temp_dict[x] = temp_dict.get(x, 0) + 1
+            current_inv = temp_dict
+        inv_json = json.dumps(current_inv, ensure_ascii=False)
+
+        # Xử lý stats_json (Để lưu Vi_Pham, Bonus...)
+        stats_data = {
+            "Vi_Pham": user_data.get('Vi_Pham', 0),
+            "Bonus": user_data.get('Bonus', 0),
+            "KTTX": user_data.get('KTTX', 0),
+            "KT Sản phẩm": user_data.get('KT Sản phẩm', 0),
+            "KT Giữa kỳ": user_data.get('KT Giữa kỳ', 0),
+            "history_log": user_data.get('history_log', [])
+        }
+        stats_json = json.dumps(stats_data, ensure_ascii=False)
+
+        # 6. THỰC HIỆN CẬP NHẬT CHÍNH XÁC (BẮN TỈA)
+        # Sử dụng batch_update để gom các lệnh ghi lại, tránh lỗi Rate Limit
+        updates = []
+        if col_pw: updates.append({'range': f'{chr(64+col_pw)}{row_idx}', 'values': [[str(user_data.get('password'))]]})
+        if col_kpi: updates.append({'range': f'{chr(64+col_kpi)}{row_idx}', 'values': [[user_data.get('kpi', 0)]]})
+        if col_exp: updates.append({'range': f'{chr(64+col_exp)}{row_idx}', 'values': [[user_data.get('exp', 0)]]})
+        if col_inv: updates.append({'range': f'{chr(64+col_inv)}{row_idx}', 'values': [[inv_json]]})
+        if col_stats: updates.append({'range': f'{chr(64+col_stats)}{row_idx}', 'values': [[stats_json]]})
+
+        if updates:
             wks.batch_update(updates)
-            
-            print(f"✅ Đã lưu thành công cho {user_id}!")
             return True
             
     except Exception as e:
-        print(f"❌ Lỗi LƯU DATA: {e}")
+        print(f"❌ Lỗi bắn tỉa dữ liệu cho {user_id}: {e}")
         return False
         
     return False
-
 # --- HÀM CALLBACK (Đặt trong user_module.py) ---
 def callback_mo_ruong(user_id, inv_key, item_info, save_data_func):
     """
@@ -3919,6 +3926,8 @@ def hien_thi_doi_mat_khau(user_id, save_data_func):
                     st.balloons()
                 else:
                     st.error("❌ Lỗi kết nối Cloud. Mật khẩu chưa được lưu lại!")                
+
+
 # --- SẢNH DANH VỌNG ---                
 def hien_thi_sanh_danh_vong_user(user_id, save_data_func):
     st.subheader("🏛️ SẢNH DANH VỌNG - KHẲNG ĐỊNH VỊ THẾ")
