@@ -2585,12 +2585,12 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
             challenger_info = st.session_state.data.get(challenger_id, {}) 
             challenger_name = challenger_info.get('name', 'Một Cao Thủ').upper()
             
-            # [CẬP NHẬT] Hiển thị thêm Độ khó trong lời mời
+            # [CẬP NHẬT] Hiển thị UI lời mời (Giữ nguyên giao diện đẹp của bạn)
             difficulty_badge = {
                 "Easy": "#4caf50", "Medium": "#ff9800", "Hard": "#f44336", "Extreme": "#9c27b0"
             }.get(m.get('difficulty', 'Medium'), "#333")
 
-            notification_html = f"""
+            st.markdown(f"""
             <div style="background-color: #ffffff; border: 4px solid #d32f2f; border-radius: 15px; padding: 25px; margin-bottom: 25px; text-align: center; color: #333333;">
                 <h2 style="color: #d32f2f; font-size: 30px; font-weight: 900; margin-top: 0;">🔥 CÓ LỜI TUYÊN CHIẾN! 🔥</h2>
                 <p style="font-size: 20px;">Cao thủ <b>{challenger_name}</b> muốn so tài!</p>
@@ -2600,24 +2600,49 @@ def hien_thi_loi_dai(current_user_id, save_data_func):
                         <span style="color: {difficulty_badge}">🔥 Độ khó: {m.get('difficulty', 'Medium').upper()}</span>
                     </div>
                 </div>
-            </div>""" 
-            st.markdown(notification_html, unsafe_allow_html=True)
+            </div>""", unsafe_allow_html=True)
 
             col_a, col_b = st.columns(2) 
+            
+            # ✅ XỬ LÝ CHẤP NHẬN
             if col_a.button("✅ CHẤP NHẬN", key=f"acc_{mid}", use_container_width=True):
-                bet = m.get('bet', 0)
-                if challenger_id in st.session_state.data and current_user_id in st.session_state.data: 
-                    if st.session_state.data[challenger_id].get('kpi', 0) >= bet and st.session_state.data[current_user_id].get('kpi', 0) >= bet: 
+                try:
+                    bet = int(m.get('bet', 0))
+                    c_kpi = st.session_state.data[challenger_id].get('kpi', 0)
+                    o_kpi = st.session_state.data[current_user_id].get('kpi', 0)
+
+                    # Kiểm tra điều kiện đủ KPI
+                    if c_kpi >= bet and o_kpi >= bet: 
+                        # 1. Trừ tiền trên RAM
                         st.session_state.data[challenger_id]['kpi'] -= bet
                         st.session_state.data[current_user_id]['kpi'] -= bet
+                        
+                        # 2. Cập nhật trạng thái trận đấu
                         m['status'] = 'active' 
                         m['start_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
-                        save_loi_dai(ld_data) 
-                        save_data_func(st.session_state.data) 
+                        
+                        # 3. LƯU DỮ LIỆU (Sử dụng bắn tỉa cho an toàn)
+                        from user_module import save_user_data_direct
+                        save_loi_dai(ld_data) # Lưu trạng thái trận đấu vào tab PVP
+                        save_user_data_direct(challenger_id) # Lưu KPI người thách đấu
+                        save_user_data_direct(current_user_id) # Lưu KPI người chấp nhận
+                        
+                        st.success("⚔️ Trận đấu bắt đầu! Hãy chuẩn bị tinh thần.")
                         st.rerun() 
+                    else:
+                        # Thông báo nếu một trong hai bên không đủ tiền
+                        if c_kpi < bet:
+                            st.error(f"❌ Đối thủ ({challenger_name}) không còn đủ {bet} KPI để thi đấu!")
+                        else:
+                            st.error(f"❌ Bạn không đủ {bet} KPI. Hãy đi kiếm thêm rồi quay lại!")
+                except Exception as e:
+                    st.error(f"Lỗi hệ thống khi chấp nhận: {e}")
+
+            # ❌ XỬ LÝ TỪ CHỐI
             if col_b.button("❌ TỪ CHỐI", key=f"rej_{mid}", use_container_width=True): 
                 m['status'] = 'cancelled' 
                 save_loi_dai(ld_data)
+                st.warning("Đã từ chối lời thách đấu.")
                 st.rerun()
 
     # --- BƯỚC 4: HIỂN THỊ CÁC TRẬN ĐANG DIỄN RA ---
