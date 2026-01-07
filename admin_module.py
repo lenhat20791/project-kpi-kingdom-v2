@@ -1245,39 +1245,82 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
         st.write("### 🛠️ BẢNG ĐIỀU CHỈNH CHỈ SỐ TOÀN LỚP")
         st.caption("Nhấn trực tiếp vào ô để sửa điểm. Sau khi sửa xong NHẤN NÚT 💾 CẬP NHẬT.")
         
-        # Danh sách cột cho phép Admin sửa
-        edit_cols = ['name', 'team', 'kpi', 'Vi_Pham', 'KTTX', 'KT Sản phẩm', 'KT Giữa kỳ', 'KT Cuối kỳ', 'Bonus']
+        # 1. CHUẨN BỊ DỮ LIỆU (QUAN TRỌNG: SET INDEX LÀ USER_ID)
+        import pandas as pd
         
-        # Đảm bảo các cột tồn tại trong DataFrame để tránh lỗi key
-        for col in edit_cols:
-            if col not in df_all.columns:
-                df_all[col] = 0
+        # Lọc ra danh sách học sinh (Bỏ admin, system...)
+        student_data = []
+        for uid, info in st.session_state.data.items():
+            if isinstance(info, dict) and info.get('role') != 'admin' and uid not in ['system_config', 'shop_items', 'rank_settings']:
+                # Copy dữ liệu để không ảnh hưởng data gốc khi chưa save
+                row_data = info.copy()
+                row_data['user_id'] = uid # Giữ lại ID để làm Index
+                student_data.append(row_data)
+        
+        if not student_data:
+            st.warning("Chưa có dữ liệu học sinh.")
+        else:
+            # Tạo DataFrame
+            df_all = pd.DataFrame(student_data)
+            # 🔥 QUAN TRỌNG: Set user_id làm index để khi sửa xong map ngược lại cho đúng người
+            df_all.set_index('user_id', inplace=True) 
 
-        edited_df = st.data_editor(
-            df_all[edit_cols],
-            use_container_width=True,
-            column_config={
-                "name": st.column_config.Column("Học Sĩ", disabled=True),
-                "team": "Tổ",
-                "kpi": st.column_config.NumberColumn("KPI Tổng (Máu)", format="%d 🏆"),
-                "Vi_Pham": "Điểm Vi Phạm",
-                "Bonus": "Điểm Thưởng"
-            }
-        )
-
-        if st.button("💾 CẬP NHẬT DỮ LIỆU"):
-            # 1. Cập nhật dữ liệu từ bảng chỉnh sửa vào bộ nhớ tạm (Đoạn này giữ nguyên)
-            for index, row in edited_df.iterrows():
-                for col in edit_cols:
-                    if col != 'name':
-                        st.session_state.data[index][col] = row[col]
+            # Danh sách cột cho phép Admin sửa
+            # Lưu ý: Các cột này (Vi_Pham, Bonus...) sẽ được hàm save_all_to_sheets tự động đóng gói vào stats_json
+            edit_cols = ['name', 'team', 'kpi', 'Vi_Pham', 'KTTX', 'KT Sản phẩm', 'KT Giữa kỳ', 'KT Cuối kỳ', 'Bonus']
             
-            if save_func(st.session_state.data):
-                st.success("Admin đã cập nhật dữ liệu thành công!")
-                time.sleep(1) 
-                st.rerun()
-            else:
-                st.error("❌ Cập nhật thất bại! Hệ thống đã chặn lệnh lưu để bảo vệ dữ liệu.")
+            # Đảm bảo các cột tồn tại (Fill 0 nếu thiếu)
+            for col in edit_cols:
+                if col not in df_all.columns:
+                    df_all[col] = 0
+
+            # Hiển thị bảng Edit
+            edited_df = st.data_editor(
+                df_all[edit_cols],
+                use_container_width=True,
+                column_config={
+                    "name": st.column_config.Column("Học Sĩ", disabled=True), # Không cho sửa tên ở đây để tránh lỗi ID
+                    "team": "Tổ",
+                    "kpi": st.column_config.NumberColumn("KPI Tổng (Máu)", format="%d 🏆"),
+                    "Vi_Pham": "Vi Phạm (-)",
+                    "Bonus": "Thưởng (+)",
+                    "KTTX": "KTTX",
+                    "KT Sản phẩm": "Sản phẩm",
+                    "KT Giữa kỳ": "Giữa kỳ",
+                    "KT Cuối kỳ": "Cuối kỳ"
+                }
+            )
+
+            # NÚT CẬP NHẬT
+            if st.button("💾 CẬP NHẬT DỮ LIỆU", type="primary"):
+                try:
+                    # 2. Cập nhật ngược lại vào Session State
+                    # edited_df.iterrows() sẽ trả về index là user_id (nhờ bước set_index ở trên)
+                    for uid, row in edited_df.iterrows():
+                        if uid in st.session_state.data:
+                            for col in edit_cols:
+                                # Bỏ qua cột name (vì là disabled)
+                                if col != 'name':
+                                    # Ép kiểu dữ liệu cho an toàn (tránh float thành int)
+                                    val = row[col]
+                                    if col in ['kpi', 'Vi_Pham', 'Bonus']:
+                                        try: val = int(val)
+                                        except: pass
+                                    
+                                    # Cập nhật vào RAM
+                                    st.session_state.data[uid][col] = val
+                    
+                    # 3. GỌI HÀM LƯU TỔNG (HEAVY SAVE)
+                    # Vì sửa hàng loạt nên dùng hàm này hiệu quả hơn lưu bắn tỉa
+                    # Hàm save_func này phải là hàm save_all_to_sheets bạn đã cập nhật trước đó
+                    if save_func(st.session_state.data):
+                        st.success("✅ Đã cập nhật toàn bộ dữ liệu lên Google Sheet!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Lỗi kết nối Google Sheet.")
+                        
+                except Exception as e:
+                    st.error(f"Lỗi xử lý dữ liệu: {e}")
 
         st.divider()
 
