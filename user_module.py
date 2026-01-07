@@ -2160,7 +2160,7 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         
         # --- [MỚI] BỘ ĐẾM NGƯỢC JAVASCRIPT ---
         # Tạo một key duy nhất cho mỗi câu hỏi để JS reset lại mỗi lần chuyển câu
-        timer_container = st.container()
+        flip_flop = q_idx % 2
         
         # 2. Định nghĩa nội dung HTML (Giữ nguyên logic của bạn)
         timer_html = f"""
@@ -2193,9 +2193,15 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         """
 
         # 3. Gọi component thông qua container và BỎ THAM SỐ 'key'
-        # Thay vào đó, ta sử dụng st.empty() bên trong container nếu cần reset mạnh
-        with timer_container:
-            components.html(timer_html, height=120)
+        placeholder = st.empty()
+        with placeholder.container():
+            # Mỗi câu hỏi sẽ nhảy vào một "vùng nhớ" khác nhau của Streamlit
+            if flip_flop == 0:
+                st.write("", unsafe_allow_html=True)
+                components.html(timer_html, height=120)
+            else:
+                st.write("", unsafe_allow_html=True)
+                components.html(timer_html, height=120)
 
         # Form trả lời
         with st.form(key=f"quiz_form_{match_id}_{q_idx}"):
