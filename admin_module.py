@@ -2276,23 +2276,7 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
             st.session_state.rank_settings, 
             num_rows="dynamic", 
             use_container_width=True,
-            column_config={
-                "Danh hiệu": st.column_config.TextColumn(
-                    "Tên Danh Hiệu", 
-                    help="Tên danh hiệu hiển thị cho Học Sĩ",
-                    required=True
-                ),
-                "KPI Yêu cầu": st.column_config.NumberColumn(
-                    "KPI Yêu cầu", 
-                    min_value=0, 
-                    step=50, 
-                    format="%d 🏆"
-                ),
-                "Màu sắc": st.column_config.ColorColumn(
-                    "Màu sắc",
-                    help="Chọn màu sắc đặc trưng cho danh hiệu"
-                )
-            }
+            # Không dùng column_config nữa, Streamlit sẽ tự đoán định dạng
         )
         
         # -----------------------------------------------------------
