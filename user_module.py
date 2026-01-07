@@ -2196,7 +2196,7 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
             submitted = st.form_submit_button("CHỐT ĐÁP ÁN 🚀", type="primary", use_container_width=True)
 
         # --- XỬ LÝ KẾT QUẢ ---
-        if submitted or force_submit:
+        if submitted:
             # 1. Lấy đáp án đúng (Hỗ trợ cả key 'answer' và 'correct_answer')
             raw_correct_ans = q.get('answer', q.get('correct_answer', ''))
             
@@ -2207,9 +2207,10 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
             # 3. Kiểm tra đúng sai
             is_correct = (user_key == ans_key)
             
-            if force_submit and not ans:
-                 st.warning(f"⏰ HẾT GIỜ! Bạn chưa kịp chọn đáp án.")
-                 st.error(f"✅ Đáp án đúng là: {raw_correct_ans}")
+            if not ans:
+                # Trường hợp JS tự nộp bài khi học sinh chưa chọn gì
+                st.warning(f"⏰ HẾT GIỜ! Bạn chưa kịp chọn đáp án.")
+                st.error(f"✅ Đáp án đúng là: {raw_correct_ans}")
             elif is_correct:
                 st.balloons()
                 st.success("🎉 CHÍNH XÁC! +1 Điểm")
@@ -2225,16 +2226,13 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
             
             # 4. Tạm dừng để học sinh đọc kết quả
             with st.spinner("Đang chuyển câu hỏi tiếp theo..."):
+                import time
                 time.sleep(2.5) 
             
             # 5. Chuyển câu
             st.session_state.current_q += 1
-            st.session_state.start_time = time.time() # Reset đồng hồ
-            st.rerun()
-        
-        # Tự động refresh để chạy đồng hồ (chỉ khi chưa nộp)
-        if remaining > 0:
-            time.sleep(1)
+            # Reset lại thời gian bắt đầu cho câu tiếp theo (nếu vẫn dùng logic Python hỗ trợ)
+            st.session_state.start_time = time.time() 
             st.rerun()
             
     else:
