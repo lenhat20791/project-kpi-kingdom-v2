@@ -203,7 +203,7 @@ except Exception:
 import streamlit as st
 
 # --- CẤU HÌNH BẢO TRÌ ---
-CHE_DO_BAO_TRI = True   # Đổi thành True khi muốn đóng cửa bảo trì
+CHE_DO_BAO_TRI = False  # Đổi thành True khi muốn đóng cửa bảo trì
 MAT_KHAU_ADMIN = "admin_vip_123" 
 
 def kiem_tra_bao_tri():
