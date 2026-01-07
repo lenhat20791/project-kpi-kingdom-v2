@@ -1844,6 +1844,7 @@ current_role = str(raw_role).strip().lower()
 if current_role == "admin":
     # 1. Import module
     import admin_module
+    import user_module
     # Lấy trang hiện tại
     current_page = st.session_state.get("page", "")
 
@@ -1866,7 +1867,6 @@ if current_role == "admin":
         admin_module.quan_ly_loi_dai_admin(CLIENT, SHEET_NAME, save_all_to_sheets)
     else:
         # 🔥 [SỬA LỖI] Trang mặc định cũng phải truyền đúng 3 tham số
-        import user_module
         admin_module.hien_thi_giao_dien_admin(CLIENT, SHEET_NAME, save_all_to_sheets)
 
 # ===== PHẦN HIỂN THỊ CỦA USER (ĐÃ FIX LỖI GIAO DIỆN TRỐNG) =====
