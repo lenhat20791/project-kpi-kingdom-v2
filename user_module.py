@@ -3327,40 +3327,78 @@ def load_shop_items_from_sheet():
         print(f"Lỗi tải Shop: {e}")
         return {}
 
+# --- HÀM CALLBACK (Đặt trong user_module.py) ---
+def callback_mo_ruong(user_id, inv_key, item_info, save_data_func):
+    """
+    Hàm xử lý sự kiện click nút MỞ RƯƠNG.
+    Chạy trước khi giao diện reload -> Đảm bảo trừ kho và cộng quà thành công.
+    """
+    try:
+        # Gọi hàm tính toán quà (đang nằm cùng file user_module)
+        # Nếu hàm xu_ly_mo_ruong nằm ở file khác thì mới cần import
+        # Giả sử nó nằm cùng file thì gọi trực tiếp:
+        rewards = xu_ly_mo_ruong(user_id, inv_key, item_info, st.session_state.data)
+        
+        # Lấy dữ liệu từ Session State
+        user_data = st.session_state.data[user_id]
+        inventory = user_data.get('inventory', {})
+        
+        # TRỪ RƯƠNG (Thao tác trực tiếp vào session)
+        if inventory.get(inv_key, 0) > 0:
+            inventory[inv_key] -= 1
+            if inventory[inv_key] <= 0:
+                del inventory[inv_key]
+                
+            # CỘNG QUÀ
+            for reward in rewards:
+                r_type = reward.get('type')
+                r_id = reward.get('id')
+                r_val = int(reward.get('val', 0))
+                r_amt = int(reward.get('amount', 1))
+
+                # Cộng tiền tệ
+                if r_type == 'currency' or r_id in ['kpi', 'exp', 'Tri_Thuc', 'Chien_Tich', 'Vinh_Du']:
+                    k_map = {"KPI": "kpi", "EXP": "exp", "kpi":"kpi", "exp":"exp", "Tri_Thuc":"Tri_Thuc", "Chien_Tich": "Chien_Tich", "Vinh_Du": "Vinh_Du"}
+                    u_key = k_map.get(r_id, r_id)
+                    user_data[u_key] = user_data.get(u_key, 0) + r_val
+                
+                # Cộng item
+                elif r_type == 'item':
+                    curr_inv = user_data.setdefault('inventory', {})
+                    curr_inv[r_id] = curr_inv.get(r_id, 0) + r_amt
+
+            # LƯU DỮ LIỆU
+            save_data_func(st.session_state.data)
+            
+            # SET CỜ SKIP RELOAD (Quan trọng!)
+            st.session_state['skip_reload'] = True
+            
+            # LƯU KẾT QUẢ ĐỂ HIỆN POPUP
+            st.session_state.gacha_result = {"name": item_info.get('name', inv_key), "rewards": rewards}
+            
+    except Exception as e:
+        st.error(f"Lỗi Callback: {e}")
+
 def hien_thi_tiem_va_kho(user_id, save_data_func):
     st.subheader("🏪 TIỆM TẠP HÓA & 🎒 TÚI ĐỒ")
 
-    # =========================================================================
-    # 🔥 LOGIC THÔNG MINH: CHỈ TẢI KHI KHÔNG CÓ THAO TÁC VỪA XONG
-    # =========================================================================
-    from user_module import load_user_inventory, load_shop_items_from_sheet
-    
-    # 1. Kiểm tra xem có Cờ "Vừa thao tác xong" không?
-    if st.session_state.get('skip_reload', False) == True:
-        # Nếu có cờ này -> TIN TƯỞNG DỮ LIỆU TRONG SESSION (RAM)
-        # Không tải từ Sheet để tránh lấy phải dữ liệu cũ
-        # Sau đó xóa cờ đi để các lần sau lại tải bình thường
+    # --- 1. LOGIC SKIP RELOAD (Giữ nguyên logic này để chống trôi item) ---
+    # Nếu vừa thao tác xong (có cờ skip_reload), ta tin tưởng Session, không tải lại từ Sheet
+    if st.session_state.get('skip_reload', False):
         del st.session_state['skip_reload']
-        # st.toast("Dữ liệu được cập nhật tức thì!", icon="⚡") 
-        
     else:
-        # Nếu không có cờ -> Tải dữ liệu từ Sheet về để đồng bộ (Logic bình thường)
+        # Nếu bình thường: Tải lại Inventory từ Sheet để đồng bộ (nếu cần)
         try:
-            # Tải Shop (ít thay đổi nên tải luôn cũng được)
-            live_shop = load_shop_items_from_sheet()
-            if live_shop: st.session_state.data['shop_items'] = live_shop
-
-            # Tải Kho (Quan trọng: Chỉ cập nhật nếu tải thành công)
+            # Gọi hàm load_user_inventory (đang nằm cùng file user_module)
             live_inv = load_user_inventory(user_id)
-            if live_inv is not None:
+            if live_inv: 
                 st.session_state.data[user_id]['inventory'] = live_inv
+                
+            # Tải lại Shop
+            live_shop = load_shop_items_from_sheet() # Hàm này cũng trong user_module
+            if live_shop: st.session_state.data['shop_items'] = live_shop
         except: pass
-    # =========================================================================
-
-    # 1. Lấy thông tin người dùng từ Session (Lúc này dữ liệu đã chuẩn)
-    if user_id not in st.session_state.data:
-        st.error("Không tìm thấy thông tin người dùng.")
-        return
+    # ---------------------------------------------------------------------
 
     user_info = st.session_state.data[user_id]
     shop_data = st.session_state.data.get('shop_items', {})
@@ -3577,45 +3615,43 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
             if "pending_item" in st.session_state:
                 confirm_dialog(*st.session_state.pending_item)
 
-    # === TAB 2: TÚI ĐỒ (Đã fix lỗi mất quà) ===
+    # === TAB 2: TÚI ĐỒ (Cập nhật logic Callback) ===
     with tab_kho:
         inventory = user_info.get('inventory', {})
         
-        # Convert List -> Dict nếu cần
+        # Chuẩn hóa Inventory
         if isinstance(inventory, list):
             new_inv = {}
             for x in inventory: new_inv[x] = new_inv.get(x, 0) + 1
             inventory = new_inv
             st.session_state.data[user_id]['inventory'] = inventory
-            save_data_func(st.session_state.data)
-            st.session_state['skip_reload'] = True
-            st.rerun()
-
+        
         if not inventory:
-            st.info("🎒 Túi đồ trống trơn. Hãy ghé Tiệm tạp hóa nhé!")
-            if st.button("🔄 Làm mới"): st.rerun()
+            st.info("🎒 Túi đồ trống trơn.")
         else:
             st.write("### 📦 Kho đồ")
             cols_kho = st.columns(4)
             
-            # 🔥 Dùng list(items()) để copy danh sách, tránh lỗi khi đang loop mà xóa item
-            for i, (original_key, count) in enumerate(list(inventory.items())):
-                
-                # --- TRA CỨU ID & INFO ---
-                real_item_id = original_key
+            # Chuyển sang list để tránh lỗi runtime khi dictionary thay đổi size
+            items_list = list(inventory.items())
+            
+            for i, (inv_key, count) in enumerate(items_list):
+                # --- TRA CỨU THÔNG TIN ---
+                real_item_id = inv_key
                 item_info = shop_data.get(real_item_id)
                 
+                # Tìm theo tên nếu ID không khớp
                 if not item_info:
                     for s_id, s_info in shop_data.items():
-                        if s_info.get('name') == original_key:
+                        if s_info.get('name') == inv_key:
                             item_info = s_info
                             real_item_id = s_id
                             break
                 
                 if not item_info:
-                    item_info = {"name": original_key, "image": "", "type": "ITEM", "desc": ""}
+                    item_info = {"name": inv_key, "image": "", "type": "ITEM", "desc": ""}
 
-                d_name = item_info.get('name', original_key)
+                d_name = item_info.get('name', inv_key)
                 img = item_info.get('image') or "https://cdn-icons-png.flaticon.com/512/9630/9630454.png"
                 if "via.placeholder" in img: img = "https://cdn-icons-png.flaticon.com/512/9336/9336056.png"
                 i_type = item_info.get('type', 'ITEM')
@@ -3632,58 +3668,28 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # --- NÚT BẤM MỞ RƯƠNG ---
+                    # === NÚT BẤM DÙNG CALLBACK ===
                     if i_type == "GACHA_BOX":
-                        if st.button("🎲 MỞ NGAY", key=f"open_{i}", use_container_width=True, type="primary"):
-                            try:
-                                from user_module import xu_ly_mo_ruong
-                                
-                                # A. Tính quà
-                                rewards = xu_ly_mo_ruong(user_id, real_item_id, item_info, st.session_state.data)
-                                
-                                # B. Trừ kho (Dùng original_key để xóa đúng cái đang có)
-                                inventory[original_key] -= 1
-                                if inventory[original_key] <= 0:
-                                    del inventory[original_key]
-                                
-                                # C. Cộng quà
-                                for reward in rewards:
-                                    r_type = reward.get('type')
-                                    r_id = reward.get('id')
-                                    r_val = int(reward.get('val', 0))
-                                    r_amt = int(reward.get('amount', 1))
+                        # Sử dụng on_click để gọi hàm xử lý TRƯỚC KHI trang web reload
+                        st.button(
+                            "🎲 MỞ NGAY", 
+                            key=f"open_{i}", 
+                            use_container_width=True, 
+                            type="primary",
+                            on_click=callback_mo_ruong,  # Gọi hàm callback ở trên
+                            args=(user_id, inv_key, item_info, save_data_func) # Truyền tham số
+                        )
 
-                                    if r_type == 'currency' or r_id in ['kpi', 'exp', 'Tri_Thuc', 'Chien_Tich', 'Vinh_Du']:
-                                        k_map = {"KPI": "kpi", "EXP": "exp", "kpi":"kpi", "exp":"exp", "Tri_Thuc":"Tri_Thuc"}
-                                        u_key = k_map.get(r_id, r_id)
-                                        user_info[u_key] = user_info.get(u_key, 0) + r_val
-                                    
-                                    elif r_type == 'item':
-                                        curr_inv = user_info.setdefault('inventory', {})
-                                        curr_inv[r_id] = curr_inv.get(r_id, 0) + r_amt
-
-                                # D. Lưu Sheet & BẬT CỜ SKIP RELOAD
-                                save_data_func(st.session_state.data)
-                                st.session_state['skip_reload'] = True # <--- BẬT CỜ
-                                
-                                # E. Hiện thông báo
-                                st.session_state.gacha_result = {"name": d_name, "rewards": rewards}
-                                st.rerun()
-                                
-                            except Exception as e:
-                                st.error(f"Lỗi: {e}")
-
-                    # NÚT DÙNG ITEM
                     elif i_type in ["CONSUMABLE", "BUFF_STAT", "BOSS_RESET", "FUNCTIONAL"]:
                         if st.button("⚡ DÙNG", key=f"use_{i}", use_container_width=True):
                              import item_system
                              st.session_state.data = item_system.apply_item_effect(user_id, item_info, st.session_state.data)
                              
-                             inventory[original_key] -= 1
-                             if inventory[original_key] <= 0: del inventory[original_key]
+                             inventory[inv_key] -= 1
+                             if inventory[inv_key] <= 0: del inventory[inv_key]
                              
                              save_data_func(st.session_state.data)
-                             st.session_state['skip_reload'] = True # <--- QUAN TRỌNG
+                             st.session_state['skip_reload'] = True
                              
                              if item_info.get('feature') == 'world_chat':
                                  st.session_state.trigger_world_chat = True
@@ -3693,10 +3699,11 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                     else:
                         st.button("🔒", key=f"lock_{i}", disabled=True)
                         
+        # Hiển thị Popup kết quả (Nếu có kết quả từ Callback)
         if "gacha_result" in st.session_state:
             res = st.session_state.gacha_result
             try:
-                from user_module import popup_ket_qua_mo_ruong
+                # Gọi hàm popup (đang nằm cùng file user_module)
                 popup_ket_qua_mo_ruong(res['name'], res['rewards'])
             except: pass
           
