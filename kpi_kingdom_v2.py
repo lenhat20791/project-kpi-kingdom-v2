@@ -995,10 +995,6 @@ def load_shop_data():
         return {} # Trả về dict rỗng nếu chưa có file
         
 
-
-# --- HÀM LƯU DỮ LIỆU ---
-import user_module # Đảm bảo đã import
-
 def save_data(data=None):
     """Hàm này bây giờ chỉ đóng vai trò là 'người đưa tin'"""
     if data is None:
