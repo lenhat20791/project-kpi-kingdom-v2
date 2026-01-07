@@ -965,7 +965,7 @@ def xử_lý_hoàn_thành_phase(user_id, land_id, phase_id, dungeon_config, save
 def tinh_atk_tong_hop(user_info):
     """
     [CẬP NHẬT] Công thức cân bằng: 
-    ATK = (Tổng điểm * 1.5) + (Level * 1.2) + Bonus
+    ATK = (Tổng điểm * 1.2) + (Level * 0.8) + Bonus
     """
     level = user_info.get('level', 1)
     
@@ -983,7 +983,7 @@ def tinh_atk_tong_hop(user_info):
     # === CÔNG THỨC CHỐT ===
     # Điểm thi là nòng cốt (nhân 1.5)
     # Level là bổ trợ (nhân 1.2)
-    atk_tong = (diem_kt * 1.5) + (level * 1.2) + bonus_atk
+    atk_tong = (diem_kt * 1.2) + (level * 0.8) + bonus_atk
     
     return round(atk_tong, 1)
 
@@ -1053,7 +1053,7 @@ def tinh_chi_so_chien_dau(level):
     
     # ATK Cơ bản từ Level (Hệ số 1.2)
     # Cộng thêm 10 khởi điểm để Newbie không bị yếu quá
-    atk_co_ban = 10 + (level * 1.2)
+    atk_co_ban = 10 + (level * 0.8)
     
     return hp_toi_da, atk_co_ban
 # Cách sử dụng trong giao diện:
@@ -1233,13 +1233,13 @@ def tinh_va_tra_thuong_global(killer_id, all_data):
 
         # --- 5. THƯỞNG DANH HIỆU MVP ---
         if str(uid) == str(mvp_id):
-            player['kpi'] += 50
+            player['kpi'] += 20
             player['exp'] += 100
-            player_rewards.append(f"👑 MVP: +50 KPI & +100 EXP")
+            player_rewards.append(f"👑 MVP: +20 KPI & +100 EXP")
 
         # Bonus KPI thêm cho Last Hit
         if str(uid) == str(killer_id):
-            bonus_kill_kpi = 20.0
+            bonus_kill_kpi = 10.0
             player['kpi'] += bonus_kill_kpi
             player_rewards.append(f"🗡️ Bonus Last Hit: +{bonus_kill_kpi} KPI")
 
@@ -1789,7 +1789,7 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
         # Bỏ đếm giây Python cũ để JS xử lý hoàn toàn
 
     q = st.session_state.cau_hoi_active
-    THOI_GIAN_LIMIT = 30
+    THOI_GIAN_LIMIT = 22
     current_q_id = q.get('id', str(hash(q['question'])))
     answered_key = f"answered_{current_q_id}"
 
@@ -1891,8 +1891,8 @@ def trien_khai_tran_dau(boss, player, current_atk, save_data_func, user_id, all_
                     st.session_state.combo = st.session_state.get('combo', 0) + 1
                     
                     # Giới hạn hệ số tối đa x2
-                    he_so_raw = 1 + (st.session_state.combo - 1) * 0.1
-                    he_so_final = min(he_so_raw, 2.0) 
+                    he_so_raw = 1 + (st.session_state.combo - 1) * 0.07
+                    he_so_final = min(he_so_raw, 1.5) 
                     
                     dmg_deal = int(current_atk * he_so_final)
                     
@@ -4462,18 +4462,16 @@ from datetime import datetime
 
 def save_all_to_sheets(all_data):
     """
-    PHIÊN BẢN FINAL (CẬP NHẬT ĐẦY ĐỦ):
-    1. Lưu Players (Bảo tồn Admin + HISTORY LOG).
-    2. Lưu Settings & Boss.
-    3. Lưu Shop.
-    4. Lưu Admin Notices.
+    PHIÊN BẢN BẢO VỆ TỐI ĐA (CẬP NHẬT ĐẦY ĐỦ):
+    1. Tự động kiểm tra và nạp lại dữ liệu thiếu từ GSheet để tránh xóa trắng tab.
+    2. Bảo tồn Admin và chuyển đổi số an toàn.
     """
     import streamlit as st
     import json
     from datetime import datetime
-    
+
     # -----------------------------------------------------------
-    # HÀM PHỤ TRỢ: CHUYỂN ĐỔI SỐ AN TOÀN
+    # HÀM PHỤ TRỢ: CHUYỂN ĐỔI SỐ AN TOÀN (GIỮ LẠI)
     # -----------------------------------------------------------
     def safe_int(val):
         try:
@@ -4502,24 +4500,61 @@ def save_all_to_sheets(all_data):
 
     with st.expander("🕵️ NHẬT KÝ ĐỒNG BỘ (DEBUG)", expanded=False):
         try:
+            # Lấy CLIENT từ Session
             if 'CLIENT' in st.session_state:
                 client = st.session_state.CLIENT
             else:
-                # Fallback: Kiểm tra trong globals (trường hợp hiếm)
                 client = globals().get('CLIENT')
             
             if not client:
                 st.error("❌ Mất kết nối Session. Vui lòng F5 tải lại trang!")
                 return False
             
-            # Mở Sheet
+            # Mở Spreadsheet
             secrets_gcp = st.secrets.get("gcp_service_account", {})
-            if "spreadsheet_id" in secrets_gcp: 
-                sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
-            elif "spreadsheet_url" in secrets_gcp: 
-                sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
-            else: 
-                sh = client.openall()[0]
+            sheet_id = secrets_gcp.get("spreadsheet_id")
+            sheet_url = secrets_gcp.get("spreadsheet_url")
+            
+            if sheet_id: sh = client.open_by_key(sheet_id)
+            elif sheet_url: sh = client.open_by_url(sheet_url)
+            else: sh = client.openall()[0]
+
+            # =========================================================
+            # 🔥 CHỐT CHẶN: TỰ ĐỘNG PHỤC HỒI DỮ LIỆU THIẾU TỪ GSHEET
+            # =========================================================
+            # 1. Phục hồi Settings & Rank nếu RAM đang thiếu
+            if not all_data.get("rank_settings") or not all_data.get("system_config"):
+                try:
+                    wks_set = sh.worksheet("Settings")
+                    raw_settings = wks_set.get_all_values()
+                    if "system_config" not in all_data: all_data["system_config"] = {}
+                    
+                    for row in raw_settings:
+                        if len(row) < 2: continue
+                        key = str(row[0]).strip()
+                        val = row[1]
+                        if key == 'rank_settings':
+                            all_data['rank_settings'] = json.loads(val)
+                        elif key == 'active_boss':
+                            # Giải mã để lấy dữ liệu Boss gốc
+                            boss_json = json.loads(val)
+                            all_data['system_config']['active_boss'] = boss_json.get('active_boss', boss_json)
+                except: pass
+
+            # 2. Phục hồi Shop nếu RAM đang thiếu
+            if not all_data.get("shop_items"):
+                try:
+                    wks_s = sh.worksheet("Shop")
+                    raw_shop = wks_s.get_all_records()
+                    all_data['shop_items'] = {str(r['ID']): json.loads(r['Full_Data_JSON']) for r in raw_shop if r.get('Full_Data_JSON')}
+                except: pass
+
+            # 3. Phục hồi Admin Notices nếu RAM đang thiếu
+            if not all_data.get("admin_notices"):
+                try:
+                    wks_n = sh.worksheet("admin_notices")
+                    all_data['admin_notices'] = wks_n.get_all_records()
+                except: pass
 
             # =========================================================
             # --- 1. ĐỒNG BỘ TAB "Players" ---
