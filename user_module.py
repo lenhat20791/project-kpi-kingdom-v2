@@ -18,51 +18,6 @@ from item_system import get_active_combat_stats
 
 
 
-def ghi_log_he_thong(user_id, action, detail, note=""):
-    """
-    Hàm ghi log tương thích với file Sheet hiện tại (3 cột: time, user_id, action)
-    """
-    from datetime import datetime
-    import streamlit as st
-    
-    # 1. Lấy thời gian
-    now = datetime.now().strftime("%d/%m/%Y %H:%M") # Định dạng giống trong ảnh bạn gửi
-    
-    # 2. Gom nội dung lại thành 1 chuỗi để nhét vào cột 'action'
-    # Kết quả sẽ kiểu: "WIN_BOSS | KPI: 100->150 | CHECK NGAY!"
-    full_content = f"{action} | {detail}"
-    if note:
-        full_content += f" | ⚠️ {note}"
-    
-    print(f"📝 [LOG] {user_id} : {full_content}")
-
-    try:
-        # 3. Kết nối Google Sheet
-        from user_module import get_gspread_client
-        client = get_gspread_client()
-        
-        # Mở Sheet (Code lấy ID/URL chuẩn của bạn)
-        secrets_gcp = st.secrets.get("gcp_service_account", {})
-        if "spreadsheet_id" in secrets_gcp: 
-            sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
-        elif "spreadsheet_url" in secrets_gcp: 
-            sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
-        else: 
-            sh = client.openall()[0]
-            
-        # 4. Ghi vào tab "Logs"
-        # Lưu ý: Tab tên là "Logs" (có s) như trong ảnh bạn gửi
-        try:
-            wks_log = sh.worksheet("Logs")
-        except:
-            # Phòng hờ nếu tên tab trong code khác tên tab thực tế
-            wks_log = sh.worksheet("Log") 
-        
-        # Ghi 3 cột: [Thời gian, UserID, Nội dung gom chung]
-        wks_log.append_row([now, str(user_id), full_content])
-        
-    except Exception as e:
-        print(f"❌ Lỗi ghi log: {e}")
 
 # --- HÀM POPUP KẾT QUẢ MỞ RƯƠNG (DIALOG) ---
 @st.dialog("✨ KẾT QUẢ MỞ RƯƠNG ✨")
