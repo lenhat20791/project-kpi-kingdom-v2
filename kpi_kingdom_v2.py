@@ -2128,12 +2128,20 @@ else:
         # Đảm bảo import thư viện hiển thị HTML
         import streamlit.components.v1 as components 
 
-        # Lấy dữ liệu Boss từ Session State
-        if 'system_config' not in st.session_state.data:
-            st.session_state.data['system_config'] = {}
-            
-        sys_config = st.session_state.data['system_config']
-        boss = sys_config.get('active_boss', {})
+        # Lấy cấu hình hệ thống (Settings) từ RAM
+        # Đảm bảo bạn đã load tab Settings vào biến này trước đó
+        settings_data = st.session_state.data.get('settings', {})
+
+        # Truy cập trực tiếp vào key 'active_boss' theo cấu trúc GGSheet
+        boss = settings_data.get('active_boss', {})
+
+        # Kiểm tra nếu dữ liệu đang ở dạng chuỗi JSON (thường gặp khi load từ GGSheet)
+        if isinstance(boss, str):
+            import json
+            try:
+                boss = json.loads(boss)
+            except:
+                boss = {}
 
         # Kiểm tra xem có Boss không
         if boss and boss.get("status") == "active":

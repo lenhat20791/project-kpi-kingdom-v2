@@ -96,44 +96,34 @@ def gui_thong_bao_admin(loai, noi_dung):
 
 def save_admin_notices_to_sheet(notices_list):
     """
-    Lưu danh sách thông báo vào tab admin_notices.
-    Đặt tại Module Admin để gần với hàm giao diện.
+    Hàm này CHỈ ĐƯỢC PHÉP tác động lên tab admin_notices.
     """
     import streamlit as st
     try:
-        # Lấy lại kết nối từ session_state (đã khởi tạo ở module chính)
         client = st.session_state.get('CLIENT')
         sheet_name = st.session_state.get('SHEET_NAME')
+        if not client: return False
         
-        if not client or not sheet_name:
-            st.error("❌ Lỗi: Chưa kết nối được Google Sheet!")
+        # CHỈ ĐỊNH ĐÚNG TAB - Đây là chốt chặn an toàn
+        sh = client.open(sheet_name).worksheet("admin_notices") 
+        
+        # Kiểm tra nếu tên worksheet không phải admin_notices thì dừng ngay
+        if sh.title != "admin_notices":
+            print("Cảnh báo: Nhầm tab! Hủy lệnh xóa.")
             return False
-        
-        # Mở đúng tab
-        sh = client.open(sheet_name).worksheet("admin_notices")
-        
-        # 1. Làm sạch dữ liệu cũ (Xóa từ dòng 2 đến hết)
+
+        # Chỉ xóa dữ liệu từ dòng 2 của tab admin_notices
         all_values = sh.get_all_values()
         if len(all_values) > 1:
             sh.delete_rows(2, len(all_values))
             
-        # 2. Chuẩn bị dữ liệu mới
-        # Theo cấu trúc ảnh bạn gửi: id (A), content (B), type (C), time (D)
-        data_to_save = []
-        for n in notices_list:
-            data_to_save.append([
-                str(n.get('id', '')), 
-                n.get('content', ''), 
-                str(n.get('type', '')), 
-                n.get('time', '')
-            ])
-            
-        # 3. Ghi dữ liệu mới
+        # Ghi dữ liệu mới
+        data_to_save = [[str(n.get('id','')), n.get('content',''), n.get('type',''), n.get('time','')] for n in notices_list]
         if data_to_save:
             sh.update('A2', data_to_save)
         return True
     except Exception as e:
-        st.error(f"❌ Lỗi ghi Sheet tại Admin Module: {e}")
+        st.error(f"Lỗi: {e}")
         return False
 
 def giao_dien_thong_bao_admin():
