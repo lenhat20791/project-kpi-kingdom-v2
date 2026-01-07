@@ -1316,27 +1316,45 @@ def hien_thi_banner_vinh_quang():
     if 'data' not in st.session_state or not st.session_state.data:
         return
 
-    # --- 🛠️ ĐOẠN CODE SỬA LỖI (BẮT ĐẦU) 🛠️ ---
-    # Lọc dữ liệu: Chỉ lấy những cái là "Học sinh" (Dictionary), bỏ qua "Cấu hình" (List)
     raw_data = st.session_state.data
+
+    # --- 🛡️ [FIX LỖI QUAN TRỌNG] CHUYỂN LIST -> DICT ---
+    # Nếu dữ liệu bị lỗi thành List, ta chuyển nó thành Dictionary ngay tại đây
+    if isinstance(raw_data, list):
+        temp_dict = {}
+        for item in raw_data:
+            if isinstance(item, dict):
+                # Tìm ID để làm Key (ưu tiên user_id, sau đó đến name)
+                u_id = item.get('user_id') or item.get('username') or item.get('id') or item.get('name')
+                
+                # Nếu là admin thì gán key chuẩn
+                if item.get('role') == 'admin': u_id = 'admin'
+                
+                if u_id:
+                    temp_dict[str(u_id)] = item
+        raw_data = temp_dict # Gán lại biến local để code bên dưới dùng được
+    # -----------------------------------------------------
+
     clean_users = {}
 
+    # Lúc này raw_data CHẮC CHẮN là Dictionary, nên .items() sẽ chạy ngon lành
     for key, value in raw_data.items():
-        # Chỉ chấp nhận nếu dữ liệu con là Dictionary (tức là thông tin học sinh/admin)
-        # Nếu là List (như rank_settings) -> Code sẽ tự động bỏ qua
+        # Chỉ lấy value là Dictionary (Học sinh/Admin), bỏ qua List (Cấu hình)
         if isinstance(value, dict):
             clean_users[key] = value
             
     # Tạo bảng từ dữ liệu đã lọc sạch
     try:
+        import pandas as pd
         df = pd.DataFrame.from_dict(clean_users, orient='index')
     except Exception as e:
-        st.error(f"Lỗi tạo bảng: {e}")
+        # st.error(f"Lỗi tạo bảng: {e}") 
         return
-    # --- 🛠️ ĐOẠN CODE SỬA LỖI (KẾT THÚC) 🛠️ ---
         
+    # --- ĐOẠN DƯỚI GIỮ NGUYÊN ---
     if 'admin' in df.index: 
         df = df.drop('admin') 
+        
     # Nếu sau khi bỏ admin mà bảng trống (vừa Reset xong) 
     if df.empty:
         st.markdown(f"""
@@ -1346,6 +1364,8 @@ def hien_thi_banner_vinh_quang():
             </div>
         """, unsafe_allow_html=True)
         return
+    
+    # ... (Phần logic tính điểm và hiển thị bên dưới của bạn vẫn giữ nguyên) ...
     # Lấy thiết lập danh hiệu từ Admin 
     ranks = st.session_state.get('rank_settings', [
         {"Danh hiệu": "Học Sĩ", "KPI Yêu cầu": 1, "Màu sắc": "#bdc3c7"}
