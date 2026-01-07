@@ -3879,16 +3879,13 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
 def hien_thi_doi_mat_khau(user_id, save_data_func):
     st.subheader("🔑 THAY ĐỔI MẬT MÃ")
     
-    # Đảm bảo tài khoản admin có trong dữ liệu để có chỗ lưu mật khẩu
-    if user_id == "admin" and "admin" not in st.session_state.data:
-        st.session_state.data["admin"] = {
-            "name": "Quản trị viên", 
-            "role": "Admin", 
-            "password": "admin" # Mật khẩu gốc ban đầu
-        }
-
+    # Lấy dữ liệu người dùng hiện tại
     user_data = st.session_state.data.get(user_id)
     
+    if not user_data:
+        st.error("Không tìm thấy dữ liệu người dùng.")
+        return
+
     with st.form("form_change_password"):
         old_password = st.text_input("Mật khẩu hiện tại:", type="password")
         new_password = st.text_input("Mật khẩu mới:", type="password")
@@ -3897,9 +3894,12 @@ def hien_thi_doi_mat_khau(user_id, save_data_func):
         submit = st.form_submit_button("💾 CẬP NHẬT MẬT KHẨU")
         
         if submit:
+            # Ép kiểu mật khẩu cũ sang string để so sánh (đề phòng lỗi .0 từ Sheet)
+            current_pw_on_db = str(user_data.get('password', '')).strip().replace(".0", "")
+            
             if not old_password or not new_password:
                 st.error("Vui lòng nhập đầy đủ thông tin!")
-            elif old_password != user_data['password']:
+            elif old_password != current_pw_on_db:
                 st.error("Mật khẩu hiện tại không chính xác!")
             elif new_password != confirm_password:
                 st.error("Mật khẩu mới và xác nhận không khớp!")
@@ -3907,12 +3907,18 @@ def hien_thi_doi_mat_khau(user_id, save_data_func):
                 st.warning("Mật khẩu nên có ít nhất 4 ký tự!")
             else:
                 # --- THỰC HIỆN LƯU MẬT KHẨU MỚI ---
-                st.session_state.data[user_id]['password'] = new_password
-                save_data_func() # Lưu vào file data.json
+                from user_module import save_user_data_direct
                 
-                st.success("🎉 Chúc mừng! Mật mã của bạn đã được cập nhật thành công.")
-                st.balloons()   
+                # Cập nhật vào RAM trước
+                st.session_state.data[user_id]['password'] = str(new_password)
                 
+                # Sử dụng hàm lưu bắn tỉa để cập nhật đúng dòng của user trên Google Sheets
+                # Lưu ý: Bạn cần đảm bảo hàm save_user_data_direct đã có logic cập nhật cột 'password'
+                if save_user_data_direct(user_id):
+                    st.success("🎉 Chúc mừng! Mật mã của bạn đã được cập nhật thành công.")
+                    st.balloons()
+                else:
+                    st.error("❌ Lỗi kết nối Cloud. Mật khẩu chưa được lưu lại!")                
 # --- SẢNH DANH VỌNG ---                
 def hien_thi_sanh_danh_vong_user(user_id, save_data_func):
     st.subheader("🏛️ SẢNH DANH VỌNG - KHẲNG ĐỊNH VỊ THẾ")
