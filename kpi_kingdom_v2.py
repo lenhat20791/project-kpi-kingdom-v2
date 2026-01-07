@@ -1717,26 +1717,32 @@ current_role = str(raw_role).strip().lower()
 
 # ===== TRƯỜNG HỢP 1: ADMIN =====
 if current_role == "admin":
+    # 1. Import module
     import admin_module
-    
-    # Lấy trang hiện tại an toàn
+    # 2. Import hàm lưu dữ liệu chuẩn để truyền cho Admin dùng
+    from user_module import save_all_to_sheets 
+
+    # Lấy trang hiện tại
     current_page = st.session_state.get("page", "")
 
     if current_page == "⚔️ Đại chiến Giáo viên": 
+        # Nếu hàm này chưa sửa thì giữ nguyên, nếu sửa rồi thì nhớ truyền tham số tương ứng
         admin_module.admin_quan_ly_boss()
     
     elif current_page == "🛡️ Quản lý Phó bản":
-        admin_module.hien_thi_admin_control_dungeon(save_shop_data)
+        # Truyền hàm save_all_to_sheets vào thay vì save_shop_data
+        admin_module.hien_thi_admin_control_dungeon(save_all_to_sheets)
     
     elif current_page == "📢 Thông báo Server":
         admin_module.giao_dien_thong_bao_admin()
     
     elif current_page == "🏪 Quản lý Tiệm tạp hóa":
-        admin_module.hien_thi_giao_dien_admin(save_data, save_shop_data)
+        # 🔥 [SỬA LỖI] Truyền đúng 3 tham số: CLIENT, SHEET_NAME, SAVE_FUNC
+        admin_module.hien_thi_giao_dien_admin(CLIENT, SHEET_NAME, save_all_to_sheets)
     
     else:
-        # Trang mặc định cho Admin nếu chưa chọn gì
-        admin_module.hien_thi_giao_dien_admin(save_data, save_shop_data)
+        # 🔥 [SỬA LỖI] Trang mặc định cũng phải truyền đúng 3 tham số
+        admin_module.hien_thi_giao_dien_admin(CLIENT, SHEET_NAME, save_all_to_sheets)
 
 # ===== PHẦN HIỂN THỊ CỦA USER (ĐÃ FIX LỖI GIAO DIỆN TRỐNG) =====
 elif st.session_state.user_role in ["u1", "u2", "u3"]:
