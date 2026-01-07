@@ -4367,8 +4367,15 @@ def save_all_to_sheets(all_data):
 
     with st.expander("🕵️ NHẬT KÝ ĐỒNG BỘ (DEBUG)", expanded=False):
         try:
-            from user_module import get_gspread_client
-            client = get_gspread_client()
+            if 'CLIENT' in st.session_state:
+                client = st.session_state.CLIENT
+            else:
+                # Fallback: Kiểm tra trong globals (trường hợp hiếm)
+                client = globals().get('CLIENT')
+            
+            if not client:
+                st.error("❌ Mất kết nối Session. Vui lòng F5 tải lại trang!")
+                return False
             
             # Mở Sheet
             secrets_gcp = st.secrets.get("gcp_service_account", {})
