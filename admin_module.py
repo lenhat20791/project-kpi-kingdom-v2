@@ -335,7 +335,16 @@ def load_dungeon_config():
             }
 
     try:
-        client = get_gspread_client()
+        # [SỬA LỖI] Lấy CLIENT từ session_state (thay vì gọi get_gspread_client)
+        client = st.session_state.get('CLIENT')
+        sheet_name = st.session_state.get('SHEET_NAME')
+
+        if not client or not sheet_name:
+            # Fallback: Thử lấy từ globals nếu đang chạy local test
+            if 'CLIENT' in globals(): client = globals()['CLIENT']
+            if 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
+            
+        if not client: return default_config
         sh = client.open(SHEET_NAME)
         
         try:
@@ -396,7 +405,13 @@ def save_dungeon_config(config):
     Tự động tạo Tab và Cột nếu chưa có.
     """
     try:
-        client = get_gspread_client()
+        # [SỬA LỖI] Lấy CLIENT từ session_state
+        client = st.session_state.get('CLIENT')
+        sheet_name = st.session_state.get('SHEET_NAME')
+        
+        if not client:
+             st.error("Mất kết nối Google Sheet!")
+             return
         sh = client.open(SHEET_NAME)
         
         # 1. Tìm hoặc Tạo tab Dungeon
@@ -434,6 +449,7 @@ def save_dungeon_config(config):
         if not os.path.exists("data"): os.makedirs("data")
         with open("data/dungeon_config.json", "w", encoding="utf-8") as f:
             json.dump(config, f, indent=4, ensure_ascii=False)
+
 def hien_thi_tao_item_pho_ban(save_shop_func):
     with st.expander("🎁 CHẾ TẠO VẬT PHẨM RIÊNG CHO PHÓ BẢN", expanded=False):
         st.info("Tạo nhanh các vật phẩm rơi từ Phó bản (Rìu, Khiên, Thuốc...).")
