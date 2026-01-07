@@ -1839,7 +1839,7 @@ def hien_thi_banner_vinh_quang():
 # 0. Chuẩn hóa Role một lần duy nhất để dùng cho cả đoạn dưới
 raw_role = st.session_state.get("user_role", "")
 current_role = str(raw_role).strip().lower()
-from user_module import save_all_to_sheets 
+#from user_module import save_all_to_sheets 
 # ===== TRƯỜNG HỢP 1: ADMIN =====
 if current_role == "admin":
     # 1. Import module
