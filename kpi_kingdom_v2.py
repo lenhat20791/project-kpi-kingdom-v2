@@ -694,20 +694,58 @@ def hien_thi_sidebar_chung():
                 os.remove("login_cache.json")
             st.rerun()
 
-def load_boss_data():
-    # Đường dẫn file này phải khớp với file Admin ghi dữ liệu Boss
-    path = "data/boss_config.json" 
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    # Trả về dữ liệu mặc định nếu Admin chưa tạo Boss
-    return {
-        "name": "Boss Học Kỳ",
-        "hp_current": 1000,
-        "hp_max": 1000,
-        "image_url": "assets/teachers/toan.png",
-        "description": "Chưa có mục tiêu cụ thể"
-    }
+def get_boss_data_ready():
+    """
+    Thay thế hoàn toàn load_boss_data(). 
+    Lấy dữ liệu từ GSheet (Settings dòng 17) và đồng bộ với BossLogs.
+    """
+    import json
+    import os
+    try:
+        client = st.session_state.get('CLIENT')
+        sheet_name = st.session_state.get('SHEET_NAME')
+        if not client: 
+            return None # Hoặc trả về dict mặc định nếu muốn
+        
+        # 1. Truy cập tab Settings lấy cấu hình Boss
+        sh_settings = client.open(sheet_name).worksheet("Settings")
+        
+        # Tìm key 'active_boss' ở cột A
+        records = sh_settings.get_all_values()
+        boss_raw_json = None
+        for row in records:
+            if row[0] == "active_boss":
+                boss_raw_json = row[1] # Cột B
+                break
+        
+        if not boss_raw_json: 
+            return None
+            
+        boss = json.loads(boss_raw_json)
+        if boss.get("status") != "active": 
+            return None
+
+        # 2. Đồng bộ sát thương thực tế từ BossLogs (Nếu có module hỗ trợ)
+        try:
+            from user_module import get_realtime_boss_stats
+            boss_name = boss.get('name', boss.get('ten', 'BOSS'))
+            real_contributions, total_dmg_taken = get_realtime_boss_stats(boss_name)
+            
+            hp_max = int(boss.get("hp_max", 10000))
+            if total_dmg_taken > 0:
+                boss['hp_current'] = max(0, hp_max - total_dmg_taken)
+                boss['contributions'] = real_contributions
+            else:
+                # Nếu chưa có log, dùng số máu ghi trên Sheet (9205)
+                boss['hp_current'] = int(boss.get("hp_current", hp_max))
+        except:
+            # Fallback nếu hàm log lỗi
+            boss['hp_current'] = int(boss.get("hp_current", 10000))
+        
+        return boss
+    except Exception as e:
+        st.error(f"Lỗi hệ thống Boss: {e}")
+        return None
 
 
 @st.dialog("📜 BÍ KÍP SINH TỒN TẠI KPI KINGDOM", width="large")
@@ -2114,7 +2152,7 @@ else:
 
         # 3. KHIÊU CHIẾN BOSS HỌC KỲ - PHIÊN BẢN CAM NEON RỰC RỠ
 
-        # --- 1. HÀM PHỤ TRỢ (Giữ nguyên, chỉ làm nhiệm vụ convert ảnh) ---
+        # --- 1. HÀM PHỤ TRỢ (Giữ nguyên để xử lý ảnh Local nếu cần) ---
         def get_base64(bin_file):
             import base64
             import os
@@ -2123,94 +2161,72 @@ else:
                     return base64.b64encode(f.read()).decode()
             return ""
 
-        # --- 2. LOGIC HIỂN THỊ BOSS UI (Nằm trong luồng chính) ---
-
-        # Đảm bảo import thư viện hiển thị HTML
+        # --- 2. LOGIC HIỂN THỊ BOSS UI ---
         import streamlit.components.v1 as components 
 
-        # Lấy cấu hình hệ thống (Settings) từ RAM
-        # Đảm bảo bạn đã load tab Settings vào biến này trước đó
-        settings_data = st.session_state.data.get('settings', {})
+        # GỌI HÀM MỚI: Lấy dữ liệu đã được xử lý logic từ GSheet và Logs
+        boss = get_boss_data_ready()
 
-        # Truy cập trực tiếp vào key 'active_boss' theo cấu trúc GGSheet
-        boss = settings_data.get('active_boss', {})
+        # Kiểm tra xem có Boss đang hoạt động không
+        if boss:
+            boss_name = boss.get('name', boss.get('ten', 'BOSS'))
+            hp_cur = boss.get('hp_current', 0)
+            hp_max = boss.get('hp_max', 10000)
+            contributions = boss.get('contributions', {})
 
-        # Kiểm tra nếu dữ liệu đang ở dạng chuỗi JSON (thường gặp khi load từ GGSheet)
-        if isinstance(boss, str):
-            import json
-            try:
-                boss = json.loads(boss)
-            except:
-                boss = {}
-
-        # Kiểm tra xem có Boss không
-        if boss and boss.get("status") == "active":
-            boss_name = boss.get('ten', 'BOSS')
-
-            # =========================================================================
-            # 🔥 BƯỚC 1: LẤY DỮ LIỆU SÁT THƯƠNG THỰC TẾ TỪ LOG (FIX LỖI MẤT DATA)
-            # =========================================================================
-            from user_module import get_realtime_boss_stats
-            
-            # Hàm này sẽ quét lại toàn bộ BossLogs để cộng dồn sát thương chuẩn xác
-            real_contributions, total_dmg_taken = get_realtime_boss_stats(boss_name)
-
-            if real_contributions:
-                # Nếu Log có dữ liệu -> Dùng Log
-                contributions = real_contributions
-                # Tính lại máu hiện tại dựa trên tổng sát thương đã nhận
-                hp_max = int(boss.get("hp_max", 10000))
-                hp_cur = max(0, hp_max - total_dmg_taken) # Không để máu âm
-            else:
-                # Fallback: Nếu chưa kết nối được Log thì dùng dữ liệu cũ trong JSON
-                contributions = boss.get("contributions", {})
-                hp_cur = int(boss.get("hp_current", 10000))
-                hp_max = int(boss.get("hp_max", 10000))
-
-            # =========================================================================
-            # 🔥 BƯỚC 2: XỬ LÝ HÌNH ẢNH (Hỗ trợ cả Link Online & File Local)
-            # =========================================================================
-            boss_img_source = boss.get("anh", "assets/teachers/toan.png")
-            
+            # --- XỬ LÝ HÌNH ẢNH ---
+            boss_img_source = boss.get("anh", "")
             if str(boss_img_source).startswith("http"):
                 img_src = boss_img_source
             else:
+                # Xử lý ảnh local hoặc fallback ảnh mặc định
                 if not os.path.exists(boss_img_source):
                      img_src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
                 else:
-                    # Hàm get_base64 phải được định nghĩa ở trên cùng file
                     img_b64 = get_base64(boss_img_source)
                     img_src = f"data:image/png;base64,{img_b64}"
-            
-            # Tính phần trăm HP để vẽ thanh máu
-            try:
-                percent = (hp_cur / hp_max) * 100 if hp_max > 0 else 0
-            except:
-                percent = 0
-            
-            # =========================================================================
-            # 🔥 BƯỚC 3: XỬ LÝ DANH SÁCH TOP 10 (SẮP XẾP CHUẨN SỐ HỌC)
-            # =========================================================================
-            if not contributions:
-                top_10 = []
-            else:
-                # Ép kiểu int để sắp xếp đúng (100 > 9)
-                top_10 = sorted(contributions.items(), key=lambda x: int(x[1]), reverse=True)[:10]
-            
+
+            # Tính phần trăm HP
+            percent = (hp_cur / hp_max) * 100 if hp_max > 0 else 0
+
+            # --- XỬ LÝ DANH SÁCH TOP 10 SÁT THƯƠNG ---
             top_list_html = ""
-            for i, (uid, dmg) in enumerate(top_10):
-                # Lấy tên user an toàn
-                user_info = st.session_state.data.get(str(uid), {})
-                name = user_info.get("name", f"Chiến binh {uid[-4:]}") 
+            if contributions:
+                # Sắp xếp theo sát thương giảm dần
+                top_10 = sorted(contributions.items(), key=lambda x: int(x[1]), reverse=True)[:10]
                 
-                # Màu sắc: Top 3 Vàng, còn lại Trắng
-                color = "#f1c40f" if i < 3 else "#ffffff"
-                
-                # Icon huy chương
-                medal = f"#{i+1}"
-                if i == 0: medal = "🥇"
-                elif i == 1: medal = "🥈"
-                elif i == 2: medal = "🥉"
+                for i, (uid, dmg) in enumerate(top_10):
+                    # Lấy tên user từ data chính
+                    user_info = st.session_state.data.get(str(uid), {})
+                    name = user_info.get("name", f"Chiến binh {str(uid)[-4:]}") 
+                    
+                    color = "#f1c40f" if i < 3 else "#ffffff"
+                    medal = {0: "🥇", 1: "🥈", 2: "🥉"}.get(i, f"#{i+1}")
+                    
+                    top_list_html += f"""
+                    <div style="display: flex; justify-content: space-between; color: {color}; margin-bottom: 5px; font-size: 14px;">
+                        <span>{medal} {name}</span>
+                        <span>{int(dmg):,} ⚔️</span>
+                    </div>
+                    """
+            else:
+                top_list_html = "<div style='color: #bbb; text-align: center;'>Chưa có sát thương nào được ghi nhận</div>"
+
+            # --- HIỂN THỊ GIAO DIỆN (MARQUEE & PROGRESS BAR) ---
+            # (Giữ nguyên phần HTML/CSS Neon rực rỡ của bạn ở đây)
+            st.markdown(f"### 👿 MỤC TIÊU: {boss_name.upper()}")
+            st.progress(percent / 100, text=f"Máu hiện tại: {hp_cur:,} / {hp_max:,}")
+            
+            # Render bảng xếp hạng vào giao diện
+            with st.expander("🏆 BẢNG VÀNG SÁT THƯƠNG"):
+                st.markdown(f"""
+                <div style="background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #333;">
+                    {top_list_html}
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            # Hiển thị khi không có Boss (Hàm get_boss_data_ready trả về None)
+            st.info("✨ Hiện tại vương quốc đang trong thời bình. Hãy tích cực rèn luyện để chuẩn bị cho thử thách tiếp theo!")
                 
                 # --- [CHỈNH SỬA 1] Font chữ nhỏ lại (16px) và Margin bé lại (5px) ---
                 top_list_html += f"""
