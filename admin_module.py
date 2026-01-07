@@ -215,61 +215,61 @@ def giao_dien_thong_bao_admin():
             
 def hien_thi_thong_bao_he_thong():
     """
-    Hàm hiển thị thông báo. Đọc trực tiếp từ st.session_state.data.
-    [FIX LỖI]: Chỉ hiển thị 1 Popup tại một thời điểm để tránh sập Streamlit.
+    Hàm hiển thị thông báo. Đọc riêng biệt từ tab admin_notices.
+    Tối ưu cache để không bị lỗi 429 và Attribute Error.
     """
     import streamlit as st
+
+    # 1. TẢI DỮ LIỆU TỪ ĐÚNG TAB (Sử dụng hàm đa năng có cache)
+    if "notices_cache" not in st.session_state:
+        # fetch_data_from_tab("admin_notices") trả về một List
+        st.session_state.notices_cache = fetch_data_from_tab("admin_notices")
     
-    # Lấy danh sách thông báo
-    notices = st.session_state.data.get('admin_notices', [])
+    notices = st.session_state.notices_cache
     
     if not notices:
         return
 
-    # Biến cờ để kiểm soát việc mở Popup
+    # Biến cờ để kiểm soát việc mở Popup (Streamlit chỉ cho mở 1 cái 1 lúc)
     popup_shown = False
 
-    # Duyệt qua các thông báo
+    # 2. DUYỆT QUA DANH SÁCH (notices là List của các Dictionary)
     for n in notices:
-        # 1. Hiển thị POPUP KHẨN CẤP
-        if n.get('type') == 'popup':
-            # Nếu đã có 1 popup đang hiện rồi thì bỏ qua các popup sau
+        n_type = n.get('type', '').lower()
+        n_id = n.get('id', 'unknown')
+        n_content = n.get('content', '')
+        n_time = n.get('time', '')
+
+        # --- A. XỬ LÝ POPUP KHẨN CẤP ---
+        if n_type == 'popup':
             if popup_shown:
                 continue
 
-            popup_key = f"seen_popup_{n.get('id')}"
+            popup_key = f"seen_popup_{n_id}"
             
-            # Nếu chưa xem thì hiện lên
             if not st.session_state.get(popup_key, False):
+                # Khai báo Dialog bên trong để tránh lỗi Dialog chồng chéo
                 @st.dialog("📢 THÔNG BÁO TỪ BAN QUẢN TRỊ")
-                def show_notice_popup(content, time_sent):
+                def show_notice_popup(content, time_sent, key_id):
                     st.warning(f"🕒 *Gửi lúc: {time_sent}*")
                     st.markdown(f"### {content}")
-                    
-                    # Nút đóng
-                    if st.button("Đã hiểu và Đóng", key=f"btn_cls_{n.get('id')}"):
+                    if st.button("Đã hiểu và Đóng", key=f"btn_cls_{key_id}"):
                         st.session_state[popup_key] = True
                         st.rerun()
                 
-                show_notice_popup(n.get('content'), n.get('time'))
-                
-                # 🔥 QUAN TRỌNG: Đánh dấu đã hiện popup để không mở thêm cái nào nữa trong lượt này
+                show_notice_popup(n_content, n_time, n_id)
                 popup_shown = True 
 
-        # 2. Hiển thị CHẠY CHỮ (MARQUEE) - Cái này hiện nhiều cái cùng lúc được
-        elif n.get('type') == 'marquee':
+        # --- B. XỬ LÝ CHẠY CHỮ (MARQUEE) ---
+        elif n_type == 'marquee':
             st.markdown(f"""
                 <div style="
                     background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
-                    color: white; 
-                    padding: 8px; 
-                    font-weight: bold; 
-                    border-radius: 8px; 
-                    margin-bottom: 10px; 
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    border: 1px solid #fff;">
+                    color: white; padding: 8px; font-weight: bold; 
+                    border-radius: 8px; margin-bottom: 10px; 
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #fff;">
                     <marquee behavior="scroll" direction="left" scrollamount="8">
-                        🔔 [THÔNG BÁO - {n.get('time')}]: {n.get('content')} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                        🔔 [THÔNG BÁO - {n_time}]: {n_content} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
                     </marquee>
                 </div>
             """, unsafe_allow_html=True)

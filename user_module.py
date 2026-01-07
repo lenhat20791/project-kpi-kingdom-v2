@@ -90,6 +90,21 @@ if "shop_data" not in st.session_state:
 if "dungeon_data" not in st.session_state:
     st.session_state.dungeon_data = fetch_data_from_tab("Dungeon")
 
+# --- ĐỊNH NGHĨA BÍ DANH ĐỂ TƯƠNG THÍCH VỚI CODE CŨ ---
+
+# 1. Nếu code cũ dùng st.session_state.data (Bạn đã gán Players vào data rồi nên dòng này là để chắc chắn)
+if "data" not in st.session_state:
+    st.session_state.data = st.session_state.get('data', [])
+
+# 2. Đồng bộ hóa Boss: Gán dữ liệu từ "boss_data" vào "bosses" (tên mà code cũ hay dùng)
+st.session_state.bosses = st.session_state.get('boss_data', [])
+
+# 3. Đồng bộ hóa Cửa hàng: Gán dữ liệu từ "shop_data" vào "items"
+st.session_state.items = st.session_state.get('shop_data', [])
+
+# 4. Tạo thêm bí danh 'players' nếu cần thiết (phòng hờ code cũ dùng tên này)
+st.session_state.players = st.session_state.data
+
 def ghi_log_he_thong(user_id, action, detail, note=""):
     """
     Hàm ghi log tương thích với file Sheet hiện tại (3 cột: time, user_id, action)
