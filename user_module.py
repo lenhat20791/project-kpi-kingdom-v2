@@ -4388,11 +4388,10 @@ def get_dungeon_logs(land_id):
 
 def get_arena_logs():
     """
-    Lấy dữ liệu Tứ đại cao thủ và Lịch sử đấu trường TỪ GOOGLE SHEETS (thông qua load_loi_dai)
+    Lấy dữ liệu Tứ đại cao thủ và Lịch sử đấu trường TỪ GOOGLE SHEETS
+    Hiển thị đầy đủ thành viên đội cho các trận 2vs2, 3vs3.
     """
     try:
-        # [QUAN TRỌNG] Gọi hàm này để lấy dữ liệu thật từ Sheets (đã cache)
-        # Thay vì lấy st.session_state.arena_history rỗng tuếch
         ld_data = load_loi_dai() 
         matches = ld_data.get('matches', {})
     except:
@@ -4401,54 +4400,58 @@ def get_arena_logs():
     win_counts = {}
     recent_matches = []
     
-    # Sắp xếp trận đấu mới nhất lên đầu
+    # Sắp xếp trận đấu mới nhất lên đầu dựa trên thời gian tạo
     sorted_matches = sorted(matches.items(), key=lambda x: x[1].get('created_at', ''), reverse=True)
 
     for mid, m in sorted_matches:
         if m.get('status') == 'finished':
-            # --- 1. TÍNH ĐIỂM CAO THỦ ---
+            # --- 1. XÁC ĐỊNH DANH SÁCH THÀNH VIÊN ĐỘI ---
+            # Lấy danh sách thành viên từ team, nếu không có (trận solo) thì lấy challenger/opponent đơn lẻ
+            c_team = m.get('challenger_team', [])
+            o_team = m.get('opponent_team', [])
+            
+            # Chuyển đổi ID thành Tên hiển thị cho toàn bộ thành viên
+            p1_names = [st.session_state.data.get(uid, {}).get('name', uid) for uid in c_team] if c_team else [st.session_state.data.get(m.get('challenger'), {}).get('name', 'Người bí ẩn')]
+            p2_names = [st.session_state.data.get(uid, {}).get('name', uid) for uid in o_team] if o_team else [st.session_state.data.get(m.get('opponent'), {}).get('name', 'Đối thủ')]
+            
+            # Nối các tên thành chuỗi để hiển thị trên UI
+            p1_display = ", ".join(p1_names)
+            p2_display = ", ".join(p2_names)
+
+            # --- 2. TÍNH ĐIỂM CAO THỦ ---
             winner = m.get('winner')
             winners_list = []
             
-            # Xác định danh sách người thắng (Team hoặc Solo)
             if winner == 'team1':
-                winners_list = m.get('challenger_team', [])
-                winner_text = "Đội Thách Đấu"
+                winners_list = c_team
+                winner_text = "Đội 1 Thắng"
             elif winner == 'team2':
-                winners_list = m.get('opponent_team', [])
-                winner_text = "Đội Nhận Kèo"
+                winners_list = o_team
+                winner_text = "Đội 2 Thắng"
             elif winner and winner != 'Hòa':
                 winners_list = [winner]
-                # Lấy tên hiển thị
-                w_name = st.session_state.data.get(winner, {}).get('name', 'Ẩn danh')
-                winner_text = w_name
+                winner_text = st.session_state.data.get(winner, {}).get('name', 'Ẩn danh')
             else:
                 winner_text = "Hòa"
 
-            # Cộng điểm thắng
+            # Cộng điểm thắng cho từng cá nhân trong đội thắng
             for uid in winners_list:
                 if uid: win_counts[uid] = win_counts.get(uid, 0) + 1
 
-            # --- 2. TẠO LOG NHẬT KÝ (Lấy 10 trận) ---
+            # --- 3. TẠO LOG NHẬT KÝ (Lấy 10 trận mới nhất) ---
             if len(recent_matches) < 10:
-                p1_id = m.get('challenger')
-                p1_name = st.session_state.data.get(p1_id, {}).get('name', 'Người bí ẩn')
-                
-                p2_id = m.get('opponent')
-                p2_name = st.session_state.data.get(p2_id, {}).get('name', 'Đối thủ')
-                
-                # Format tỷ số
                 score = f"{m.get('final_score_team1', 0)} - {m.get('final_score_team2', 0)}"
                 
                 recent_matches.append({
-                    "p1": p1_name,
-                    "p2": p2_name,
+                    "p1": p1_display,
+                    "p2": p2_display,
                     "score": score,
                     "bet": m.get('bet', 0),
-                    "winner_name": winner_text
+                    "winner_name": winner_text,
+                    "mode": m.get('mode', '1 vs 1') # Thêm mode để hiển thị loại trận
                 })
 
-    # --- 3. XỬ LÝ TOP 4 ---
+    # --- 4. XỬ LÝ TOP 4 ---
     sorted_winners = sorted(win_counts.items(), key=lambda x: x[1], reverse=True)[:4]
     top_4_details = []
     
@@ -4456,8 +4459,7 @@ def get_arena_logs():
         u_name = st.session_state.data.get(uid, {}).get('name', uid)
         top_4_details.append({"name": u_name, "wins": wins})
         
-    return top_4_details, recent_matches    
-
+    return top_4_details, recent_matches
 from datetime import datetime
 
 def save_all_to_sheets(all_data):
