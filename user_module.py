@@ -3335,29 +3335,34 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
     # =========================================================================
     from user_module import load_user_inventory, load_shop_items_from_sheet
     
-    # 1. Luôn tải Shop (ít thay đổi nên an toàn)
-    try:
-        live_shop = load_shop_items_from_sheet()
-        if live_shop: st.session_state.data['shop_items'] = live_shop
-    except: pass
-
-    # 2. Kiểm tra xem có nên tải lại Kho không?
-    # Nếu vừa bấm nút (có cờ skip_reload), ta tin tưởng Session, bỏ qua tải Sheet
-    if st.session_state.get('skip_reload', False):
-        # Đã dùng xong quyền ưu tiên, xóa cờ để lần sau lại tải bình thường
+    # 1. Kiểm tra xem có Cờ "Vừa thao tác xong" không?
+    if st.session_state.get('skip_reload', False) == True:
+        # Nếu có cờ này -> TIN TƯỞNG DỮ LIỆU TRONG SESSION (RAM)
+        # Không tải từ Sheet để tránh lấy phải dữ liệu cũ
+        # Sau đó xóa cờ đi để các lần sau lại tải bình thường
         del st.session_state['skip_reload']
-        # st.toast("Dùng dữ liệu cục bộ (Nhanh)", icon="🚀") 
+        # st.toast("Dữ liệu được cập nhật tức thì!", icon="⚡") 
+        
     else:
-        # Bình thường: Tải từ Sheet để đảm bảo đồng bộ (Fix lỗi túi trống)
+        # Nếu không có cờ -> Tải dữ liệu từ Sheet về để đồng bộ (Logic bình thường)
         try:
+            # Tải Shop (ít thay đổi nên tải luôn cũng được)
+            live_shop = load_shop_items_from_sheet()
+            if live_shop: st.session_state.data['shop_items'] = live_shop
+
+            # Tải Kho (Quan trọng: Chỉ cập nhật nếu tải thành công)
             live_inv = load_user_inventory(user_id)
-            # Chỉ cập nhật nếu lấy được dữ liệu
-            if live_inv is not None: 
+            if live_inv is not None:
                 st.session_state.data[user_id]['inventory'] = live_inv
         except: pass
     # =========================================================================
 
-    user_info = st.session_state.data.get(user_id, {})
+    # 1. Lấy thông tin người dùng từ Session (Lúc này dữ liệu đã chuẩn)
+    if user_id not in st.session_state.data:
+        st.error("Không tìm thấy thông tin người dùng.")
+        return
+
+    user_info = st.session_state.data[user_id]
     shop_data = st.session_state.data.get('shop_items', {})
     
     # --- PHẦN 1: CSS & HIỂN THỊ SỐ DƯ (ĐÃ SỬA LỖI & CĂN TRÁI) ---
@@ -3572,11 +3577,11 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
             if "pending_item" in st.session_state:
                 confirm_dialog(*st.session_state.pending_item)
 
-    # === TAB 2: TÚI ĐỒ ===
+    # === TAB 2: TÚI ĐỒ (Đã fix lỗi mất quà) ===
     with tab_kho:
         inventory = user_info.get('inventory', {})
         
-        # Convert List -> Dict
+        # Convert List -> Dict nếu cần
         if isinstance(inventory, list):
             new_inv = {}
             for x in inventory: new_inv[x] = new_inv.get(x, 0) + 1
@@ -3588,19 +3593,18 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
 
         if not inventory:
             st.info("🎒 Túi đồ trống trơn. Hãy ghé Tiệm tạp hóa nhé!")
-            # Thêm nút Force Reload cho user nếu họ nghi ngờ lỗi
-            if st.button("🔄 Làm mới dữ liệu từ Sheet"):
-                st.rerun()
+            if st.button("🔄 Làm mới"): st.rerun()
         else:
             st.write("### 📦 Kho đồ")
             cols_kho = st.columns(4)
             
+            # 🔥 Dùng list(items()) để copy danh sách, tránh lỗi khi đang loop mà xóa item
             for i, (original_key, count) in enumerate(list(inventory.items())):
+                
                 # --- TRA CỨU ID & INFO ---
                 real_item_id = original_key
                 item_info = shop_data.get(real_item_id)
                 
-                # Tìm theo tên nếu key không khớp ID
                 if not item_info:
                     for s_id, s_info in shop_data.items():
                         if s_info.get('name') == original_key:
@@ -3628,16 +3632,16 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # NÚT MỞ RƯƠNG
+                    # --- NÚT BẤM MỞ RƯƠNG ---
                     if i_type == "GACHA_BOX":
                         if st.button("🎲 MỞ NGAY", key=f"open_{i}", use_container_width=True, type="primary"):
                             try:
                                 from user_module import xu_ly_mo_ruong
                                 
-                                # A. Tính quà (RNG)
+                                # A. Tính quà
                                 rewards = xu_ly_mo_ruong(user_id, real_item_id, item_info, st.session_state.data)
                                 
-                                # B. Trừ kho (Dùng original_key)
+                                # B. Trừ kho (Dùng original_key để xóa đúng cái đang có)
                                 inventory[original_key] -= 1
                                 if inventory[original_key] <= 0:
                                     del inventory[original_key]
@@ -3658,11 +3662,11 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
                                         curr_inv = user_info.setdefault('inventory', {})
                                         curr_inv[r_id] = curr_inv.get(r_id, 0) + r_amt
 
-                                # D. Lưu & SET CỜ SKIP RELOAD
+                                # D. Lưu Sheet & BẬT CỜ SKIP RELOAD
                                 save_data_func(st.session_state.data)
-                                st.session_state['skip_reload'] = True # <--- QUAN TRỌNG
+                                st.session_state['skip_reload'] = True # <--- BẬT CỜ
                                 
-                                # E. Hiện kết quả
+                                # E. Hiện thông báo
                                 st.session_state.gacha_result = {"name": d_name, "rewards": rewards}
                                 st.rerun()
                                 
