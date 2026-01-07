@@ -84,7 +84,7 @@ def get_dungeon_lands():
         return []
 
     lands_dict = {}
-    # Các icon biểu tượng cho môn học
+    # Các icon biểu tượng mặc định cho môn học
     default_icons = {
         "toan": "📐", "anh": "🇬🇧", "van": "📖", 
         "ly": "⚡", "hoa": "🧪", "sinh": "🌿"
@@ -92,16 +92,27 @@ def get_dungeon_lands():
 
     for row in rows:
         try:
-            land_id = row.get('Land_ID')
-            # 1 vùng đất có 4 hàng (phase), ta chỉ lấy 1 lần duy nhất để tạo Card
+            land_id = str(row.get('Land_ID', '')).strip().lower()
+            
+            # 1 vùng đất có nhiều hàng (phase), ta chỉ lấy 1 lần duy nhất để tạo Card
             if land_id and land_id not in lands_dict:
-                # Giải mã chuỗi JSON từ cột Config_JSON
-                config = json.loads(row.get('Config_JSON', '{}'))
+                # 1. Giải mã chuỗi JSON từ cột Config_JSON
+                config = {}
+                config_raw = row.get('Config_JSON', '{}')
+                if config_raw:
+                    try: config = json.loads(config_raw)
+                    except: config = {}
                 
+                # 2. Lấy tên hiển thị: Ưu tiên Config -> Phase_Name (Cột C) -> land_id
+                display_name = config.get('title') or row.get('Phase_Name') or land_id.upper()
+                
+                # 3. Lấy ảnh nền: Ưu tiên Background_URL (Cột G) -> Config
+                bg_image = row.get('Background_URL') or config.get('monster_img', '')
+
                 lands_dict[land_id] = {
-                    "land_key": land_id,
-                    "name_display": config.get('title', land_id.upper()),
-                    "bg_url": config.get('monster_img', ''), # Lấy ảnh nền từ Admin Dashboard đã setup
+                    "land_key": land_id, # Mã gốc (toan, ly, anh...) dùng để tra cứu progress_json
+                    "name_display": display_name,
+                    "bg_url": bg_image, 
                     "icon": default_icons.get(land_id, "🏰")
                 }
         except:
@@ -2419,5 +2430,8 @@ else:
                             st.markdown(html_code, unsafe_allow_html=True)
                             
                             if st.button(f"🏆 Vinh Danh {land['name_display']}", key=f"btn_vd_{land['land_key']}", use_container_width=True):
-                                # Hàm popup này thường nằm ở user_module, hãy đảm bảo bạn đã import user_module
+                                # Dòng kiểm tra (Xóa sau khi chạy được)
+                                # st.write(f"Đang tra cứu Land_ID: {land['land_key']}") 
+                                
+                                # Đảm bảo hàm này nhận vào đúng land_key (ví dụ: "toan")
                                 show_land_info_popup(land['name_display'], land['land_key'])
