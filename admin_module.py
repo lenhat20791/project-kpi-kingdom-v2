@@ -2270,19 +2270,28 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
             st.session_state.rank_settings = current_ranks
 
         # -----------------------------------------------------------
-        # 2. HIỂN THỊ BẢNG EDITOR
+        # 2. HIỂN THỊ BẢNG EDITOR (Sửa lại cú pháp chuẩn version 1.5x)
         # -----------------------------------------------------------
-        # Lưu ý: edited_ranks sẽ chứa dữ liệu mới nhất khi bạn gõ trên bảng
         edited_ranks = st.data_editor(
             st.session_state.rank_settings, 
             num_rows="dynamic", 
             use_container_width=True,
             column_config={
-                "Danh hiệu": st.column_config.TextColumn("Tên Danh Hiệu", required=True),
-                "KPI Yêu cầu": st.column_config.NumberColumn(
-                    "KPI Yêu cầu", min_value=0, step=50, format="%d 🏆"
+                "Danh hiệu": st.column_config.TextColumn(
+                    "Tên Danh Hiệu", 
+                    help="Tên danh hiệu hiển thị cho Học Sĩ",
+                    required=True
                 ),
-                "Màu sắc": st.column_config.ColorColumn("Màu sắc") # Sử dụng ColorColumn sẽ xịn hơn Selectbox
+                "KPI Yêu cầu": st.column_config.NumberColumn(
+                    "KPI Yêu cầu", 
+                    min_value=0, 
+                    step=50, 
+                    format="%d 🏆"
+                ),
+                "Màu sắc": st.column_config.ColorColumn(
+                    "Màu sắc",
+                    help="Chọn màu sắc đặc trưng cho danh hiệu"
+                )
             }
         )
         
