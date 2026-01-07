@@ -358,14 +358,22 @@ def get_fallback_icon(name):
 # GIAO DIỆN CHỢ ĐEN (DARK RPG STYLE)
 # ==============================================================================
 def hien_thi_cho_den(current_user_id, save_data_func):
-    import uuid
-    from datetime import datetime
-    import streamlit as st
     
+    # 0. LẤY KẾT NỐI (Sửa lỗi CLIENT is not defined)
+    if 'CLIENT' in st.session_state:
+        client = st.session_state.CLIENT
+    else:
+        client = globals().get('CLIENT')
+        
+    if not client:
+        st.error("⚠️ Lỗi kết nối Chợ Đen Cloud. Vui lòng F5!")
+        return
+
     # 1. Tải dữ liệu cần thiết
-    market_data = load_market()
+    from user_module import save_user_data_direct # Import hàm lưu bắn tỉa
+    market_data = load_market() # Đảm bảo hàm này bên trong dùng 'client' từ tham số hoặc session
     user_info = st.session_state.data.get(current_user_id, {})
-    shop_data = st.session_state.data.get('shop_items', {}) 
+    shop_data = st.session_state.data.get('shop_items', {})
 
     # --- CSS GIAO DIỆN CHỢ ĐEN (ĐÃ CẬP NHẬT DESC) ---
     st.markdown("""
@@ -477,23 +485,49 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                         """, unsafe_allow_html=True)
 
                     with c_action:
-                        st.write("") 
-                        st.write("")
+                        st.write(""); st.write("")
                         if info['seller_id'] == current_user_id:
                              if st.button("🗑️ GỠ BÁN", key=f"rm_{listing_id}", use_container_width=True):
-                                 # Logic gỡ bán
-                                 inv = st.session_state.data[current_user_id].setdefault('inventory', {})
-                                 if isinstance(inv, list): inv = {k: inv.count(k) for k in set(inv)} # Fix list->dict
+                                 inv = user_info.setdefault('inventory', {})
+                                 # CHUẨN HÓA DICT
+                                 if isinstance(inv, list): inv = {k: inv.count(k) for k in set(inv)}
+                                 
                                  inv[item_key] = inv.get(item_key, 0) + info.get('quantity', 1)
-                                 st.session_state.data[current_user_id]['inventory'] = inv
+                                 user_info['inventory'] = inv
+                                 
                                  del listings[listing_id]
-                                 save_market(market_data)
-                                 save_data_func(st.session_state.data)
-                                 st.rerun()
+                                 save_market(market_data) # Lưu Chợ
+                                 
+                                 if save_user_data_direct(current_user_id): # Lưu người dùng (Bắn tỉa)
+                                     st.success("Đã gỡ đồ về kho!")
+                                     st.rerun()
                         else:
-                            if st.button("💸 MUA NGAY", key=f"buy_{listing_id}", type="primary", use_container_width=True):
-                                # Logic mua hàng (Giữ nguyên)
-                                pass
+                            if st.button("💸 MUA", key=f"buy_{listing_id}", type="primary", use_container_width=True):
+                                price = info['price']
+                                qty = info.get('quantity', 1)
+                                if user_info.get('kpi', 0) >= price:
+                                    # 1. Trừ tiền người mua, cộng đồ
+                                    user_info['kpi'] -= price
+                                    inv_buy = user_info.setdefault('inventory', {})
+                                    if isinstance(inv_buy, list): inv_buy = {k: inv_buy.count(k) for k in set(inv_buy)}
+                                    inv_buy[item_key] = inv_buy.get(item_key, 0) + qty
+                                    user_info['inventory'] = inv_buy
+                                    
+                                    # 2. Cộng tiền người bán (Phí sàn 10%)
+                                    seller_id = info['seller_id']
+                                    if seller_id in st.session_state.data:
+                                        profit = int(price * 0.9)
+                                        st.session_state.data[seller_id]['kpi'] += profit
+                                        save_user_data_direct(seller_id) # Bắn tỉa cho người bán
+                                    
+                                    # 3. Xóa listing và lưu
+                                    del listings[listing_id]
+                                    save_market(market_data)
+                                    if save_user_data_direct(current_user_id): # Bắn tỉa cho người mua
+                                        st.success(f"Mua thành công {real_name}!")
+                                        st.rerun()
+                                else:
+                                    st.error("Không đủ KPI rồi!")
                     st.divider()
 
     # =========================================================================
@@ -510,15 +544,13 @@ def hien_thi_cho_den(current_user_id, save_data_func):
         if not inventory:
             st.info("Kho trống.")
         else:
+            # Hiển thị kho (Giữ nguyên logic của bạn)
             cols_kho = st.columns(4)
-            for i, (item_name, count) in enumerate(inventory.items()):
-                if count <= 0: continue
-
+            items_to_show = [(k, v) for k, v in inventory.items() if v > 0]
+            for i, (item_name, count) in enumerate(items_to_show):
                 item_info = shop_data.get(item_name, {})
                 img_url = item_info.get('image', "https://cdn-icons-png.flaticon.com/512/9630/9630454.png")
                 display_name = item_info.get('name', item_name)
-                
-                # [NEW] Lấy mô tả
                 description = item_info.get('desc') or item_info.get('description', 'Vật phẩm')
 
                 with cols_kho[i % 4]:
@@ -571,6 +603,8 @@ def hien_thi_cho_den(current_user_id, save_data_func):
                     st.rerun()
             else:
                 st.warning("Hết đồ để bán rồi đại gia ơi!")
+
+
 def generate_username(text): 
     if not isinstance(text, str):
         return "user"
