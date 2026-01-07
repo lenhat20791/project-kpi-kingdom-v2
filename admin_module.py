@@ -334,17 +334,30 @@ def load_dungeon_config():
                 "drop_rate": 0
             }
 
-    try:
-        # [SỬA LỖI] Lấy CLIENT từ session_state (thay vì gọi get_gspread_client)
-        client = st.session_state.get('CLIENT')
-        sheet_name = st.session_state.get('SHEET_NAME')
+    # 1. KHỞI TẠO BIẾN TRƯỚC (QUAN TRỌNG)
+    client = None
+    sheet_name = None
+    
+    # 2. Lấy từ Session State (Ưu tiên số 1)
+    if 'CLIENT' in st.session_state: 
+        client = st.session_state.CLIENT
+    if 'SHEET_NAME' in st.session_state: 
+        sheet_name = st.session_state.SHEET_NAME
 
-        if not client or not sheet_name_val:
-            # st.error("Chưa kết nối Google Sheet")
-            return default_config
-            
-        if not client: return default_config
-        sh = client.open(SHEET_NAME)
+    # 3. Nếu không có, thử lấy từ Globals (Ưu tiên số 2 - cho local test)
+    if not client and 'CLIENT' in globals(): 
+        client = globals()['CLIENT']
+    if not sheet_name and 'SHEET_NAME' in globals(): 
+        sheet_name = globals()['SHEET_NAME']
+
+    # 4. KIỂM TRA LẦN CUỐI
+    if not client or not sheet_name:
+        # st.error("⚠️ Chưa kết nối được Google Sheet (Thiếu CLIENT hoặc SHEET_NAME).")
+        return None # Trả về None để khóa nút Lưu, bảo vệ dữ liệu
+
+    try:
+        # 5. KẾT NỐI
+        sh = client.open(sheet_name)
         
         try:
             wks = sh.worksheet("Dungeon")
@@ -403,15 +416,24 @@ def save_dungeon_config(config):
     Lưu cấu hình phó bản lên Tab 'Dungeon' trên Google Sheet.
     Tự động tạo Tab và Cột nếu chưa có.
     """
+    # 1. KHỞI TẠO BIẾN
+    client = None
+    sheet_name = None
+    
+    # 2. LẤY BIẾN MÔI TRƯỜNG
+    if 'CLIENT' in st.session_state: client = st.session_state.CLIENT
+    if 'SHEET_NAME' in st.session_state: sheet_name = st.session_state.SHEET_NAME
+    
+    if not client and 'CLIENT' in globals(): client = globals()['CLIENT']
+    if not sheet_name and 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
+
+    # 3. KIỂM TRA AN TOÀN
+    if not client or not sheet_name:
+        st.error("❌ Mất kết nối! Không thể lưu để bảo vệ dữ liệu.")
+        return False
+
     try:
-        # [SỬA LỖI] Lấy CLIENT từ session_state
-        client = st.session_state.get('CLIENT')
-        sheet_name = st.session_state.get('SHEET_NAME')
-        
-        if not client:
-             st.error("Mất kết nối Google Sheet!")
-             return
-        sh = client.open(SHEET_NAME)
+        sh = client.open(sheet_name)
         
         # 1. Tìm hoặc Tạo tab Dungeon
         try:
