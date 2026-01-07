@@ -435,7 +435,14 @@ def show_arena_info_popup():
 @st.dialog("📜 THÔNG TIN THÁM HIỂM")
 def show_land_info_popup(land_name, land_id):
     import user_module
+    # --- ĐOẠN SIÊU ÂM DỮ LIỆU ---
+    st.write(f"🔍 Đang tìm kiếm mã: **{land_id}**")
     
+    # Lấy thử 1 mẫu dữ liệu của người chơi đầu tiên để xem cấu trúc
+    all_data = st.session_state.get('data', {})
+    first_user = next(iter(all_data.values())) if all_data else {}
+    st.write("Dữ liệu mẫu 1 người chơi trong RAM:", first_user.get('dungeon_progress'))
+    # ---------------------------
     # 1. Gọi hàm bạn vừa viết để lấy dữ liệu
     try:
         logs = user_module.get_dungeon_logs(land_id)
