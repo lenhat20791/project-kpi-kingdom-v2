@@ -4577,60 +4577,84 @@ def save_all_to_sheets(all_data):
                 return False
 
             # =========================================================
-            # --- 1. ĐỒNG BỘ TAB "Players" ---
+            # --- 1. ĐỒNG BỘ TAB "Players" (CẬP NHẬT BẢO VỆ STATS_JSON) ---
             # =========================================================
             try:
                 try: wks_players = sh.worksheet("Players")
                 except: wks_players = sh.sheet1
                 
+                # Lấy dữ liệu hiện tại trên GSheet để so sánh/hợp nhất (Merge)
+                # Điều này giúp nếu RAM thiếu stats thì vẫn giữ được stats cũ trên GSheet
+                current_sheet_data = wks_players.get_all_records()
+                sheet_players_map = {str(r['user_id']): r for r in current_sheet_data if 'user_id' in r}
+                
                 headers = ["user_id", "name", "team", "role", "password", "kpi", "exp", "level", "hp", "hp_max", "world_chat_count", "stats_json", "inventory_json", "progress_json"]
                 player_rows = [headers]
-                count_student = 0 
                 
                 system_keys = ["rank_settings", "system_config", "shop_items", "temp_loot_table", "admin_notices"]
 
                 for uid, info in all_data.items():
                     if not isinstance(info, dict) or uid in system_keys:
                         continue
-                        
-                    if str(info.get('role')) != 'admin':
-                        count_student += 1
                     
-                    # --- [QUAN TRỌNG] CẬP NHẬT DANH SÁCH KEY CẦN LƯU ---
+                    uid_str = str(uid)
+                    # Lấy dữ liệu cũ từ GSheet để dự phòng
+                    old_data_on_sheet = sheet_players_map.get(uid_str, {})
+                    
+                    # --- [BẢO VỆ STATS_JSON] ---
                     stats_keys = [
                         "Vi_Pham", "Bonus", "KTTX", "KT Sản phẩm", "KT Giữa kỳ", "KT Cuối kỳ", 
                         "Tri_Thuc", "Chien_Tich", "Vinh_Du", "Vinh_Quang", 
-                        "total_score", "titles", "best_time",
-                        "reborn_at", "last_defeat",
-                        "history_log" # <--- ĐÃ THÊM: Để lưu nhật ký giám sát vào JSON
+                        "total_score", "titles", "best_time", "reborn_at", "last_defeat", "history_log"
                     ]
                     
+                    # Giải mã stats_json cũ từ GSheet
+                    old_stats = {}
+                    if old_data_on_sheet.get('stats_json'):
+                        try: old_stats = json.loads(old_data_on_sheet['stats_json'])
+                        except: old_stats = {}
+
+                    # Hợp nhất: Ưu tiên dữ liệu mới trong RAM, nếu RAM thiếu thì dùng dữ liệu cũ từ GSheet
                     stats_data = {}
                     for k in stats_keys:
-                        if k in info:
+                        if k in info: # Nếu RAM có dữ liệu mới
                             stats_data[k] = info[k]
-                            
+                        elif k in old_stats: # Nếu RAM thiếu, lấy từ GSheet cũ
+                            stats_data[k] = old_stats[k]
+                    
+                    # --- [BẢO VỆ INVENTORY & PROGRESS] ---
+                    # Tương tự, nếu RAM thiếu Inventory/Progress thì lấy từ GSheet cũ
+                    def safe_json_load(val):
+                        if not val: return {}
+                        try: return json.loads(val) if isinstance(val, str) else val
+                        except: return {}
+
+                    new_inv = info.get('inventory')
+                    if new_inv is None: # RAM rỗng hoàn toàn
+                        new_inv = safe_json_load(old_data_on_sheet.get('inventory_json', '{}'))
+                    
+                    new_prog = info.get('dungeon_progress')
+                    if new_prog is None:
+                        new_prog = safe_json_load(old_data_on_sheet.get('progress_json', '{}'))
+
                     special_perms = info.get('special_permissions', {}) if isinstance(info.get('special_permissions'), dict) else {}
                     
-                    # --- TẠO DÒNG ---
+                    # --- TẠO DÒNG DỮ LIỆU ---
                     row = [
-                        str(uid), 
-                        info.get('name', ''), 
-                        info.get('team', 'Chưa phân tổ'), 
-                        info.get('role', 'u3'),
-                        str(info.get('password', '123456')), 
-                        
-                        safe_int(info.get('kpi', 0)),    
-                        safe_int(info.get('exp', 0)),    
-                        safe_int(info.get('level', 1)), 
-                        safe_int(info.get('hp', 100)),  
-                        safe_int(info.get('hp_max', 100)), 
-                        
-                        special_perms.get('world_chat_count', 0),
-                        
-                        json.dumps(stats_data, ensure_ascii=False), # history_log sẽ nằm trong cục này
-                        json.dumps(info.get('inventory', {}), ensure_ascii=False),
-                        json.dumps(info.get('dungeon_progress', {}), ensure_ascii=False)
+                        uid_str, 
+                        info.get('name', old_data_on_sheet.get('name', '')), 
+                        info.get('team', old_data_on_sheet.get('team', 'Chưa phân tổ')), 
+                        info.get('role', old_data_on_sheet.get('role', 'u3')),
+                        str(info.get('password', old_data_on_sheet.get('password', '123456'))), 
+                        safe_int(info.get('kpi', old_data_on_sheet.get('kpi', 0))),    
+                        safe_int(info.get('exp', old_data_on_sheet.get('exp', 0))),    
+                        safe_int(info.get('level', old_data_on_sheet.get('level', 1))), 
+                        safe_int(info.get('hp', old_data_on_sheet.get('hp', 100))),  
+                        safe_int(info.get('hp_max', old_data_on_sheet.get('hp_max', 100))), 
+                        special_perms.get('world_chat_count', old_data_on_sheet.get('world_chat_count', 0)),
+                        json.dumps(stats_data, ensure_ascii=False),
+                        json.dumps(new_inv, ensure_ascii=False),
+                        json.dumps(new_prog, ensure_ascii=False)
                     ]
                     player_rows.append(row)
 
@@ -4638,13 +4662,7 @@ def save_all_to_sheets(all_data):
                 if len(player_rows) > 1: 
                     wks_players.clear()
                     wks_players.update('A1', player_rows) 
-                    st.write(f"✅ Tab Players: Đã lưu {len(player_rows)-1} dòng (Bao gồm Admin).")
-                else:
-                    st.warning("⚠️ Danh sách rỗng.")
-                    
-            except Exception as e:
-                st.error(f"❌ Lỗi tab Players: {e}")
-                return False
+                    st.write(f"✅ Tab Players: Đã đồng bộ {len(player_rows)-1} người chơi (Đã bảo vệ stats).")
 
             # =========================================================
             # --- 2. ĐỒNG BỘ SETTINGS & BOSS (PHIÊN BẢN BẢO VỆ DỮ LIỆU) ---
