@@ -696,47 +696,52 @@ def hien_thi_sidebar_chung():
 
 def get_boss_data_ready():
     """
-    Lấy dữ liệu Boss trực tiếp từ tab Settings (Dòng 17) và đồng bộ BossLogs.
+    Lấy dữ liệu Boss bằng cách quét tìm từ khóa 'active_boss' trong cột A.
+    Không phụ thuộc vào số dòng cố định.
     """
     import json
     try:
         client = st.session_state.get('CLIENT')
         sheet_name = st.session_state.get('SHEET_NAME')
-        if not client: 
+        
+        if client is None:
             return None
         
-        # 1. Truy cập tab Settings lấy cấu hình Boss (Dòng 17 - Cột Config_Key)
+        # 1. Truy cập tab Settings
         sh_settings = client.open(sheet_name).worksheet("Settings")
-        records = sh_settings.get_all_values()
+        
+        # 2. Lấy toàn bộ dữ liệu tab Settings để quét (Nhanh và an toàn hơn find)
+        # records sẽ là một list các dòng
+        records = sh_settings.get_all_values() 
         
         boss_raw_json = None
+        # Duyệt qua từng dòng để tìm 'active_boss' ở cột A (index 0)
         for row in records:
-            # Tìm chính xác từ khóa 'active_boss' ở cột A
-            if row[0] == "active_boss":
-                boss_raw_json = row[1] # Cột B: Chứa chuỗi JSON
+            if row and row[0].strip() == "active_boss":
+                boss_raw_json = row[1] # Lấy dữ liệu ở cột B (index 1)
                 break
         
-        if not boss_raw_json: 
+        if not boss_raw_json:
             return None
             
-        # Giải mã JSON từ ô B17
-        boss = json.loads(boss_raw_json)
+        # 3. Giải mã JSON
+        boss = json.loads(boss_raw_json) #
         if boss.get("status") != "active": 
             return None
 
-        # 2. Đồng bộ sát thương thực tế từ BossLogs (Sử dụng hàm của user_module)
+        # 4. Đồng bộ máu thực tế từ BossLogs
         try:
             from user_module import get_realtime_boss_stats
             boss_name = boss.get('name', boss.get('ten', 'BOSS'))
+            # Quét tab BossLogs để lấy sát thương thực tế
             real_contributions, total_dmg_taken = get_realtime_boss_stats(boss_name)
             
             hp_max = int(boss.get("hp_max", 10000))
             if total_dmg_taken > 0:
-                # Cập nhật máu hiện tại dựa trên Log
                 boss['hp_current'] = max(0, hp_max - total_dmg_taken)
                 boss['contributions'] = real_contributions
             else:
-                # Nếu chưa có log, dùng số máu 9205 ghi trên dòng 17
+                # Nếu chưa có ai đánh, lấy hp_current ghi trong JSON
                 boss['hp_current'] = int(boss.get("hp_current", hp_max))
                 boss['contributions'] = boss.get("contributions", {})
         except:
@@ -745,8 +750,7 @@ def get_boss_data_ready():
         
         return boss
     except Exception as e:
-        # Không hiển thị lỗi ra UI để tránh làm xấu giao diện, chỉ in ra console
-        print(f"Lỗi Boss Data: {e}")
+        print(f"Lỗi tìm kiếm Boss: {e}")
         return None
 
 @st.dialog("📜 BÍ KÍP SINH TỒN TẠI KPI KINGDOM", width="large")
