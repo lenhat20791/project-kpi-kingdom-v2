@@ -3699,12 +3699,62 @@ def hien_thi_doi_mat_khau(user_id, save_data_func):
 def hien_thi_sanh_danh_vong_user(user_id, save_data_func):
     st.subheader("🏛️ SẢNH DANH VỌNG - KHẲNG ĐỊNH VỊ THẾ")
     
-    # Kiểm tra nếu Admin chưa thiết lập danh hiệu
-    if 'rank_settings' not in st.session_state:
-        st.info("Hệ thống danh hiệu đang được các trưởng lão thảo luận, vui lòng quay lại sau!")
-        return
+    # =========================================================================
+    # 🔥 BƯỚC 1: TỰ ĐỘNG TẢI CẤU HÌNH TỪ SHEET (NẾU CHƯA CÓ TRONG SESSION)
+    # =========================================================================
+    if 'rank_settings' not in st.session_state or not st.session_state.rank_settings:
+        # 1. Khởi tạo kết nối an toàn
+        client = None
+        sheet_name = None
+        if 'CLIENT' in st.session_state: client = st.session_state.CLIENT
+        if 'SHEET_NAME' in st.session_state: sheet_name = st.session_state.SHEET_NAME
+        
+        # Fallback cho local test
+        if not client and 'CLIENT' in globals(): client = globals()['CLIENT']
+        if not sheet_name and 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
+        
+        loaded_ranks = []
 
-    user_data = st.session_state.data[user_id]
+        if client and sheet_name:
+            try:
+                sh = client.open(sheet_name)
+                # Tìm tab Settings
+                try: wks = sh.worksheet("Settings")
+                except: wks = None
+                
+                if wks:
+                    # Lấy toàn bộ dữ liệu để tìm dòng 'rank_settings'
+                    all_values = wks.get_all_values()
+                    for row in all_values:
+                        if len(row) >= 2:
+                            key = str(row[0]).strip()
+                            # Tìm đúng key 'rank_settings' trong cột A
+                            if key == "rank_settings":
+                                val_str = str(row[1]).strip()
+                                if val_str:
+                                    import json
+                                    try:
+                                        # Fix lỗi JSON và parse
+                                        clean_json = val_str.replace("'", '"').replace("True", "true").replace("False", "false")
+                                        loaded_ranks = json.loads(clean_json)
+                                    except: pass
+                                break # Tìm thấy rồi thì dừng
+            except: pass
+        
+        # Nếu tải thành công thì lưu vào session, không thì dùng mặc định
+        if loaded_ranks:
+            st.session_state.rank_settings = loaded_ranks
+        else:
+            # Mặc định phòng hờ mất mạng
+            st.session_state.rank_settings = [
+                {"Danh hiệu": "Học Giả Tập Sự", "KPI Yêu cầu": 100, "Màu sắc": "#bdc3c7"},
+                {"Danh hiệu": "Đại Học Sĩ", "KPI Yêu cầu": 500, "Màu sắc": "#3498db"},
+                {"Danh hiệu": "Vương Giả Tri Thức", "KPI Yêu cầu": 1000, "Màu sắc": "#f1c40f"}
+            ]
+    # =========================================================================
+
+    # Lấy dữ liệu người dùng
+    user_data = st.session_state.data.get(user_id, {})
     user_kpi = user_data.get('kpi', 0)
     unlocked = user_data.get('unlocked_ranks', [])
     current_rank = user_data.get('current_rank', "Học Sĩ")
@@ -3713,17 +3763,23 @@ def hien_thi_sanh_danh_vong_user(user_id, save_data_func):
     st.divider()
 
     # Hiển thị danh sách danh hiệu
-    for rank in st.session_state.rank_settings:
-        r_name = rank["Danh hiệu"]
-        r_kpi = rank["KPI Yêu cầu"]
-        r_color = rank["Màu sắc"]
+    rank_list = st.session_state.get('rank_settings', [])
+    
+    if not rank_list:
+        st.warning("⚠️ Chưa có dữ liệu danh hiệu.")
+        return
+
+    for rank in rank_list:
+        r_name = rank.get("Danh hiệu", "Vô Danh")
+        r_kpi = int(rank.get("KPI Yêu cầu", 0))
+        r_color = rank.get("Màu sắc", "#bdc3c7")
         
         col1, col2 = st.columns([3, 1])
         
         with col1:
             st.markdown(f"""
                 <div style="padding:15px; border-radius:10px; border-left: 10px solid {r_color}; 
-                            background-color: #262730; margin-bottom:10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.3);">
+                            background-color: rgba(255,255,255,0.05); margin-bottom:10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.3);">
                     <h4 style="margin:0; color:{r_color};">{r_name}</h4>
                     <p style="margin:0; font-size:0.9em; color: #bdc3c7;">Yêu cầu: {r_kpi} KPI</p>
                 </div>
@@ -3736,10 +3792,8 @@ def hien_thi_sanh_danh_vong_user(user_id, save_data_func):
             elif r_name in unlocked:
                 if st.button(f"SỬ DỤNG", key=f"use_{r_name}", use_container_width=True):
                     st.session_state.data[user_id]['current_rank'] = r_name
-                    
-                    # [FIX] Gọi hàm lưu đúng chuẩn (truyền data vào)
+                    # Lưu dữ liệu
                     save_data_func(st.session_state.data)
-                    
                     st.rerun()
             elif user_kpi >= r_kpi:
                 if st.button(f"KÍCH HOẠT", key=f"active_{r_name}", use_container_width=True, type="primary"):
@@ -3747,16 +3801,18 @@ def hien_thi_sanh_danh_vong_user(user_id, save_data_func):
                         st.session_state.data[user_id]['unlocked_ranks'] = []
                     
                     st.session_state.data[user_id]['unlocked_ranks'].append(r_name)
-                    st.session_state.data[user_id]['current_rank'] = r_name
+                    st.session_state.data[user_id]['current_rank'] = r_name # Tự động đeo luôn
                     
-                    # [FIX] Gọi hàm lưu đúng chuẩn (truyền data vào)
+                    # Lưu dữ liệu
                     save_data_func(st.session_state.data)
                     
                     st.balloons()
                     st.success(f"Chúc mừng! Bạn đã đạt danh hiệu {r_name}")
+                    import time
+                    time.sleep(1)
                     st.rerun()
             else:
-                st.info(f"🔒 Cần thêm {r_kpi - user_kpi} KPI")                
+                st.info(f"🔒 Thiếu {r_kpi - user_kpi} KPI")               
 
 import streamlit as st
 import time
