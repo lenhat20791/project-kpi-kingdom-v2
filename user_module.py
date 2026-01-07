@@ -2044,7 +2044,7 @@ def xu_ly_boss_chet(user_id, all_data, save_data_func):
     st.rerun()    
 
 def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
-
+    import time
 
     # --- 1. KHỞI TẠO TRẠNG THÁI (FIX LỖI TEST TRÊN 1 MÁY) ---
     # Điều kiện reset: 
