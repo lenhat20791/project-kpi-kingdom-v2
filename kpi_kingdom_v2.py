@@ -1986,11 +1986,14 @@ elif st.session_state.user_role in ["u1", "u2", "u3"]:
         
     # chợ đen
     elif st.session_state.page == "⚖️ Chợ Đen":
+        import user_module # <--- Nên thêm import ở đây cho chắc ăn nếu bên trên chưa có
         user_module.hien_thi_cho_den(st.session_state.user_id, save_data)
 
     # 5. MẶC ĐỊNH: Trang chủ học sĩ
     else:
-        hien_thi_giao_dien_hoc_si(st.session_state.user_id, save_data)
+        import user_module
+        # 👇 PHẢI CÓ 'user_module.' Ở ĐẰNG TRƯỚC
+        user_module.hien_thi_giao_dien_hoc_si(st.session_state.user_id, save_data)
 
 
 # ===== GUEST (KHÁCH - CHƯA ĐĂNG NHẬP) =====
