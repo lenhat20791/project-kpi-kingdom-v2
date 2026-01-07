@@ -1854,20 +1854,20 @@ if current_role == "admin":
     
     elif current_page == "🛡️ Quản lý Phó bản":
         # Truyền hàm save_all_to_sheets vào thay vì save_shop_data
-        admin_module.hien_thi_admin_control_dungeon(save_all_to_sheets)
+        admin_module.hien_thi_admin_control_dungeon(user_module.save_all_to_sheets)
     
     elif current_page == "📢 Thông báo Server":
         admin_module.giao_dien_thong_bao_admin()
     
     elif current_page == "🏪 Quản lý Tiệm tạp hóa":
         # 🔥 [SỬA LỖI] Truyền đúng 3 tham số: CLIENT, SHEET_NAME, SAVE_FUNC
-        admin_module.hien_thi_giao_dien_admin(CLIENT, SHEET_NAME, save_all_to_sheets)
+        admin_module.hien_thi_giao_dien_admin(CLIENT, SHEET_NAME, user_module.save_all_to_sheets)
     
     elif current_page == "🏟️ Quản lý lôi đài":
-        admin_module.quan_ly_loi_dai_admin(CLIENT, SHEET_NAME, save_all_to_sheets)
+        admin_module.quan_ly_loi_dai_admin(CLIENT, SHEET_NAME, user_module.save_all_to_sheets)
     else:
         # 🔥 [SỬA LỖI] Trang mặc định cũng phải truyền đúng 3 tham số
-        admin_module.hien_thi_giao_dien_admin(CLIENT, SHEET_NAME, save_all_to_sheets)
+        admin_module.hien_thi_giao_dien_admin(CLIENT, SHEET_NAME, user_module.save_all_to_sheets)
 
 # ===== PHẦN HIỂN THỊ CỦA USER (ĐÃ FIX LỖI GIAO DIỆN TRỐNG) =====
 elif st.session_state.user_role in ["u1", "u2", "u3"]:
