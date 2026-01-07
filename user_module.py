@@ -3272,7 +3272,7 @@ def load_user_inventory(user_id):
         print(f"Lỗi load inventory: {e}")
         
     return {}
-# --- Thêm vào file user_module.py ---
+
 
 def load_shop_items_from_sheet():
     """
@@ -3327,6 +3327,85 @@ def load_shop_items_from_sheet():
         print(f"Lỗi tải Shop: {e}")
         return {}
 
+# --- hàm lưu bắn tỉa vào ggsheet ---
+def save_user_data_direct(user_id):
+    """
+    Hàm lưu dữ liệu CHUYÊN BIỆT: Chỉ lưu KPI, EXP, và Kho đồ của 1 user cụ thể.
+    Giúp tránh lỗi khi lưu cả file lớn và đảm bảo chính xác từng cột.
+    """
+    import json
+    
+    # 1. Lấy dữ liệu mới nhất từ Session State
+    if user_id not in st.session_state.data:
+        print(f"Không tìm thấy data của {user_id} để lưu.")
+        return False
+
+    user_data = st.session_state.data[user_id]
+    
+    # 2. Kết nối Google Sheet
+    client = None
+    sheet_name = None
+    if 'CLIENT' in st.session_state: client = st.session_state.CLIENT
+    if 'SHEET_NAME' in st.session_state: sheet_name = st.session_state.SHEET_NAME
+    
+    if not client and 'CLIENT' in globals(): client = globals()['CLIENT']
+    if not sheet_name and 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
+
+    if not client or not sheet_name: 
+        print("Mất kết nối GSheet.")
+        return False
+
+    try:
+        sh = client.open(sheet_name)
+        wks = sh.worksheet("Players")
+        
+        # 3. Tìm dòng của User (Cột A)
+        try:
+            cell = wks.find(user_id, in_column=1)
+        except:
+            print(f"Không tìm thấy user {user_id} trên Sheet.")
+            return False
+            
+        if cell:
+            row_idx = cell.row
+            
+            # 4. Chuẩn bị dữ liệu để update
+            # - inventory: Phải dump sang JSON string
+            current_inv = user_data.get('inventory', {})
+            # Fix lỗi nếu inventory đang là list -> dict
+            if isinstance(current_inv, list):
+                temp_dict = {}
+                for x in current_inv: temp_dict[x] = temp_dict.get(x, 0) + 1
+                current_inv = temp_dict
+                
+            inv_json_str = json.dumps(current_inv, ensure_ascii=False)
+            
+            # - kpi, exp...
+            kpi_val = user_data.get('kpi', 0)
+            exp_val = user_data.get('exp', 0)
+            
+            # 5. Cập nhật vào đúng cột (Dựa vào ảnh của bạn)
+            # Cột E (5) = kpi
+            # Cột G (7) = exp
+            # Cột M (13) = inventory_json
+            
+            # Để chắc chắn, ta update theo batch (1 lần gọi) cho nhanh và đỡ lỗi
+            updates = [
+                {'range': f'E{row_idx}', 'values': [[kpi_val]]},
+                {'range': f'G{row_idx}', 'values': [[exp_val]]},
+                {'range': f'M{row_idx}', 'values': [[inv_json_str]]}
+            ]
+            wks.batch_update(updates)
+            
+            print(f"✅ Đã lưu thành công cho {user_id}!")
+            return True
+            
+    except Exception as e:
+        print(f"❌ Lỗi LƯU DATA: {e}")
+        return False
+        
+    return False
+
 # --- HÀM CALLBACK (Đặt trong user_module.py) ---
 def callback_mo_ruong(user_id, inv_key, item_info, save_data_func):
     """
@@ -3367,17 +3446,18 @@ def callback_mo_ruong(user_id, inv_key, item_info, save_data_func):
                     curr_inv = user_data.setdefault('inventory', {})
                     curr_inv[r_id] = curr_inv.get(r_id, 0) + r_amt
 
-            # LƯU DỮ LIỆU
-            save_data_func(st.session_state.data)
+            from user_module import save_user_data_direct # (Nếu cần import)
+    
+            success = save_user_data_direct(user_id)
             
-            # SET CỜ SKIP RELOAD (Quan trọng!)
-            st.session_state['skip_reload'] = True
-            
-            # LƯU KẾT QUẢ ĐỂ HIỆN POPUP
-            st.session_state.gacha_result = {"name": item_info.get('name', inv_key), "rewards": rewards}
-            
-    except Exception as e:
-        st.error(f"Lỗi Callback: {e}")
+            if success:
+                # Nếu lưu thành công lên Sheet -> Bật cờ skip reload
+                st.session_state['skip_reload'] = True
+                
+                # Lưu kết quả hiển thị popup
+                st.session_state.gacha_result = {"name": item_info.get('name', inv_key), "rewards": rewards}
+            else:
+                st.error("Lỗi: Không thể lưu dữ liệu lên Google Sheet!")
 
 def hien_thi_tiem_va_kho(user_id, save_data_func):
     st.subheader("🏪 TIỆM TẠP HÓA & 🎒 TÚI ĐỒ")
@@ -4460,6 +4540,7 @@ def save_all_to_sheets(all_data):
         except Exception as e:
             st.error(f"❌ LỖI KẾT NỐI: {e}")
             return False
+
 def load_data_from_sheets():
     """
     Truy xuất toàn bộ dữ liệu vương quốc từ Cloud:
