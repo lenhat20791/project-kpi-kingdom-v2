@@ -4320,13 +4320,11 @@ def get_dungeon_logs(land_id):
     import streamlit as st
     import json
     
-    # 1. Lấy dữ liệu an toàn
     raw_data = st.session_state.get('data', {})
     filtered_logs = []
     target_key = str(land_id).strip().lower()
 
-    # 2. CHUYỂN ĐỔI LINH HOẠT: Biến mọi thứ thành một danh sách để lặp
-    # Nếu là Dict, ta lấy values. Nếu là List, ta dùng chính nó.
+    # Chuyển đổi linh hoạt List/Dict
     if isinstance(raw_data, dict):
         users_list = raw_data.values()
     elif isinstance(raw_data, list):
@@ -4334,50 +4332,53 @@ def get_dungeon_logs(land_id):
     else:
         return []
 
-    # 3. VÒNG LẶP XỬ LÝ
     for info in users_list:
         if not isinstance(info, dict): continue
         
-        # Bỏ qua admin và các hàng cấu hình
-        role = str(info.get('role', '')).lower()
+        # Bỏ qua Admin/Hàng cấu hình
         u_id = str(info.get('user_id', info.get('name', '')))
-        if role == 'admin' or u_id in ['rank_settings', 'system_config', 'shop_items']:
+        if info.get('role') == 'admin' or u_id in ['rank_settings', 'system_config', 'shop_items']:
             continue
 
-        # 4. LẤY VÀ GIẢI MÃ TIẾN ĐỘ (progress_json)
+        # 1. LẤY PHASE (Từ progress_json)
         prog = info.get('dungeon_progress', info.get('progress_json', {}))
-        
-        # Nếu đang là chuỗi JSON, giải mã tại chỗ luôn
         if isinstance(prog, str) and prog.strip():
-            try:
-                prog = json.loads(prog.replace("'", '"'))
-            except:
-                prog = {}
+            try: prog = json.loads(prog.replace("'", '"'))
+            except: prog = {}
         
-        if not isinstance(prog, dict): continue
+        # Tìm Phase của môn học
+        current_phase = 0
+        if isinstance(prog, dict):
+            for k, v in prog.items():
+                if str(k).strip().lower() == target_key:
+                    current_phase = v
+                    break
 
-        # 5. TÌM KIẾM KEY (Không phân biệt hoa thường)
-        phase_val = 0
-        for k, v in prog.items():
-            if str(k).strip().lower() == target_key:
-                phase_val = v
-                break
+        # 2. LẤY THỜI GIAN (Từ stats_json -> best_time)
+        stats_raw = info.get('stats_data', info.get('stats_json', {}))
+        if isinstance(stats_raw, str) and stats_raw.strip():
+            try: stats_raw = json.loads(stats_raw.replace("'", '"'))
+            except: stats_raw = {}
+        
+        best_time_val = 0.0
+        if isinstance(stats_raw, dict):
+            # Truy cập sâu vào best_time
+            best_time_dict = stats_raw.get('best_time', {})
+            for k, v in best_time_dict.items():
+                if str(k).strip().lower() == target_key:
+                    best_time_val = float(v)
+                    break
 
-        # 6. ĐƯA VÀO DANH SÁCH NẾU CÓ KẾT QUẢ
-        try:
-            p_num = int(phase_val)
-            if p_num > 0:
-                filtered_logs.append({
-                    "name": info.get('name', 'Học sĩ ẩn danh'),
-                    "phase": p_num,
-                    "time": 0,
-                    "reward_recent": info.get('team', 'Thám hiểm gia')
-                })
-        except:
-            continue
+        # 3. ĐƯA VÀO DANH SÁCH (Nếu đã vượt ít nhất 1 Phase)
+        if current_phase > 0:
+            filtered_logs.append({
+                "name": info.get('name', 'Học sĩ ẩn danh'),
+                "phase": current_phase,
+                "time": best_time_val,
+                "reward_recent": info.get('team', 'Thám hiểm gia')
+            })
                 
     return filtered_logs
-
 
 def get_arena_logs():
     """
