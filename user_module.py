@@ -299,72 +299,84 @@ def ghi_log_boss(user_id, boss_name, damage, rewards=None):
 @st.cache_data(ttl=60, show_spinner=False)
 def load_market():
     """
-    Tải dữ liệu Chợ Đen từ Tab 'Market' trên Google Sheets.
+    Tải dữ liệu Chợ Đen từ tab Market dựa trên cấu trúc 4 cột.
     """
-    default_data = {"listings": {}}
+    client = st.session_state.get('CLIENT')
+    sheet_name = st.session_state.get('SHEET_NAME')
     
-    try:
-        # 1. Kết nối Google Sheets
-        try:
-            sh = CLIENT.open(SHEET_NAME).worksheet("Market")
-        except:
-            # Nếu chưa có tab Market, tạo mới
-            sh = CLIENT.open(SHEET_NAME).add_worksheet(title="Market", rows=100, cols=10)
-            sh.append_row(["Listing_ID", "Full_JSON_Data", "Status", "Created_At"])
-            return default_data
-
-        # 2. Lấy dữ liệu
-        rows = sh.get_all_values()
-        if len(rows) <= 1:
-            return default_data
-
-        listings = {}
-        # Cấu trúc: [0] ID | [1] JSON | [2] Status | [3] Date
-        for r in rows[1:]:
-            try:
-                if len(r) < 2: continue
-                lid = r[0]
-                # Giải nén JSON
-                l_info = json.loads(r[1])
-                listings[lid] = l_info
-            except Exception as e:
-                print(f"Lỗi đọc dòng Market ({lid}): {e}")
-                continue
+    if not client or not sheet_name:
+        if 'CLIENT' in globals(): client = globals()['CLIENT']
+        if 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
         
-        return {"listings": listings}
+    if not client or not sheet_name: return {"listings": {}}
 
+    try:
+        sh = client.open(sheet_name).worksheet("Market")
+        # Đọc toàn bộ các hàng dưới dạng danh sách từ điển
+        records = sh.get_all_records()
+        
+        market_dict = {"listings": {}}
+        for r in records:
+            # Lấy ID từ cột Listing_ID
+            lid = str(r.get('Listing_ID'))
+            if not lid: continue
+            
+            try:
+                # Giải mã dữ liệu chi tiết từ cột Full_JSON_Data
+                info = json.loads(r.get('Full_JSON_Data', '{}'))
+                market_dict['listings'][lid] = info
+            except:
+                continue
+                
+        return market_dict
     except Exception as e:
-        st.error(f"⚠️ Lỗi kết nối Chợ Đen Cloud: {e}")
-        return default_data
-
+        # Nếu chưa có tab Market hoặc lỗi mạng, trả về dữ liệu trống
+        return {"listings": {}}
+        
 def save_market(market_data):
     """
-    Lưu dữ liệu Chợ Đen lên Tab 'Market' & Xóa Cache.
+    Lưu dữ liệu Chợ Đen lên Google Sheets khớp với cấu trúc 4 cột:
+    A: Listing_ID, B: Full_JSON_Data, C: Status, D: Created_At
     """
+    # Lấy kết nối an toàn từ Session
+    client = st.session_state.get('CLIENT')
+    sheet_name = st.session_state.get('SHEET_NAME')
+    
+    if not client or not sheet_name:
+        if 'CLIENT' in globals(): client = globals()['CLIENT']
+        if 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
+
+    if not client or not sheet_name:
+        st.error("❌ Lỗi kết nối: Không thể xác định thông tin Sheet để lưu Chợ.")
+        return False
+
     try:
-        sh = CLIENT.open(SHEET_NAME).worksheet("Market")
+        sh = client.open(sheet_name).worksheet("Market")
         
-        # Chuẩn bị dữ liệu
+        # 1. Chuẩn bị Header khớp chính xác với ảnh bạn gửi
         rows_to_write = [["Listing_ID", "Full_JSON_Data", "Status", "Created_At"]]
+        
         listings = market_data.get('listings', {})
         
+        # 2. Đưa dữ liệu vào danh sách hàng
         for lid, info in listings.items():
+            # Gom toàn bộ thông tin vật phẩm vào JSON ở cột B
             json_str = json.dumps(info, ensure_ascii=False)
-            status = "active"
-            created = info.get('created_at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            # Trạng thái (active/sold) ở cột C
+            status = info.get('status', 'active')
+            # Thời gian tạo ở cột D
+            created = info.get('created_at', datetime.now().strftime("%Y-%m-%d %H:%M"))
             
             rows_to_write.append([str(lid), json_str, status, created])
             
-        # Ghi đè & Xóa Cache
+        # 3. Thực hiện ghi đè toàn bộ tab để đồng bộ
         sh.clear()
-        sh.update('A1', rows_to_write)
-        
-        # Xóa cache để lần load sau thấy dữ liệu mới
-        load_market.clear()
+        sh.update(values=rows_to_write, range_name='A1') 
+        return True
         
     except Exception as e:
-        st.error(f"❌ Không thể lưu Chợ Đen lên Cloud: {e}")
-
+        st.error(f"❌ Lỗi đồng bộ Chợ Đen lên Cloud: {e}")
+        return False
 # --- [QUAN TRỌNG] HÀM MAPPING ẢNH ĐÃ SỬA ---
 def get_item_image_map():
     """
