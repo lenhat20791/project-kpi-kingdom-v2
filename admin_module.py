@@ -2146,7 +2146,7 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
             st.balloons()
 
     elif page == "🏟️ Quản lý lôi đài":
-        quan_ly_loi_dai_admin(save_data_func) # Gọi hàm để hiển thị giao diện quản lý
+        quan_ly_loi_dai_admin(client, sheet_name, save_func) # Gọi hàm để hiển thị giao diện quản lý
 
 
     elif page == "⚠️ Xóa dữ liệu":
@@ -2362,10 +2362,15 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
                     st.error(f"Lỗi khi khôi phục: {e}")
     
  
-def quan_ly_loi_dai_admin(save_data_func):
+def quan_ly_loi_dai_admin(client, sheet_name, save_func):
+    # --- 🔥 THÊM IMPORT VÀO ĐÂY ĐỂ TRÁNH LỖI NAME ERROR ---
+    # Chỉ import khi cần dùng, tránh làm sập App ở các trang khác
+    from user_module import load_loi_dai, save_loi_dai
+    # ------------------------------------------------------
+
     st.write("### 🏟️ ĐIỀU HÀNH LÔI ĐÀI")
     
-    # 1. Nhập các hàm xử lý file
+    # 1. Nhập dữ liệu trận đấu
     ld_data = load_loi_dai()
     
     # 2. LỌC TRẬN ĐẤU: Đổi 'ongoing' thành 'active' cho đồng bộ
@@ -2384,6 +2389,7 @@ def quan_ly_loi_dai_admin(save_data_func):
             challenger_id = m.get('challenger')
             opponent_id = m.get('opponent')
             
+            # Lấy tên an toàn (tránh lỗi nếu user bị xóa)
             challenger_name = st.session_state.data.get(challenger_id, {}).get('name', 'Ẩn danh')
             opponent_name = st.session_state.data.get(opponent_id, {}).get('name', 'Ẩn danh')
             
@@ -2408,15 +2414,33 @@ def quan_ly_loi_dai_admin(save_data_func):
                         if opponent_id in st.session_state.data:
                             st.session_state.data[opponent_id]['kpi'] += m.get('bet', 0)
                         
-                        # FIX LỖI: Truyền data vào hàm lưu
+                        # FIX LỖI: Truyền data vào hàm lưu (Dùng save_func được truyền vào)
                         save_func(st.session_state.data) 
                     
                     # Xóa trận đấu khỏi file lôi đài
                     if mid in ld_data['matches']:
                         del ld_data['matches'][mid]
+                        
+                        # Lưu file JSON Lôi đài (Dùng hàm vừa import ở trên)
                         save_loi_dai(ld_data)
+                        
+                        # --- [NÂNG CẤP] ĐỒNG BỘ XÓA TRÊN GOOGLE SHEET LUÔN ---
+                        # Nếu không xóa trên Sheet, lần sau tải lại nó sẽ hiện lại
+                        try:
+                            sh = client.open(sheet_name)
+                            try: wks = sh.worksheet("PVP")
+                            except: wks = None
+                            
+                            if wks:
+                                # Tìm dòng chứa Match_ID để xóa (Logic nâng cao, nếu khó quá có thể bỏ qua)
+                                cell = wks.find(mid)
+                                if cell: wks.delete_rows(cell.row)
+                        except:
+                            pass # Lỗi kết nối thì bỏ qua, ưu tiên JSON local
                     
                     st.toast(f"Đã hủy và giải phóng trận đấu {mid}")
+                    import time
+                    time.sleep(1)
                     st.rerun()
                     
 def hien_thi_quan_ly_shop_xoa(save_shop_func):
