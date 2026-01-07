@@ -54,6 +54,28 @@ def get_gspread_client():
 # 🔥 [QUAN TRỌNG] Khởi tạo biến CLIENT toàn cục tại đây
 # Để các hàm bên dưới (load_loi_dai, save_loi_dai) có thể gọi CLIENT.open(...)
 CLIENT = get_gspread_client()
+# --- HÀM ĐỌC DỮ LIỆU ĐA NĂNG CÓ CACHE ---
+@st.cache_data(ttl=60) # 🔄 Lưu dữ liệu 60 giây để tránh lỗi 429
+def fetch_data_from_tab(tab_name):
+    """
+    Hàm này dùng để đọc dữ liệu từ bất kỳ tab nào bạn có: 
+    Players, BossLogs, admin_notices, PVP, Shop, Settings, Market, Logs, Dungeon.
+    """
+    if CLIENT:
+        try:
+            # Mở đúng tab dựa trên tên bạn truyền vào
+            sheet = CLIENT.open(SHEET_NAME).worksheet(tab_name)
+            data = sheet.get_all_records()
+            return data
+        except Exception as e:
+            st.error(f"⚠️ Lỗi khi tải dữ liệu từ tab '{tab_name}': {e}")
+            return []
+    return []
+
+# --- CẬP NHẬT LOGIC LOAD DỮ LIỆU ĐẦU TRANG ---
+# Thay vì gọi trực tiếp CLIENT.open, hãy dùng hàm fetch ở trên
+if "data" not in st.session_state:
+    st.session_state.data = fetch_all_data_from_sheets()
 
 def ghi_log_he_thong(user_id, action, detail, note=""):
     """
