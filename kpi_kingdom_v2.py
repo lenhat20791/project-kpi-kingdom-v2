@@ -696,51 +696,46 @@ def hien_thi_sidebar_chung():
 
 def get_boss_data_ready():
     import json
-    # 1. Lấy dữ liệu từ tab Settings thông qua hàm fetch_data_from_tab đã có cache
-    #
-    settings_list = fetch_data_from_tab("Settings") 
+    # 1. Lấy dữ liệu từ tab Settings (Đã có cache từ fetch_data_from_tab)
+    settings_list = fetch_data_from_tab("Settings")
+    if not settings_list: return None
     
-    if not settings_list:
-        return None
-        
-    # 2. Tìm dòng có Config_Key là 'active_boss'
     boss_raw_json = None
     for row in settings_list:
-        # Trong get_all_records(), tên cột (dòng 1 trên Sheet) sẽ là key của Dict
-        # Dựa theo ảnh GSheet bạn gửi, cột A là 'Config_Key' và cột B là 'Value'
         if str(row.get('Config_Key', '')).strip() == 'active_boss':
-            boss_raw_json = row.get('Value') 
+            boss_raw_json = row.get('Value')
             break
             
-    if not boss_raw_json:
-        return None
+    if not boss_raw_json: return None
 
     try:
-        # 3. Giải mã JSON
         boss = json.loads(boss_raw_json)
-        if boss.get("status") != "active":
-            return None
+        # Ép kiểu và kiểm tra status
+        if str(boss.get("status")).lower() != "active": return None
 
-        # 4. Đồng bộ máu thực tế từ BossLogs (Sử dụng hàm của user_module)
-        #
+        # 2. Lấy tên Boss chuẩn để đối soát Log
+        # Ưu tiên lấy 'ten' hoặc 'name'
+        boss_name_clean = str(boss.get('ten', boss.get('name', 'BOSS'))).strip()
+
+        # 3. Gọi hàm tính sát thương từ user_module
         from user_module import get_realtime_boss_stats
-        boss_name = boss.get('name', boss.get('ten', 'BOSS'))
-        real_contributions, total_dmg_taken = get_realtime_boss_stats(boss_name)
+        real_contributions, total_dmg_taken = get_realtime_boss_stats(boss_name_clean)
         
         hp_max = int(boss.get("hp_max", 10000))
+        
+        # Cập nhật máu: Nếu có log thì tính theo log, không thì dùng số máu trên Sheet
         if total_dmg_taken > 0:
             boss['hp_current'] = max(0, hp_max - total_dmg_taken)
             boss['contributions'] = real_contributions
         else:
-            # Nếu chưa ai đánh, lấy hp_current ghi trong ô B16/17 (9205)
+            # Lấy máu hiện tại từ ô B17 (Dữ liệu: 9205)
             boss['hp_current'] = int(boss.get("hp_current", hp_max))
-            boss['contributions'] = boss.get("contributions", {})
+            boss['contributions'] = {}
             
         return boss
     except Exception as e:
-        print(f"Lỗi xử lý Boss Data: {e}")
+        st.error(f"Lỗi phân tích Boss: {e}")
         return None
-
 @st.dialog("📜 BÍ KÍP SINH TỒN TẠI KPI KINGDOM", width="large")
 def show_tutorial():
     # Nội dung hướng dẫn chia làm 4 Tab
