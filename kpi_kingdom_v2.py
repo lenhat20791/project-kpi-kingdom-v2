@@ -143,7 +143,7 @@ st.session_state.items = st.session_state.get('shop_data', [])
 st.session_state.players = st.session_state.data
 # 2. --- [QUAN TRỌNG] IMPORT MODULE CỦA BẠN TRƯỚC ---
 # Phải import thì Python mới biết admin_module là gì
-#import admin_module
+import admin_module
 #import user_module
 import item_system 
 
