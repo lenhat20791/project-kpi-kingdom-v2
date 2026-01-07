@@ -210,25 +210,29 @@ def giao_dien_thong_bao_admin():
             
 def hien_thi_thong_bao_he_thong(fetch_func):
     """
-    Hàm hiển thị thông báo. Đọc riêng biệt từ tab admin_notices.
-    Tối ưu cache để không bị lỗi 429 và Attribute Error.
+    Hàm hiển thị thông báo. Đã sửa lỗi chồng lấn Popup.
     """
     import streamlit as st
 
-    # 1. TẢI DỮ LIỆU TỪ ĐÚNG TAB (Sử dụng hàm đa năng có cache)
+    # 1. TẢI DỮ LIỆU TỪ CACHE
     if "notices_cache" not in st.session_state:
-        # fetch_data_from_tab("admin_notices") trả về một List
         st.session_state.notices_cache = fetch_func("admin_notices")
     
     notices = st.session_state.notices_cache
-    
     if not notices:
         return
 
-    # Biến cờ để kiểm soát việc mở Popup (Streamlit chỉ cho mở 1 cái 1 lúc)
-    popup_shown = False
+    # --- ĐỊNH NGHĨA DIALOG Ở NGOÀI VÒNG LẶP ---
+    # Việc này giúp tránh lỗi định nghĩa lại hàm (Redefinition)
+    @st.dialog("📢 THÔNG BÁO TỪ BAN QUẢN TRỊ")
+    def show_notice_popup_ui(content, time_sent, key_id):
+        st.warning(f"🕒 *Gửi lúc: {time_sent}*")
+        st.markdown(f"### {content}")
+        if st.button("Đã hiểu và Đóng", key=f"btn_cls_{key_id}", use_container_width=True):
+            st.session_state[f"seen_popup_{key_id}"] = True
+            st.rerun()
 
-    # 2. DUYỆT QUA DANH SÁCH (notices là List của các Dictionary)
+    # 2. DUYỆT QUA DANH SÁCH
     for n in notices:
         n_type = n.get('type', '').lower()
         n_id = n.get('id', 'unknown')
@@ -237,26 +241,18 @@ def hien_thi_thong_bao_he_thong(fetch_func):
 
         # --- A. XỬ LÝ POPUP KHẨN CẤP ---
         if n_type == 'popup':
-            if popup_shown:
-                continue
-
             popup_key = f"seen_popup_{n_id}"
             
+            # Nếu người dùng CHƯA XEM thông báo này
             if not st.session_state.get(popup_key, False):
-                # Khai báo Dialog bên trong để tránh lỗi Dialog chồng chéo
-                @st.dialog("📢 THÔNG BÁO TỪ BAN QUẢN TRỊ")
-                def show_notice_popup(content, time_sent, key_id):
-                    st.warning(f"🕒 *Gửi lúc: {time_sent}*")
-                    st.markdown(f"### {content}")
-                    if st.button("Đã hiểu và Đóng", key=f"btn_cls_{key_id}"):
-                        st.session_state[popup_key] = True
-                        st.rerun()
-                
-                show_notice_popup(n_content, n_time, n_id)
-                popup_shown = True 
+                show_notice_popup_ui(n_content, n_time, n_id)
+                # QUAN TRỌNG: Sau khi gọi Dialog, dùng break để dừng vòng lặp
+                # Không cho phép quét thêm bất kỳ thông báo Popup nào khác trong lượt này
+                break 
 
         # --- B. XỬ LÝ CHẠY CHỮ (MARQUEE) ---
         elif n_type == 'marquee':
+            # Marquee có thể hiện nhiều cái cùng lúc nên không cần break
             st.markdown(f"""
                 <div style="
                     background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
@@ -267,8 +263,7 @@ def hien_thi_thong_bao_he_thong(fetch_func):
                         🔔 [THÔNG BÁO - {n_time}]: {n_content} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
                     </marquee>
                 </div>
-            """, unsafe_allow_html=True)
-            
+            """, unsafe_allow_html=True)            
 def get_reward_options_list():
     """
     Hàm lấy danh sách vật phẩm để nạp vào Drop Table của Boss/Phó bản.
