@@ -161,12 +161,12 @@ except Exception as e:
 
 # Gom nhóm Import Module
 #import user_module
-from user_module import (
-    hien_thi_giao_dien_hoc_si, 
-    hien_thi_san_dau_boss, 
-    save_data, 
-    load_data 
-)
+#from user_module import (
+#    hien_thi_giao_dien_hoc_si, 
+#    hien_thi_san_dau_boss, 
+#    save_data, 
+#    load_data 
+# )
 import streamlit as st
 import traceback
 
