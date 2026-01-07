@@ -74,6 +74,40 @@ def fetch_data_from_tab(tab_name):
             return []
     return []
 
+def get_dungeon_lands():
+    """Lấy danh sách vùng đất phó bản từ tab Dungeon trên Google Sheets"""
+    import json
+    # Gọi trực tiếp hàm fetch_data_from_tab nằm cùng file này
+    rows = fetch_data_from_tab("Dungeon")
+    if not rows:
+        return []
+
+    lands_dict = {}
+    # Các icon biểu tượng cho môn học
+    default_icons = {
+        "toan": "📐", "anh": "🇬🇧", "van": "📖", 
+        "ly": "⚡", "hoa": "🧪", "sinh": "🌿"
+    }
+
+    for row in rows:
+        try:
+            land_id = row.get('Land_ID')
+            # 1 vùng đất có 4 hàng (phase), ta chỉ lấy 1 lần duy nhất để tạo Card
+            if land_id and land_id not in lands_dict:
+                # Giải mã chuỗi JSON từ cột Config_JSON
+                config = json.loads(row.get('Config_JSON', '{}'))
+                
+                lands_dict[land_id] = {
+                    "land_key": land_id,
+                    "name_display": config.get('title', land_id.upper()),
+                    "bg_url": config.get('monster_img', ''), # Lấy ảnh nền từ Admin Dashboard đã setup
+                    "icon": default_icons.get(land_id, "🏰")
+                }
+        except:
+            continue
+            
+    return list(lands_dict.values())
+
 # --- CẬP NHẬT LOGIC LOAD DỮ LIỆU ĐẦU TRANG (PHIÊN BẢN ĐA TAB) ---
 
 # 1. Load dữ liệu người chơi từ tab "Players"
@@ -2359,52 +2393,34 @@ else:
             st.info("✨ Hiện tại chưa có Boss xuất hiện. Hãy nghĩ ngơi nhé!")
             
         # --- 4. SẢNH CHỌN VÙNG ĐẤT PHÓ BẢN ---
-        import streamlit.components.v1 as components
-
-        # Danh sách dữ liệu 6 vùng đất (Bạn có thể thay đổi link ảnh nền tương ứng)
-        vung_dat_data = [
-            {"name": "Thung Lũng Số Học", "icon": "📐", "bg_url": "https://i.ibb.co/Nd0b47RD/khuvuontoanhoc.png"},
-            {"name": "Thung Lũng Alphabet", "icon": "🇬🇧", "bg_url": "https://i.ibb.co/99ppBGf3/hangdongngonngu.png"},
-            {"name": "Cánh Đồng Giấy Trắng", "icon": "📖", "bg_url": "https://i.ibb.co/k6kTjVmv/thunglungvanchuong.png"},
-            {"name": "Trạm Không Gian Newton", "icon": "⚡", "bg_url": "https://i.ibb.co/CsVxQ9R1/ngonnuivatly.png"},
-            {"name": "Hầm Ngục Thủy Tinh", "icon": "🧪", "bg_url": "https://i.ibb.co/rX37KRR/honuochoahoc.png"},
-            {"name": "Đại Dương Tế Bào Chất", "icon": "🌿", "bg_url": "https://i.ibb.co/nZmMd2B/vuonsinhhoc.png"}
-        ]
-
-        # --- ĐOẠN CODE HIỂN THỊ PHÓ BẢN HOÀN CHỈNH ---
         st.markdown("## 🗺️ Vinh Danh Sĩ Tử Vượt Phó Bản")
-        
-        # Định nghĩa dữ liệu hiển thị cố định để ánh xạ chính xác vào land_id trong data.json
-        display_data = [
-            ("Thung Lũng Số Học", "toan", vung_dat_data[0]['bg_url'], vung_dat_data[0]['icon']),
-            ("Thung Lũng Alphabet", "anh", vung_dat_data[1]['bg_url'], vung_dat_data[1]['icon']),
-            ("Cánh Đồng Giấy Trắng", "van", vung_dat_data[2]['bg_url'], vung_dat_data[2]['icon']),
-            ("Trạm Không Gian Newton", "ly", vung_dat_data[3]['bg_url'], vung_dat_data[3]['icon']),
-            ("Hầm Ngục Thủy Tinh", "hoa", vung_dat_data[4]['bg_url'], vung_dat_data[4]['icon']),
-            ("Đại Dương Tế Bào Chất", "sinh", vung_dat_data[5]['bg_url'], vung_dat_data[5]['icon']),
-        ]
 
-        for i in range(0, len(display_data), 3):
-            cols = st.columns(3)
-            for j in range(3):
-                if i + j < len(display_data):
-                    # Lấy thông tin từ display_data theo đúng thứ tự
-                    name_display, land_key, bg_img, icon_img = display_data[i + j] 
-                    
-                    with cols[j]:
-                        # Hiển thị Card HTML
-                        html_code = f"""
-                        <div style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{bg_img}');
-                                    background-size: cover; background-position: center; height: 150px; border-radius: 15px; 
-                                    display: flex; flex-direction: column; justify-content: center; 
-                                    align-items: center; color: white; border: 1px solid rgba(255,255,255,0.3);
-                                    margin-bottom: 5px;">
-                            <div style="font-size: 35px;">{icon_img}</div>
-                            <b style="font-family: sans-serif; font-size: 18px;">{name_display.upper()}</b>
-                        </div>"""
-                        st.markdown(html_code, unsafe_allow_html=True)
+        # Gọi hàm vừa tạo ở trên để lấy dữ liệu động
+        vung_dat_data = get_dungeon_lands()
+
+        if not vung_dat_data:
+            st.info("🔄 Đang nạp dữ liệu từ Đại lục...")
+        else:
+            # Hiển thị lưới 3 cột
+            for i in range(0, len(vung_dat_data), 3):
+                cols = st.columns(3)
+                for j in range(3):
+                    if i + j < len(vung_dat_data):
+                        land = vung_dat_data[i + j]
                         
-                        # NÚT BẤM: Truyền land_key (toan, van, anh...) cố định vào hàm
-                        # Sử dụng land_key riêng biệt cho từng nút để không bị trùng lặp dữ liệu
-                        if st.button(f"🏆 Vinh Danh {name_display}", key=f"btn_vinh_danh_{land_key}", use_container_width=True):
-                            show_land_info_popup(name_display, land_key)
+                        with cols[j]:
+                            # Card HTML lấy dữ liệu từ land object
+                            html_code = f"""
+                            <div style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('{land['bg_url']}');
+                                        background-size: cover; background-position: center; height: 150px; border-radius: 15px; 
+                                        display: flex; flex-direction: column; justify-content: center; 
+                                        align-items: center; color: white; border: 2px solid rgba(255,255,255,0.2);
+                                        margin-bottom: 5px;">
+                                <div style="font-size: 40px; filter: drop-shadow(2px 2px 4px black);">{land['icon']}</div>
+                                <b style="font-size: 18px; text-shadow: 2px 2px 4px black;">{land['name_display'].upper()}</b>
+                            </div>"""
+                            st.markdown(html_code, unsafe_allow_html=True)
+                            
+                            if st.button(f"🏆 Vinh Danh {land['name_display']}", key=f"btn_vd_{land['land_key']}", use_container_width=True):
+                                # Hàm popup này thường nằm ở user_module, hãy đảm bảo bạn đã import user_module
+                                show_land_info_popup(land['name_display'], land['land_key'])
