@@ -438,12 +438,6 @@ def show_land_info_popup(land_name, land_id):
 
     # --- TOP 3 VINH DANH ---
     st.markdown(f"### 🏆 BẢNG VÀNG: {land_name.upper()}")
-    
-    # 🔥 LOGIC SẮP XẾP CHUẨN:
-    # 1. Phase cao xếp trước (reverse=True của phase)
-    # 2. Nếu cùng Phase, ai có 'time' nhỏ hơn (đạt được trước) xếp trên? 
-    #    Nhưng code log của bạn lưu 'last_run' (thời điểm chạy cuối).
-    #    Nên logic hợp lý nhất là: Phase cao nhất -> Thời gian mới nhất (time lớn nhất).
     top_3 = sorted(logs, key=lambda x: (x['phase'], x['time']), reverse=True)[:3]
     
     cols = st.columns(len(top_3))

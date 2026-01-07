@@ -4318,75 +4318,45 @@ def reset_dungeon_state():
 
 def get_dungeon_logs(land_id):
     """
-    Lấy log thám hiểm (Đã tích hợp cơ chế 'Khiên bảo vệ' của bạn và xử lý đa định dạng dữ liệu)
+    Lấy log từ progress_json. Cấu trúc: {"toan": 4, "anh": 2}
     """
-    # 1. KHIÊN BẢO VỆ CẤP 1
+    import streamlit as st
+    import json
+    
     data = st.session_state.get('data', {})
-    if not isinstance(data, dict):
-        return []
-
     filtered_logs = []
     str_land_id = str(land_id)
-
-    # 2. VÒNG LẶP AN TOÀN
+    
     for u_id, u_info in data.items():
-        # 🛡️ KHIÊN BẢO VỆ CẤP 2: Lọc bỏ key hệ thống & lỗi format
-        if u_id in ['rank_settings', 'shop_items', 'events', 'admin', 'system_config']:
+        # Lọc bỏ các key hệ thống
+        if u_id in ['rank_settings', 'shop_items', 'system_config', 'admin_notices']:
             continue
-        if not isinstance(u_info, dict):
-            continue 
-
-        # 3. Lấy tiến độ (Xử lý linh hoạt int hoặc dict)
-        progress_data = u_info.get('dungeon_progress', {})
-        if not isinstance(progress_data, dict):
-            progress_data = {}
             
-        if str_land_id in progress_data:
-            entry = progress_data[str_land_id]
+        # Lấy dữ liệu từ progress_json (đã được parse trong RAM)
+        # Nếu chưa parse thì giải mã JSON
+        progress = u_info.get('dungeon_progress', {})
+        if isinstance(progress, str):
+            try: progress = json.loads(progress)
+            except: progress = {}
+
+        # Kiểm tra land_id (ví dụ: "toan")
+        if str_land_id in progress:
+            phase_val = progress[str_land_id]
             
-            # --- XỬ LÝ ĐA ĐỊNH DẠNG (Quan trọng) ---
-            # Dữ liệu có thể là số nguyên (Phase) hoặc Dict (Phase + Time)
-            if isinstance(entry, dict):
-                phase_val = entry.get('phase', 0)
-                last_time_str = entry.get('last_run', '') # Dùng để sort nếu cần
-                reward_info = entry.get('last_reward', 'Tài nguyên bí ẩn')
-                # Chuyển đổi time string sang timestamp để sort chính xác
-                try:
-                    import datetime
-                    sort_time = datetime.datetime.strptime(last_time_str, "%Y-%m-%d %H:%M:%S").timestamp()
-                except:
-                    sort_time = 0
-            else:
-                # Trường hợp cũ: chỉ lưu số phase (int hoặc str)
-                try:
-                    phase_val = int(entry)
-                except:
-                    phase_val = 0
-                sort_time = 0
-                reward_info = "Tài nguyên cơ bản"
-
-            # 4. LỌC VÀ LẤY QUÀ TỪ INVENTORY
-            if phase_val > 0: # Chỉ lấy nếu đã chơi
-                # Nếu chưa có reward trong dungeon_progress, thử lấy từ inventory (logic của bạn)
-                if reward_info == "Tài nguyên cơ bản":
-                    inventory = u_info.get('inventory', {})
-                    if isinstance(inventory, dict) and inventory:
-                        try:
-                            reward_info = list(inventory.values())[-1]
-                        except: pass
-                    elif isinstance(inventory, list) and inventory:
-                        reward_info = inventory[-1]
-
-                filtered_logs.append({
-                    "name": u_info.get('name', 'Học sĩ ẩn danh'),
-                    "phase": phase_val,
-                    "time": sort_time, # Giữ timestamp để Python sắp xếp (sort) cho chuẩn
-                    "time_display": last_time_str if last_time_str else "Vừa xong", # Thêm dòng này để hiện lên màn hình
-                    "reward_recent": reward_info
-                })
-
+            # Chỉ lấy những người đã vượt ít nhất 1 Phase
+            try:
+                phase_num = int(phase_val)
+                if phase_num > 0:
+                    filtered_logs.append({
+                        "name": u_info.get('name', u_id),
+                        "phase": phase_num,
+                        "time": 0, # Cấu trúc này không có thời gian nên mặc định là 0
+                        "reward_recent": u_info.get('team', 'Nhà thám hiểm')
+                    })
+            except:
+                continue
+                
     return filtered_logs
-
 def get_arena_logs():
     """
     Lấy dữ liệu Tứ đại cao thủ và Lịch sử đấu trường TỪ GOOGLE SHEETS
