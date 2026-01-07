@@ -1347,6 +1347,7 @@ if st.session_state.get("user_role") is not None:
 
         # Hiển thị Radio Button
         if menu:
+            import user_module
             st.session_state.page = st.radio("📌 MENU ĐIỀU HƯỚNG", menu, key="main_menu")
         
         # Nút Đăng xuất (Thêm vào cuối Sidebar cho tiện)
