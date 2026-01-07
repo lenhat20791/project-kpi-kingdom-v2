@@ -1749,14 +1749,11 @@ def hien_thi_banner_vinh_quang():
 # 0. Chuẩn hóa Role một lần duy nhất để dùng cho cả đoạn dưới
 raw_role = st.session_state.get("user_role", "")
 current_role = str(raw_role).strip().lower()
-
+from user_module import save_all_to_sheets 
 # ===== TRƯỜNG HỢP 1: ADMIN =====
 if current_role == "admin":
     # 1. Import module
     import admin_module
-    # 2. Import hàm lưu dữ liệu chuẩn để truyền cho Admin dùng
-    from user_module import save_all_to_sheets 
-
     # Lấy trang hiện tại
     current_page = st.session_state.get("page", "")
 
@@ -1775,6 +1772,8 @@ if current_role == "admin":
         # 🔥 [SỬA LỖI] Truyền đúng 3 tham số: CLIENT, SHEET_NAME, SAVE_FUNC
         admin_module.hien_thi_giao_dien_admin(CLIENT, SHEET_NAME, save_all_to_sheets)
     
+    elif current_page == "🏟️ Quản lý lôi đài":
+        admin_module.quan_ly_loi_dai_admin(CLIENT, SHEET_NAME, save_all_to_sheets)
     else:
         # 🔥 [SỬA LỖI] Trang mặc định cũng phải truyền đúng 3 tham số
         admin_module.hien_thi_giao_dien_admin(CLIENT, SHEET_NAME, save_all_to_sheets)
@@ -1809,15 +1808,15 @@ elif st.session_state.user_role in ["u1", "u2", "u3"]:
     if st.session_state.page == "🗺️ Thám hiểm Phó bản":
         # CHỈ CẦN GỌI ĐÚNG 1 HÀM NÀY (Vì nó đã bao gồm cả Combat và Sảnh chờ bên trong)
         # Nhớ truyền hàm 'save_data' vào tham số thứ 2
-        user_module.hien_thi_sanh_pho_ban_hoc_si(st.session_state.user_id, save_data)
+        user_module.hien_thi_sanh_pho_ban_hoc_si(st.session_state.user_id, save_all_to_sheets)
 
     # 2. Trang Đấu Lôi Đài
     elif st.session_state.page == "🏟️ Đấu Lôi Đài":
-        user_module.hien_thi_loi_dai(st.session_state.user_id, save_data)
+        user_module.hien_thi_loi_dai(st.session_state.user_id, save_all_to_sheets)
         
     # 3. Trang Boss Giáo viên
     elif st.session_state.page == "⚔️ Đại chiến Giáo viên":
-        user_module.hien_thi_san_dau_boss(st.session_state.user_id, save_data)
+        user_module.hien_thi_san_dau_boss(st.session_state.user_id, save_all_to_sheets)
       
     # 4. Trang Tiệm tạp hóa & Kho đồ
     elif st.session_state.page == "🏪 Tiệm tạp hóa & Kho đồ":

@@ -2146,7 +2146,7 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
             st.balloons()
 
     elif page == "🏟️ Quản lý lôi đài":
-        quan_ly_loi_dai_admin(client, sheet_name, save_func) # Gọi hàm để hiển thị giao diện quản lý
+        quan_ly_loi_dai_admin(client, sheet_name, save_func)
 
 
     elif page == "⚠️ Xóa dữ liệu":
