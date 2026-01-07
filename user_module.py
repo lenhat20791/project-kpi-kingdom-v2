@@ -3458,6 +3458,8 @@ def callback_mo_ruong(user_id, inv_key, item_info, save_data_func):
                 st.session_state.gacha_result = {"name": item_info.get('name', inv_key), "rewards": rewards}
             else:
                 st.error("Lỗi: Không thể lưu dữ liệu lên Google Sheet!")
+    except Exception as e:
+        st.error(f"Lỗi Callback: {e}")
 
 def hien_thi_tiem_va_kho(user_id, save_data_func):
     st.subheader("🏪 TIỆM TẠP HÓA & 🎒 TÚI ĐỒ")
