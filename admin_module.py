@@ -339,10 +339,9 @@ def load_dungeon_config():
         client = st.session_state.get('CLIENT')
         sheet_name = st.session_state.get('SHEET_NAME')
 
-        if not client or not sheet_name:
-            # Fallback: Thử lấy từ globals nếu đang chạy local test
-            if 'CLIENT' in globals(): client = globals()['CLIENT']
-            if 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
+        if not client or not sheet_name_val:
+            # st.error("Chưa kết nối Google Sheet")
+            return default_config
             
         if not client: return default_config
         sh = client.open(SHEET_NAME)
