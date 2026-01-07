@@ -1414,13 +1414,37 @@ def hien_thi_banner_vinh_quang():
         """, unsafe_allow_html=True)
         return
     
-    # ... (Phần logic tính điểm và hiển thị bên dưới của bạn vẫn giữ nguyên) ...
-    # Lấy thiết lập danh hiệu từ Admin 
-    ranks = st.session_state.get('rank_settings', [
-        {"Danh hiệu": "Học Sĩ", "KPI Yêu cầu": 1, "Màu sắc": "#bdc3c7"}
-    ])
+
+    # =========================================================
+    # 🔥 BƯỚC FIX: LẤY DANH HIỆU CHUẨN TỪ TAB SETTINGS
+    # =========================================================
+    # 1. Gọi hàm nạp tab Settings (Sử dụng hàm đa năng fetch_data_from_tab đã có)
+    settings_list = fetch_data_from_tab("Settings")
+    
+    ranks = []
+    if settings_list:
+        # 2. Tìm dòng rank_settings trong danh sách (Quét cột Config_Key)
+        rank_row = next((row for row in settings_list if str(row.get('Config_Key')).strip() == 'rank_settings'), None)
+        
+        if rank_row and rank_row.get('Value'):
+            try:
+                import json
+                # 3. Giải mã chuỗi JSON từ GSheet thành List các danh hiệu
+                ranks = json.loads(rank_row.get('Value'))
+            except:
+                ranks = []
+
+    # 4. Nếu không tìm thấy dữ liệu trên Sheet, dùng giá trị dự phòng để tránh lỗi giao diện
+    if not ranks:
+        ranks = [{"Danh hiệu": "Học Sĩ", "KPI Yêu cầu": 1, "Màu sắc": "#bdc3c7"}]
+
+    # --- TIẾP TỤC LOGIC TÍNH TOÁN BANNER ---
     sorted_ranks = sorted(ranks, key=lambda x: x['KPI Yêu cầu'], reverse=True)
-    min_kpi_required = min([r['KPI Yêu cầu'] for r in ranks]) if ranks else 1
+    # Lấy KPI thấp nhất để làm điều kiện lọc Banner
+    try:
+        min_kpi_required = min([int(r.get('KPI Yêu cầu', 1)) for r in ranks])
+    except:
+        min_kpi_required = 1
 
     # LỌC AN TOÀN: Kiểm tra sự tồn tại của cột kpi trước khi ép kiểu
     if 'kpi' not in df.columns:
