@@ -1807,117 +1807,124 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
         # --- PHẦN 3: ĐIỀU PHỐI KHO CÁ NHÂN & TẶNG QUÀ ---
         st.subheader("🎁 ĐIỀU PHỐI VẬT PHẨM")
         tab1, tab2 = st.tabs(["Tặng quà", "Thu hồi"])
-            
+        
+        # Import hàm lưu bắn tỉa để dùng cho hành động cá nhân
+        from user_module import save_user_data_direct
+
         with tab1:
             col_u, col_i, col_q = st.columns(3)
             
-            # Lấy danh sách tên hiển thị từ data (Lọc bỏ các key hệ thống)
-            all_names = [info['name'] for uid, info in st.session_state.data.items() 
-                         if isinstance(info, dict) and 'name' in info and uid != 'system_config' and uid != 'shop_items']
+            # Lấy danh sách user hợp lệ
+            all_users = {uid: info for uid, info in st.session_state.data.items() 
+                         if isinstance(info, dict) and 'name' in info and uid not in ['system_config', 'shop_items', 'admin', 'rank_settings']}
+            
+            all_names = [info['name'] for info in all_users.values()]
             
             with col_u: 
-                # Thêm lựa chọn "TẤT CẢ HỌC SĨ" vào danh sách
-                target_user = st.selectbox("Chọn Học Sĩ nhận:", ["🌟 TẤT CẢ HỌC SĨ"] + all_names)
+                target_user_name = st.selectbox("Chọn Học Sĩ nhận:", ["🌟 TẤT CẢ HỌC SĨ"] + all_names)
             
             with col_i: 
-                # Lấy danh sách item từ Shop Config hoặc Shop Items
                 shop_items = st.session_state.get('shop_items', {})
                 if shop_items:
-                    # Hiển thị tên đẹp thay vì ID
                     item_display_map = {k: v.get('name', k) for k, v in shop_items.items()}
                     selected_display = st.selectbox("Chọn vật phẩm:", list(item_display_map.values()))
-                    # Map ngược lại từ tên hiển thị -> ID
                     gift_item_id = next((k for k, v in item_display_map.items() if v == selected_display), None)
                 else:
-                    st.warning("Chưa có vật phẩm trong Shop")
+                    st.warning("Shop trống")
                     gift_item_id = None
             
             with col_q: 
                 gift_qty = st.number_input("Số lượng:", min_value=1, value=1)
             
-            if st.button("🚀 XÁC NHẬN PHÁT QUÀ", use_container_width=True) and gift_item_id:
-                
-                # Hàm hỗ trợ thêm item vào kho (Chuẩn LIST)
-                def add_item_to_inventory(u_data, item_id, qty):
-                    if 'inventory' not in u_data or not isinstance(u_data['inventory'], list):
-                        u_data['inventory'] = [] # Reset về List nếu đang sai định dạng
-                    
-                    # Thêm N lần item vào list
-                    for _ in range(qty):
-                        u_data['inventory'].append(item_id)
-
-                # TRƯỜNG HỢP 1: TẶNG CHO TOÀN BỘ LỚP
-                if target_user == "🌟 TẤT CẢ HỌC SĨ":
-                    count_success = 0
-                    for u_id, u_info in st.session_state.data.items():
-                        # Chỉ tặng cho user thật (có field 'name' và ko phải admin/system)
-                        if isinstance(u_info, dict) and 'name' in u_info and u_id not in ['system_config', 'shop_items', 'admin']:
-                            add_item_to_inventory(u_info, gift_item_id, gift_qty)
+            if st.button("🚀 XÁC NHẬN PHÁT QUÀ", use_container_width=True):
+                if not gift_item_id:
+                    st.error("Chưa chọn vật phẩm!")
+                else:
+                    # TRƯỜNG HỢP 1: TẶNG ĐẠI TRÀ (Dùng save_func bulk save cho nhanh)
+                    if target_user_name == "🌟 TẤT CẢ HỌC SĨ":
+                        count_success = 0
+                        for u_id, u_info in all_users.items():
+                            # Chuẩn hóa kho thành Dict và cộng đồ
+                            inv = u_info.setdefault('inventory', {})
+                            if isinstance(inv, list): # Fix lỗi nếu đang là list
+                                inv = {x: inv.count(x) for x in set(inv)}
+                            
+                            inv[gift_item_id] = inv.get(gift_item_id, 0) + gift_qty
+                            u_info['inventory'] = inv # Gán ngược lại
                             count_success += 1
                         
-                    save_func(st.session_state.data)
-                    st.success(f"🎊 Đã phát quà đại trà! {gift_qty} {selected_display} đã được gửi tới {count_success} học sĩ!")
-
-                # TRƯỜNG HỢP 2: TẶNG CHO CÁ NHÂN
-                else:
-                    # Lọc tìm ID của học sinh dựa trên tên hiển thị
-                    u_id = next((uid for uid, info in st.session_state.data.items() 
-                                 if isinstance(info, dict) and info.get('name') == target_user), None)
-                    
-                    if u_id:
-                        add_item_to_inventory(st.session_state.data[u_id], gift_item_id, gift_qty)
-                        
+                        # Lưu toàn bộ (Vì sửa nhiều người cùng lúc)
                         save_func(st.session_state.data)
-                        st.success(f"🎁 Đã tặng {gift_qty} {selected_display} cho {target_user}!")
+                        st.success(f"🎊 Đã gửi {gift_qty} {selected_display} tới {count_success} học sĩ!")
+
+                    # TRƯỜNG HỢP 2: TẶNG CÁ NHÂN (Dùng save bắn tỉa cho an toàn)
                     else:
-                        st.error("❌ Không tìm thấy thông tin học sĩ này trong dữ liệu!")
+                        # Tìm ID từ tên
+                        target_uid = next((uid for uid, info in all_users.items() if info['name'] == target_user_name), None)
+                        
+                        if target_uid:
+                            u_data = st.session_state.data[target_uid]
+                            
+                            # Xử lý cộng đồ (Dict)
+                            inv = u_data.setdefault('inventory', {})
+                            if isinstance(inv, list): inv = {x: inv.count(x) for x in set(inv)}
+                            
+                            inv[gift_item_id] = inv.get(gift_item_id, 0) + gift_qty
+                            u_data['inventory'] = inv
+                            
+                            # Dùng hàm lưu bắn tỉa
+                            if save_user_data_direct(target_uid):
+                                st.success(f"🎁 Đã tặng {gift_qty} {selected_display} cho {target_user_name}!")
+                            else:
+                                st.error("Lỗi khi lưu dữ liệu lên Sheet!")
+                        else:
+                            st.error("Không tìm thấy user này.")
 
         with tab2:
-            del_user = st.selectbox("Chọn Học Sĩ muốn xóa kho:", all_names, key="del_user")
+            del_user_name = st.selectbox("Chọn Học Sĩ muốn xóa kho:", all_names, key="del_user_select")
             
-            # Phần Thu hồi item lẻ (Đã fix lỗi KeyError ở câu hỏi trước)
             c_del1, c_del2 = st.columns([3, 1])
             with c_del1:
                 item_to_remove = st.text_input("Nhập ID vật phẩm cần thu hồi (Ví dụ: kiem_go):")
             with c_del2:
                 if st.button("🗑️ Thu hồi"):
-                    # Tìm ID người chơi an toàn
-                    found_uids = [k for k, v in st.session_state.data.items() if isinstance(v, dict) and v.get('name') == del_user]
-                    if found_uids:
-                        u_id = found_uids[0]
-                        user_data = st.session_state.data[u_id]
-                        inv = user_data.get('inventory', [])
+                    target_uid = next((uid for uid, info in all_users.items() if info['name'] == del_user_name), None)
+                    
+                    if target_uid:
+                        u_data = st.session_state.data[target_uid]
+                        inv = u_data.get('inventory', {})
                         
-                        if isinstance(inv, list):
-                            if item_to_remove in inv:
-                                inv.remove(item_to_remove)
-                                save_func(st.session_state.data)
-                                st.success(f"Đã thu hồi 1 {item_to_remove}!")
-                                time.sleep(1); st.rerun()
+                        # Chuẩn hóa List -> Dict nếu cần
+                        if isinstance(inv, list): 
+                            inv = {x: inv.count(x) for x in set(inv)}
+                            u_data['inventory'] = inv
+
+                        if inv.get(item_to_remove, 0) > 0:
+                            inv[item_to_remove] -= 1
+                            if inv[item_to_remove] <= 0: del inv[item_to_remove]
+                            
+                            # Lưu bắn tỉa
+                            if save_user_data_direct(target_uid):
+                                st.success(f"Đã thu hồi 1 {item_to_remove} của {del_user_name}!")
                             else:
-                                st.warning("Không tìm thấy món này trong túi.")
-                        elif isinstance(inv, dict): # Hỗ trợ ngược legacy
-                            if inv.get(item_to_remove, 0) > 0:
-                                inv[item_to_remove] -= 1
-                                if inv[item_to_remove] <= 0: del inv[item_to_remove]
-                                save_func(st.session_state.data)
-                                st.success(f"Đã thu hồi 1 {item_to_remove}!")
-                                time.sleep(1); st.rerun()
+                                st.error("Lỗi lưu dữ liệu.")
+                        else:
+                            st.warning(f"{del_user_name} không có vật phẩm '{item_to_remove}'!")
                     else:
-                        st.error("Lỗi tìm ID người chơi.")
+                        st.error("Không tìm thấy user.")
 
             st.divider()
             
             # Xóa sạch túi đồ
             if st.button("🔥 XÓA SẠCH TÚI ĐỒ (DANGER)"):
-                found_uids = [k for k, v in st.session_state.data.items() if isinstance(v, dict) and v.get('name') == del_user]
-                if found_uids:
-                    u_id = found_uids[0]
-                    st.session_state.data[u_id]['inventory'] = [] # Reset về list rỗng
-                    save_func(st.session_state.data)
-                    st.warning(f"Đã tịch thu toàn bộ vật phẩm của {del_user}!")
-                else:
-                    st.error("Không tìm thấy người chơi.")
+                target_uid = next((uid for uid, info in all_users.items() if info['name'] == del_user_name), None)
+                if target_uid:
+                    st.session_state.data[target_uid]['inventory'] = {} # Gán về Dict rỗng
+                    
+                    if save_user_data_direct(target_uid):
+                        st.warning(f"Đã tịch thu toàn bộ vật phẩm của {del_user_name}!")
+                    else:
+                        st.error("Lỗi lưu dữ liệu.")
 
 
         # ==============================================================================
