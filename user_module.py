@@ -4380,7 +4380,8 @@ def get_dungeon_logs(land_id):
                 filtered_logs.append({
                     "name": u_info.get('name', 'Học sĩ ẩn danh'),
                     "phase": phase_val,
-                    "time": sort_time, # Dùng để sắp xếp người mới nhất
+                    "time": sort_time, # Giữ timestamp để Python sắp xếp (sort) cho chuẩn
+                    "time_display": last_time_str if last_time_str else "Vừa xong", # Thêm dòng này để hiện lên màn hình
                     "reward_recent": reward_info
                 })
 
