@@ -2160,30 +2160,25 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         
         # --- [MỚI] BỘ ĐẾM NGƯỢC JAVASCRIPT ---
         # Tạo một key duy nhất cho mỗi câu hỏi để JS reset lại mỗi lần chuyển câu
-        js_key = str(f"timer_{match_id}_{q_idx}")
+        timer_container = st.container()
         
-        # HTML & JS cho bộ đếm ngược
-        # Khi countdown về 0, nó sẽ tự tìm nút bấm có id "force_submit_btn" và click
+        # 2. Định nghĩa nội dung HTML (Giữ nguyên logic của bạn)
         timer_html = f"""
             <div id="timer-box" style="text-align: center; font-family: sans-serif;">
                 <div style="font-size: 18px; color: #555;">⏳ Thời gian còn lại</div>
                 <div id="countdown" style="font-size: 35px; font-weight: bold; color: #2ecc71;">{time_limit}s</div>
             </div>
             <script>
-                var seconds = {time_limit};
-                // Xóa mọi timer cũ tồn đọng
+                var seconds = {int(time_limit)};
                 if (window.timerInterval) clearInterval(window.timerInterval);
-                
                 window.timerInterval = setInterval(function() {{
                     seconds--;
                     var display = document.getElementById('countdown');
                     if(display) {{
                         display.innerHTML = seconds + "s";
                         if (seconds <= 3) display.style.color = "#e74c3c";
-                        
                         if (seconds <= 0) {{
                             clearInterval(window.timerInterval);
-                            // Tìm chính xác nút có chữ "CHỐT ĐÁP ÁN"
                             var buttons = window.parent.document.querySelectorAll('button');
                             for (var i = 0; i < buttons.length; i++) {{
                                 if (buttons[i].innerText.includes("CHỐT ĐÁP ÁN")) {{
@@ -2196,15 +2191,11 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
                 }}, 1000);
             </script>
         """
-        # GỌI COMPONENT VỚI ÉP KIỂU TƯỜNG MINH
-        try:
-            components.html(
-                timer_html, 
-                height=120,    # Đảm bảo là kiểu int
-                key=js_key     # Đảm bảo là kiểu str
-            )
-        except Exception as e:
-            st.error(f"Lỗi hiển thị thành phần giao diện: {e}")
+
+        # 3. Gọi component thông qua container và BỎ THAM SỐ 'key'
+        # Thay vào đó, ta sử dụng st.empty() bên trong container nếu cần reset mạnh
+        with timer_container:
+            components.html(timer_html, height=120)
 
         # Form trả lời
         with st.form(key=f"quiz_form_{match_id}_{q_idx}"):
