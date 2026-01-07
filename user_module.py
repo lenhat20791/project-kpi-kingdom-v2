@@ -4317,46 +4317,68 @@ def reset_dungeon_state():
             
 
 def get_dungeon_logs(land_id):
-    """
-    Lấy log từ progress_json. Cấu trúc: {"toan": 4, "anh": 2}
-    """
     import streamlit as st
     import json
     
-    data = st.session_state.get('data', {})
+    # 1. Lấy dữ liệu an toàn
+    raw_data = st.session_state.get('data', {})
     filtered_logs = []
-    str_land_id = str(land_id)
-    
-    for u_id, u_info in data.items():
-        # Lọc bỏ các key hệ thống
-        if u_id in ['rank_settings', 'shop_items', 'system_config', 'admin_notices']:
-            continue
-            
-        # Lấy dữ liệu từ progress_json (đã được parse trong RAM)
-        # Nếu chưa parse thì giải mã JSON
-        progress = u_info.get('dungeon_progress', {})
-        if isinstance(progress, str):
-            try: progress = json.loads(progress)
-            except: progress = {}
+    target_key = str(land_id).strip().lower()
 
-        # Kiểm tra land_id (ví dụ: "toan")
-        if str_land_id in progress:
-            phase_val = progress[str_land_id]
-            
-            # Chỉ lấy những người đã vượt ít nhất 1 Phase
+    # 2. CHUYỂN ĐỔI LINH HOẠT: Biến mọi thứ thành một danh sách để lặp
+    # Nếu là Dict, ta lấy values. Nếu là List, ta dùng chính nó.
+    if isinstance(raw_data, dict):
+        users_list = raw_data.values()
+    elif isinstance(raw_data, list):
+        users_list = raw_data
+    else:
+        return []
+
+    # 3. VÒNG LẶP XỬ LÝ
+    for info in users_list:
+        if not isinstance(info, dict): continue
+        
+        # Bỏ qua admin và các hàng cấu hình
+        role = str(info.get('role', '')).lower()
+        u_id = str(info.get('user_id', info.get('name', '')))
+        if role == 'admin' or u_id in ['rank_settings', 'system_config', 'shop_items']:
+            continue
+
+        # 4. LẤY VÀ GIẢI MÃ TIẾN ĐỘ (progress_json)
+        prog = info.get('dungeon_progress', info.get('progress_json', {}))
+        
+        # Nếu đang là chuỗi JSON, giải mã tại chỗ luôn
+        if isinstance(prog, str) and prog.strip():
             try:
-                phase_num = int(phase_val)
-                if phase_num > 0:
-                    filtered_logs.append({
-                        "name": u_info.get('name', u_id),
-                        "phase": phase_num,
-                        "time": 0, # Cấu trúc này không có thời gian nên mặc định là 0
-                        "reward_recent": u_info.get('team', 'Nhà thám hiểm')
-                    })
+                prog = json.loads(prog.replace("'", '"'))
             except:
-                continue
+                prog = {}
+        
+        if not isinstance(prog, dict): continue
+
+        # 5. TÌM KIẾM KEY (Không phân biệt hoa thường)
+        phase_val = 0
+        for k, v in prog.items():
+            if str(k).strip().lower() == target_key:
+                phase_val = v
+                break
+
+        # 6. ĐƯA VÀO DANH SÁCH NẾU CÓ KẾT QUẢ
+        try:
+            p_num = int(phase_val)
+            if p_num > 0:
+                filtered_logs.append({
+                    "name": info.get('name', 'Học sĩ ẩn danh'),
+                    "phase": p_num,
+                    "time": 0,
+                    "reward_recent": info.get('team', 'Thám hiểm gia')
+                })
+        except:
+            continue
                 
     return filtered_logs
+
+
 def get_arena_logs():
     """
     Lấy dữ liệu Tứ đại cao thủ và Lịch sử đấu trường TỪ GOOGLE SHEETS
