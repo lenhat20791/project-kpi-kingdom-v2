@@ -3350,6 +3350,61 @@ def load_user_inventory(user_id):
     
     return {}
 
+# --- Thêm vào file user_module.py ---
+
+def load_shop_items_from_sheet():
+    """
+    Kết nối Tab 'Shop', đọc cột F (Full_Data_JSON) để lấy danh sách vật phẩm.
+    """
+    client = None
+    sheet_name = None
+    if 'CLIENT' in st.session_state: client = st.session_state.CLIENT
+    if 'SHEET_NAME' in st.session_state: sheet_name = st.session_state.SHEET_NAME
+    
+    # Fallback cho local
+    if not client and 'CLIENT' in globals(): client = globals()['CLIENT']
+    if not sheet_name and 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
+    
+    if not client or not sheet_name: return {}
+
+    try:
+        sh = client.open(sheet_name)
+        try:
+            wks = sh.worksheet("Shop")
+        except:
+            return {} # Không có tab Shop thì trả về rỗng
+
+        # Lấy toàn bộ dữ liệu (bỏ dòng tiêu đề)
+        all_values = wks.get_all_values()
+        
+        shop_items = {}
+        
+        # Duyệt từ dòng 2 trở đi
+        for row in all_values[1:]:
+            # Cấu trúc cột F là index 5 (0,1,2,3,4,5)
+            if len(row) > 5:
+                json_str = str(row[5]).strip() # Cột Full_Data_JSON
+                
+                if json_str and json_str != "{}":
+                    try:
+                        import json
+                        # Fix lỗi cú pháp JSON thường gặp trong sheet (dấu nháy đơn, True/False)
+                        clean_json = json_str.replace("'", '"').replace("True", "true").replace("False", "false")
+                        item_data = json.loads(clean_json)
+                        
+                        # Lấy ID làm key (quan trọng để định danh)
+                        item_id = item_data.get("id")
+                        if item_id:
+                            shop_items[item_id] = item_data
+                    except:
+                        continue # Bỏ qua dòng lỗi
+
+        return shop_items
+
+    except Exception as e:
+        print(f"Lỗi tải Shop: {e}")
+        return {}
+
 def hien_thi_tiem_va_kho(user_id, save_data_func):
     st.subheader("🏪 TIỆM TẠP HÓA & 🎒 TÚI ĐỒ")
     # =========================================================
@@ -3517,8 +3572,23 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
 
     # === TAB 1: CỬA HÀNG ===
     with tab_tiem:
-        # [FIX QUAN TRỌNG] Lấy dữ liệu an toàn từ session_state.data
-        all_items = st.session_state.data.get('shop_items', {})
+        # -----------------------------------------------------------
+        # 🔥 [UPDATE] TỰ ĐỘNG TẢI DỮ LIỆU TỪ TAB SHOP TRÊN GGSHEET
+        # -----------------------------------------------------------
+        from user_module import load_shop_items_from_sheet
+        
+        # Gọi hàm tải mới nhất
+        live_shop = load_shop_items_from_sheet()
+        
+        if live_shop:
+            # Cập nhật vào session để dùng chung cho cả việc tra cứu ảnh bên túi đồ
+            st.session_state.data['shop_items'] = live_shop
+            all_items = live_shop
+        else:
+            # Nếu tải lỗi hoặc chưa có, dùng dữ liệu cũ trong session
+            all_items = st.session_state.data.get('shop_items', {})
+
+        # -----------------------------------------------------------
         
         # [FIX LỖI] Kiểm tra all_items phải là Dict, nếu không gán rỗng để tránh crash
         if not isinstance(all_items, dict):
