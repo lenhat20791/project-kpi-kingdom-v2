@@ -2158,8 +2158,6 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
             
             if st.button("🔥 THỰC HIỆN RESET (CHỈ PLAYERS & PVP)"):
                 if confirm_text == "RESET":
-                    import time
-                    import json
                     # [ĐOẠN MỚI - SẠCH SẼ]
                     status_placeholder = st.empty()
                     status_placeholder.info("⏳ Đang khởi động quy trình reset an toàn...")
