@@ -2137,50 +2137,104 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
     # ===== 🏅 QUẢN LÝ DANH HIỆU =====
     elif page == "🏅 Quản lý danh hiệu":
         st.subheader("🏛️ THIẾT LẬP HỆ THỐNG DANH HIỆU")
-        st.info("Admin thiết lập các cột mốc KPI để Học Sĩ vào Sảnh Danh Vọng kích hoạt.")
+        st.info("Dữ liệu được đồng bộ trực tiếp với dòng 'rank_settings' trong tab Settings.")
 
-        # 1. Đồng bộ dữ liệu từ File vào Session State (quan trọng để hiển thị đúng cái cũ)
+        # -----------------------------------------------------------
+        # 1. LOGIC TẢI DỮ LIỆU TRỰC TIẾP TỪ SHEET (KHÔNG DÙNG HÀM NGOÀI)
+        # -----------------------------------------------------------
+        # Chỉ tải lại nếu chưa có trong session hoặc người dùng muốn F5
         if 'rank_settings' not in st.session_state:
-            # Ưu tiên lấy từ dữ liệu đã lưu trong data.json
-            saved_ranks = st.session_state.data.get('rank_settings', [])
+            # Mặc định phòng hờ
+            current_ranks = [
+                {"Danh hiệu": "Học Giả Tập Sự", "KPI Yêu cầu": 100, "Màu sắc": "#bdc3c7"},
+                {"Danh hiệu": "Đại Học Sĩ", "KPI Yêu cầu": 500, "Màu sắc": "#3498db"},
+                {"Danh hiệu": "Vương Giả Tri Thức", "KPI Yêu cầu": 1000, "Màu sắc": "#f1c40f"}
+            ]
             
-            if saved_ranks:
-                st.session_state.rank_settings = saved_ranks
-            else:
-                # Nếu chưa có gì thì dùng mẫu mặc định
-                st.session_state.rank_settings = [
-                    {"Danh hiệu": "Học Giả Tập Sự", "KPI Yêu cầu": 100, "Màu sắc": "#bdc3c7"},
-                    {"Danh hiệu": "Đại Học Sĩ", "KPI Yêu cầu": 500, "Màu sắc": "#3498db"},
-                    {"Danh hiệu": "Vương Giả Tri Thức", "KPI Yêu cầu": 1000, "Màu sắc": "#f1c40f"}
-                ]
+            try:
+                # Lấy client từ session state (theo chuẩn đã fix)
+                client = st.session_state.get('CLIENT')
+                sheet_name_val = st.session_state.get('SHEET_NAME')
+                
+                if client and sheet_name_val:
+                    sh = client.open(sheet_name_val)
+                    wks = sh.worksheet("Settings") # Tab Settings
+                    
+                    # Tìm dòng có key là "rank_settings"
+                    cell = wks.find("rank_settings")
+                    if cell:
+                        # Lấy giá trị ở ô bên cạnh (cột B)
+                        json_str = wks.cell(cell.row, cell.col + 1).value
+                        if json_str:
+                            import json
+                            current_ranks = json.loads(json_str)
+                            
+            except Exception as e:
+                # Nếu lỗi (do mạng hoặc chưa có tab Settings) thì dùng mặc định
+                # st.warning(f"Chưa tải được từ Sheet, dùng dữ liệu tạm: {e}")
+                pass
+            
+            # Gán vào Session để hiển thị
+            st.session_state.rank_settings = current_ranks
 
-        # 2. Bảng Editor
+        # -----------------------------------------------------------
+        # 2. HIỂN THỊ BẢNG EDITOR
+        # -----------------------------------------------------------
         edited_ranks = st.data_editor(
             st.session_state.rank_settings, 
             num_rows="dynamic", 
             use_container_width=True,
             column_config={
+                "Danh hiệu": st.column_config.TextColumn("Tên Danh Hiệu", required=True),
+                "KPI Yêu cầu": st.column_config.NumberColumn(
+                    "KPI Yêu cầu", min_value=0, step=50, format="%d 🏆"
+                ),
                 "Màu sắc": st.column_config.SelectboxColumn(
                     "Màu sắc",
                     options=["#bdc3c7", "#3498db", "#f1c40f", "#e74c3c", "#9b59b6", "#2ecc71"],
-                    help="Chọn mã màu hiển thị cho danh hiệu"
+                    help="Chọn mã màu hiển thị"
                 )
             }
         )
         
-        # 3. NÚT LƯU (ĐÃ SỬA LOGIC)
+        # -----------------------------------------------------------
+        # 3. LOGIC LƯU TRỰC TIẾP VÀO SHEET (KHI BẤM NÚT)
+        # -----------------------------------------------------------
         if st.button("💾 LƯU THIẾT LẬP DANH HIỆU"):
-            # Cập nhật vào Session tạm
+            # A. Cập nhật Session State
             st.session_state.rank_settings = edited_ranks
-            
-            # --- [QUAN TRỌNG] LƯU VÀO DATA CHÍNH VÀ GHI FILE JSON ---
             if 'data' in st.session_state:
                 st.session_state.data['rank_settings'] = edited_ranks
-                save_func(st.session_state.data)
-            # ---------------------------------------------------------
             
-            st.success("✅ Đã cập nhật và lưu hệ thống danh hiệu vĩnh viễn!")
-            st.balloons()
+            # B. Ghi thẳng vào Google Sheet (Tab Settings -> Dòng rank_settings)
+            try:
+                client = st.session_state.get('CLIENT')
+                sheet_name_val = st.session_state.get('SHEET_NAME')
+                
+                if client and sheet_name_val:
+                    sh = client.open(sheet_name_val)
+                    
+                    # Tìm hoặc tạo tab Settings
+                    try: wks = sh.worksheet("Settings")
+                    except: wks = sh.add_worksheet("Settings", 100, 5)
+
+                    import json
+                    json_str = json.dumps(edited_ranks, ensure_ascii=False)
+                    
+                    # Tìm dòng cũ để ghi đè
+                    cell = wks.find("rank_settings")
+                    if cell:
+                        wks.update_cell(cell.row, cell.col + 1, json_str)
+                    else:
+                        wks.append_row(["rank_settings", json_str, "Cấu hình danh hiệu"])
+                    
+                    st.success("✅ Đã lưu cấu hình lên Google Sheet (Tab Settings)!")
+                    st.balloons()
+                else:
+                    st.error("❌ Mất kết nối Google Sheet.")
+                    
+            except Exception as e:
+                st.error(f"❌ Lỗi khi lưu: {e}")
 
     elif page == "🏟️ Quản lý lôi đài":
         quan_ly_loi_dai_admin(client, sheet_name, save_func)
