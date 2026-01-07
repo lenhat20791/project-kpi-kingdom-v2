@@ -2232,9 +2232,8 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
         st.info("Dữ liệu được đồng bộ trực tiếp với dòng 'rank_settings' trong tab Settings.")
 
         # -----------------------------------------------------------
-        # 1. LOGIC TẢI DỮ LIỆU TRỰC TIẾP TỪ SHEET (KHÔNG DÙNG HÀM NGOÀI)
+        # 1. LOGIC TẢI DỮ LIỆU
         # -----------------------------------------------------------
-        # Chỉ tải lại nếu chưa có trong session hoặc người dùng muốn F5
         if 'rank_settings' not in st.session_state:
             # Mặc định phòng hờ
             current_ranks = [
@@ -2244,34 +2243,36 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
             ]
             
             try:
-                # Lấy client từ session state (theo chuẩn đã fix)
                 client = st.session_state.get('CLIENT')
-                sheet_name_val = st.session_state.get('SHEET_NAME')
+                # Mở bằng ID cho chắc chắn (giống các hàm khác bạn đã làm)
+                secrets_gcp = st.secrets.get("gcp_service_account", {})
                 
-                if client and sheet_name_val:
-                    sh = client.open(sheet_name_val)
-                    wks = sh.worksheet("Settings") # Tab Settings
-                    
-                    # Tìm dòng có key là "rank_settings"
-                    cell = wks.find("rank_settings")
-                    if cell:
-                        # Lấy giá trị ở ô bên cạnh (cột B)
-                        json_str = wks.cell(cell.row, cell.col + 1).value
-                        if json_str:
-                            import json
-                            current_ranks = json.loads(json_str)
-                            
+                if client:
+                    if "spreadsheet_id" in secrets_gcp: 
+                        sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+                    else:
+                        sheet_name_val = st.session_state.get('SHEET_NAME')
+                        sh = client.open(sheet_name_val)
+
+                    try:
+                        wks = sh.worksheet("Settings")
+                        cell = wks.find("rank_settings")
+                        if cell:
+                            json_str = wks.cell(cell.row, cell.col + 1).value
+                            if json_str:
+                                import json
+                                current_ranks = json.loads(json_str)
+                    except:
+                        pass # Dùng mặc định nếu chưa có tab/dòng
             except Exception as e:
-                # Nếu lỗi (do mạng hoặc chưa có tab Settings) thì dùng mặc định
-                # st.warning(f"Chưa tải được từ Sheet, dùng dữ liệu tạm: {e}")
                 pass
             
-            # Gán vào Session để hiển thị
             st.session_state.rank_settings = current_ranks
 
         # -----------------------------------------------------------
         # 2. HIỂN THỊ BẢNG EDITOR
         # -----------------------------------------------------------
+        # Lưu ý: edited_ranks sẽ chứa dữ liệu mới nhất khi bạn gõ trên bảng
         edited_ranks = st.data_editor(
             st.session_state.rank_settings, 
             num_rows="dynamic", 
@@ -2281,47 +2282,49 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
                 "KPI Yêu cầu": st.column_config.NumberColumn(
                     "KPI Yêu cầu", min_value=0, step=50, format="%d 🏆"
                 ),
-                "Màu sắc": st.column_config.SelectboxColumn(
-                    "Màu sắc",
-                    options=["#bdc3c7", "#3498db", "#f1c40f", "#e74c3c", "#9b59b6", "#2ecc71"],
-                    help="Chọn mã màu hiển thị"
-                )
+                "Màu sắc": st.column_config.ColorColumn("Màu sắc") # Sử dụng ColorColumn sẽ xịn hơn Selectbox
             }
         )
         
         # -----------------------------------------------------------
-        # 3. LOGIC LƯU TRỰC TIẾP VÀO SHEET (KHI BẤM NÚT)
+        # 3. LOGIC LƯU
         # -----------------------------------------------------------
-        if st.button("💾 LƯU THIẾT LẬP DANH HIỆU"):
-            # A. Cập nhật Session State
-            st.session_state.rank_settings = edited_ranks
-            if 'data' in st.session_state:
-                st.session_state.data['rank_settings'] = edited_ranks
-            
-            # B. Ghi thẳng vào Google Sheet (Tab Settings -> Dòng rank_settings)
+        if st.button("💾 LƯU THIẾT LẬP DANH HIỆU", type="primary"):
             try:
                 client = st.session_state.get('CLIENT')
-                sheet_name_val = st.session_state.get('SHEET_NAME')
+                secrets_gcp = st.secrets.get("gcp_service_account", {})
                 
-                if client and sheet_name_val:
-                    sh = client.open(sheet_name_val)
+                if client:
+                    if "spreadsheet_id" in secrets_gcp: 
+                        sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+                    else:
+                        sheet_name_val = st.session_state.get('SHEET_NAME')
+                        sh = client.open(sheet_name_val)
+
+                    # 1. Cập nhật Session State
+                    st.session_state.rank_settings = edited_ranks
+                    # Quan trọng: Cập nhật vào data tổng để các hàm khác (như save_func) đồng bộ theo
+                    if 'data' in st.session_state:
+                        st.session_state.data['rank_settings'] = edited_ranks
                     
-                    # Tìm hoặc tạo tab Settings
+                    # 2. Tìm hoặc tạo tab Settings
                     try: wks = sh.worksheet("Settings")
                     except: wks = sh.add_worksheet("Settings", 100, 5)
 
                     import json
                     json_str = json.dumps(edited_ranks, ensure_ascii=False)
                     
-                    # Tìm dòng cũ để ghi đè
+                    # 3. Ghi vào đúng dòng
                     cell = wks.find("rank_settings")
                     if cell:
                         wks.update_cell(cell.row, cell.col + 1, json_str)
                     else:
                         wks.append_row(["rank_settings", json_str, "Cấu hình danh hiệu"])
                     
-                    st.success("✅ Đã lưu cấu hình lên Google Sheet (Tab Settings)!")
+                    st.success("✅ Đã lưu cấu hình lên Cloud thành công!")
                     st.balloons()
+                    # Khuyến khích rerun để cập nhật toàn bộ hệ thống
+                    st.rerun()
                 else:
                     st.error("❌ Mất kết nối Google Sheet.")
                     
