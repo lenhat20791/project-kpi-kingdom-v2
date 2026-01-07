@@ -3334,22 +3334,28 @@ def load_shop_items_from_sheet():
 
 def hien_thi_tiem_va_kho(user_id, save_data_func):
     st.subheader("🏪 TIỆM TẠP HÓA & 🎒 TÚI ĐỒ")
-    # =========================================================
-    # 1. GỌI HÀM TẢI DỮ LIỆU TỪ SHEET (Phần 1)
-    # =========================================================
-    try:
-        from user_module import load_user_inventory
-        # Lấy dữ liệu mới nhất từ Sheet
-        live_inventory = load_user_inventory(user_id)
-        
-        # Nếu lấy được dữ liệu, cập nhật ngay vào Session State
-        if live_inventory:
-            st.session_state.data[user_id]['inventory'] = live_inventory
-            
-    except Exception as e:
-        st.error(f"Không thể đồng bộ kho đồ: {e}")
-    # Lấy thông tin người dùng hiện tại
+
+    # =========================================================================
+    # 🚫 ĐÃ XÓA ĐOẠN LOAD_USER_INVENTORY Ở ĐÂY ĐỂ TRÁNH LỖI MẤT ITEM
+    # Chúng ta sẽ dùng dữ liệu trong Session State làm chuẩn.
+    # =========================================================================
+
+    # 1. Lấy thông tin người dùng từ Session
+    if user_id not in st.session_state.data:
+        st.error("Không tìm thấy thông tin người dùng.")
+        return
+
     user_info = st.session_state.data[user_id]
+    
+    # 2. Lấy dữ liệu Shop để tra cứu ảnh (Vẫn tải Shop vì Shop ít thay đổi realtime)
+    # Nhưng nếu sợ lag thì có thể dùng luôn data cũ
+    shop_data = st.session_state.data.get('shop_items', {})
+    if not shop_data:
+        try:
+            from user_module import load_shop_items_from_sheet
+            shop_data = load_shop_items_from_sheet()
+            st.session_state.data['shop_items'] = shop_data
+        except: pass
     
     # --- PHẦN 1: CSS & HIỂN THỊ SỐ DƯ (ĐÃ SỬA LỖI & CĂN TRÁI) ---
     st.markdown(f"""
@@ -3622,13 +3628,10 @@ def hien_thi_tiem_va_kho(user_id, save_data_func):
         # [FIX LỖI DỮ LIỆU CŨ] Chuyển List -> Dict (Gộp số lượng item giống nhau)
         if isinstance(inventory, list):
             new_inv = {}
-            for item in inventory: 
-                new_inv[item] = new_inv.get(item, 0) + 1
+            for x in inventory: new_inv[x] = new_inv.get(x, 0) + 1
             inventory = new_inv
-            user_info['inventory'] = inventory
-            # Lưu ngay định dạng mới để lần sau không phải chuyển đổi nữa
+            st.session_state.data[user_id]['inventory'] = inventory
             save_data_func(st.session_state.data)
-            st.rerun()
 
         if not inventory:
             st.info("🎒 Túi đồ trống trơn. Hãy ghé Tiệm tạp hóa nhé!")
