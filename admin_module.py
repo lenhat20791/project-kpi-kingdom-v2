@@ -214,7 +214,7 @@ def giao_dien_thong_bao_admin():
         except Exception as e:
             st.error(f"3. Lỗi toang rồi: {e}")
             
-def hien_thi_thong_bao_he_thong():
+def hien_thi_thong_bao_he_thong(fetch_func):
     """
     Hàm hiển thị thông báo. Đọc riêng biệt từ tab admin_notices.
     Tối ưu cache để không bị lỗi 429 và Attribute Error.
