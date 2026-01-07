@@ -433,7 +433,7 @@ def save_dungeon_config(config):
                     str(phase_data.get('title', phase_id)),
                     json.dumps(phase_data, ensure_ascii=False) # Gom hết thuộc tính vào JSON
                 ]
-                rows_to_write.append(row)
+                rows_to_write.append(row) 
         
         # 3. Ghi đè lên Sheet
         wks.clear()
