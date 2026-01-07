@@ -4320,66 +4320,91 @@ def get_dungeon_logs(land_id):
     import streamlit as st
     import json
     
-    raw_data = st.session_state.get('data', {})
-    filtered_logs = []
-    target_key = str(land_id).strip().lower()
-
-    # Chuyển đổi linh hoạt List/Dict
+    # 1. Lấy dữ liệu (Chấp nhận cả List và Dict)
+    raw_data = st.session_state.get('data', [])
+    
+    users_list = []
     if isinstance(raw_data, dict):
         users_list = raw_data.values()
     elif isinstance(raw_data, list):
         users_list = raw_data
-    else:
+    
+    if not users_list:
         return []
+
+    filtered_logs = []
+    target_key = str(land_id).strip().lower() # Ví dụ: "toan"
 
     for info in users_list:
         if not isinstance(info, dict): continue
         
-        # Bỏ qua Admin/Hàng cấu hình
+        # Bỏ qua Admin và các dòng cấu hình hệ thống
         u_id = str(info.get('user_id', info.get('name', '')))
-        if info.get('role') == 'admin' or u_id in ['rank_settings', 'system_config', 'shop_items']:
+        role = str(info.get('role', '')).lower()
+        if role == 'admin' or u_id in ['rank_settings', 'system_config', 'shop_items']:
             continue
 
-        # 1. LẤY PHASE (Từ progress_json)
-        prog = info.get('dungeon_progress', info.get('progress_json', {}))
-        if isinstance(prog, str) and prog.strip():
-            try: prog = json.loads(prog.replace("'", '"'))
-            except: prog = {}
+        # --- PHẦN 1: LẤY PHASE (Quan trọng: Phải ép về int) ---
+        # Ưu tiên lấy 'progress_json' vì đây là tên gốc trong GSheet
+        prog_raw = info.get('dungeon_progress', info.get('progress_json', '{}'))
+        prog_dict = {}
         
-        # Tìm Phase của môn học
+        # Xử lý giải mã JSON
+        try:
+            if isinstance(prog_raw, dict):
+                prog_dict = prog_raw
+            elif isinstance(prog_raw, str) and prog_raw.strip():
+                # Thay thế nháy đơn thành nháy kép để tránh lỗi JSON
+                prog_dict = json.loads(prog_raw.replace("'", '"'))
+        except:
+            prog_dict = {}
+
+        # Tìm Phase khớp với land_id
         current_phase = 0
-        if isinstance(prog, dict):
-            for k, v in prog.items():
-                if str(k).strip().lower() == target_key:
-                    current_phase = v
-                    break
+        for k, v in prog_dict.items():
+            if str(k).strip().lower() == target_key:
+                try:
+                    current_phase = int(v) # <--- MẤU CHỐT: Ép về số nguyên ngay lập tức
+                except:
+                    current_phase = 0
+                break
 
-        # 2. LẤY THỜI GIAN (Từ stats_json -> best_time)
-        stats_raw = info.get('stats_data', info.get('stats_json', {}))
-        if isinstance(stats_raw, str) and stats_raw.strip():
-            try: stats_raw = json.loads(stats_raw.replace("'", '"'))
-            except: stats_raw = {}
-        
+        # --- PHẦN 2: LẤY THỜI GIAN (stats_json -> best_time) ---
+        stats_raw = info.get('stats_data', info.get('stats_json', '{}'))
         best_time_val = 0.0
-        if isinstance(stats_raw, dict):
-            # Truy cập sâu vào best_time
-            best_time_dict = stats_raw.get('best_time', {})
-            for k, v in best_time_dict.items():
+        
+        try:
+            stats_dict = {}
+            if isinstance(stats_raw, dict):
+                stats_dict = stats_raw
+            elif isinstance(stats_raw, str) and stats_raw.strip():
+                stats_dict = json.loads(stats_raw.replace("'", '"'))
+            
+            # Lấy mục best_time
+            best_times = stats_dict.get('best_time', {})
+            
+            # Tìm thời gian khớp với land_id
+            for k, v in best_times.items():
                 if str(k).strip().lower() == target_key:
-                    best_time_val = float(v)
+                    try:
+                        best_time_val = float(v) # <--- MẤU CHỐT: Ép về số thực
+                    except:
+                        best_time_val = 0.0
                     break
+        except:
+            pass
 
-        # 3. ĐƯA VÀO DANH SÁCH (Nếu đã vượt ít nhất 1 Phase)
+        # --- PHẦN 3: KẾT QUẢ ---
+        # Chỉ hiển thị người đã vượt qua ít nhất Phase 1
         if current_phase > 0:
             filtered_logs.append({
-                "name": info.get('name', 'Học sĩ ẩn danh'),
+                "name": info.get('name', 'Ẩn danh'),
                 "phase": current_phase,
                 "time": best_time_val,
                 "reward_recent": info.get('team', 'Thám hiểm gia')
             })
                 
     return filtered_logs
-
 def get_arena_logs():
     """
     Lấy dữ liệu Tứ đại cao thủ và Lịch sử đấu trường TỪ GOOGLE SHEETS
