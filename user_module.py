@@ -1445,17 +1445,16 @@ def xu_ly_mo_ruong(user_id, item_name, item_info, all_data, save_func):
     
     return final_results_for_popup
     
-@st.cache_data(ttl=30) # Cache 30s để không spam Google Sheet liên tục
+@st.cache_data(ttl=10)
 def load_live_boss_data():
     """
-    Kết nối Google Sheet -> Tab 'Settings'.
-    Tìm dòng có Config_Key (Cột A) là 'active_boss'.
-    Lấy JSON từ Config_Value (Cột B).
+    Tải dữ liệu Boss từ Tab 'Settings', dòng 'active_boss'.
+    Xử lý đúng cấu trúc JSON lồng nhau như trong ảnh.
     """
-    # 1. Khởi tạo biến an toàn
     client = None
     sheet_name = None
     
+    # 1. Kết nối an toàn
     if 'CLIENT' in st.session_state: client = st.session_state.CLIENT
     if 'SHEET_NAME' in st.session_state: sheet_name = st.session_state.SHEET_NAME
     if not client and 'CLIENT' in globals(): client = globals()['CLIENT']
@@ -1465,32 +1464,47 @@ def load_live_boss_data():
         return None
 
     try:
-        # 2. Mở Sheet và Tab Settings
         sh = client.open(sheet_name)
-        try:
-            wks = sh.worksheet("Settings")
-        except:
-            return None # Không có tab Settings thì thôi
-
-        # 3. Tìm dòng 'active_boss' trong cột A (Config_Key)
-        try:
-            cell = wks.find("active_boss")
-        except:
-            return None # Không tìm thấy key active_boss
-
-        if cell:
-            # Lấy giá trị cột bên cạnh (Cột B - Config_Value)
-            json_str = wks.cell(cell.row, cell.col + 1).value
-            if json_str:
-                import json
-                return json.loads(json_str)
         
-        return None
+        # 2. Mở Tab Settings (như trong ảnh)
+        try: wks = sh.worksheet("Settings")
+        except: return None 
+
+        # 3. Lấy toàn bộ dữ liệu cột A và B
+        # get_all_values trả về danh sách list: [['Config_Key', 'Value'], ['rank_settings', '...'], ...]
+        all_rows = wks.get_all_values()
+        
+        for row in all_rows:
+            # Đảm bảo hàng có đủ dữ liệu
+            if len(row) < 2: continue
+            
+            key = str(row[0]).strip()   # Cột A
+            val_str = str(row[1]).strip() # Cột B
+            
+            # 4. Tìm đúng dòng 'active_boss'
+            if key == "active_boss":
+                if not val_str or val_str == "nan": return None
+
+                try:
+                    # Fix lỗi JSON (đề phòng copy paste lỗi dấu nháy)
+                    clean_json = val_str.replace("'", '"').replace("True", "true").replace("False", "false")
+                    data = json.loads(clean_json)
+                    
+                    # 🔥 QUAN TRỌNG: Bóc vỏ theo cấu trúc trong ảnh
+                    # Ảnh cho thấy: {"active_boss": {"ten": "...", ...}}
+                    if "active_boss" in data:
+                        return data["active_boss"] # Trả về phần ruột bên trong
+                    else:
+                        return data # Trả về nguyên cục nếu cấu trúc khác
+                except Exception as e:
+                    print(f"Lỗi parse JSON Boss: {e}")
+                    return None
+
+        return None # Không tìm thấy dòng active_boss
 
     except Exception as e:
-        # st.error(f"Lỗi tải Boss: {e}")
-        return None
-        
+        print(f"Lỗi kết nối Boss: {e}")
+        return None        
 import streamlit as st
 from datetime import datetime, timedelta
 # Các hàm load_data, tinh_chi_so_chien_dau, trien_khai_tran_dau... giả định đã import từ module khác
