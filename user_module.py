@@ -1445,7 +1445,52 @@ def xu_ly_mo_ruong(user_id, item_name, item_info, all_data, save_func):
     
     return final_results_for_popup
     
+@st.cache_data(ttl=30) # Cache 30s để không spam Google Sheet liên tục
+def load_live_boss_data():
+    """
+    Kết nối Google Sheet -> Tab 'Settings'.
+    Tìm dòng có Config_Key (Cột A) là 'active_boss'.
+    Lấy JSON từ Config_Value (Cột B).
+    """
+    # 1. Khởi tạo biến an toàn
+    client = None
+    sheet_name = None
     
+    if 'CLIENT' in st.session_state: client = st.session_state.CLIENT
+    if 'SHEET_NAME' in st.session_state: sheet_name = st.session_state.SHEET_NAME
+    if not client and 'CLIENT' in globals(): client = globals()['CLIENT']
+    if not sheet_name and 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
+
+    if not client or not sheet_name:
+        return None
+
+    try:
+        # 2. Mở Sheet và Tab Settings
+        sh = client.open(sheet_name)
+        try:
+            wks = sh.worksheet("Settings")
+        except:
+            return None # Không có tab Settings thì thôi
+
+        # 3. Tìm dòng 'active_boss' trong cột A (Config_Key)
+        try:
+            cell = wks.find("active_boss")
+        except:
+            return None # Không tìm thấy key active_boss
+
+        if cell:
+            # Lấy giá trị cột bên cạnh (Cột B - Config_Value)
+            json_str = wks.cell(cell.row, cell.col + 1).value
+            if json_str:
+                import json
+                return json.loads(json_str)
+        
+        return None
+
+    except Exception as e:
+        # st.error(f"Lỗi tải Boss: {e}")
+        return None
+        
 import streamlit as st
 from datetime import datetime, timedelta
 # Các hàm load_data, tinh_chi_so_chien_dau, trien_khai_tran_dau... giả định đã import từ module khác
@@ -1460,10 +1505,20 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
         return # Dừng hàm ngay, không render sàn đấu nữa
 
     # =========================================================
-    # NẾU KHÔNG CÓ POPUP THÌ MỚI CHẠY TIẾP
+    # 🔄 [MỚI] ĐỒNG BỘ DỮ LIỆU BOSS TỪ GOOGLE SHEET
     # =========================================================
+    # Gọi hàm tải Boss trực tiếp từ Sheet (đã viết ở trên)
+    live_boss = load_live_boss_data()
     
-    # --- 1. LẤY DỮ LIỆU TỪ RAM ---
+    if live_boss:
+        # Nếu lấy được Boss mới, cập nhật ngay vào RAM để hiển thị
+        if 'system_config' not in st.session_state.data:
+            st.session_state.data['system_config'] = {}
+        
+        st.session_state.data['system_config']['active_boss'] = live_boss
+    # =========================================================
+
+    # --- 1. LẤY DỮ LIỆU TỪ RAM (Lúc này RAM đã có Boss mới nhất) ---
     if 'data' not in st.session_state:
         st.warning("⏳ Đang tải dữ liệu...")
         return
@@ -1477,8 +1532,12 @@ def hien_thi_san_dau_boss(user_id, save_data_func):
 
     # Nếu không có Boss -> Báo nghỉ
     if not boss or boss.get('status') != 'active':
-        st.title("⚔️ ĐẠI CHIẾN GIÁO VIÊN")
-        st.info("☘️ Hiện tại không có Giáo viên nào thách thức. Hãy tập luyện thêm!")
+        st.markdown("""
+            <div style="text-align: center; padding: 50px;">
+                <h1 style="color: #bdc3c7;">💤 SÀN ĐẤU TRỐNG</h1>
+                <p>Giáo viên đang soạn giáo án. Hãy quay lại sau!</p>
+            </div>
+        """, unsafe_allow_html=True)
         return
 
     if not player:
