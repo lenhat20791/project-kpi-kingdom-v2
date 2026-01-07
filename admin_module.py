@@ -8,7 +8,6 @@ import os
 import unicodedata
 import random
 import user_module
-from kpi_kingdom_v2 import fetch_data_from_tab
 from datetime import datetime
 from user_module import hien_thi_doi_mat_khau
 import os
