@@ -72,10 +72,23 @@ def fetch_data_from_tab(tab_name):
             return []
     return []
 
-# --- CẬP NHẬT LOGIC LOAD DỮ LIỆU ĐẦU TRANG ---
-# Thay vì gọi trực tiếp CLIENT.open, hãy dùng hàm fetch ở trên
+# --- CẬP NHẬT LOGIC LOAD DỮ LIỆU ĐẦU TRANG (PHIÊN BẢN ĐA TAB) ---
+
+# 1. Load dữ liệu người chơi từ tab "Players"
 if "data" not in st.session_state:
-    st.session_state.data = fetch_all_data_from_sheets()
+    st.session_state.data = fetch_data_from_tab("Players")
+
+# 2. Load dữ liệu Boss từ tab "BossLogs" (Nếu code cũ của bạn dùng biến này)
+if "boss_data" not in st.session_state:
+    st.session_state.boss_data = fetch_data_from_tab("BossLogs")
+
+# 3. Load dữ liệu Cửa hàng từ tab "Shop"
+if "shop_data" not in st.session_state:
+    st.session_state.shop_data = fetch_data_from_tab("Shop")
+    
+# 4. Load dữ liệu Phó bản
+if "dungeon_data" not in st.session_state:
+    st.session_state.dungeon_data = fetch_data_from_tab("Dungeon")
 
 def ghi_log_he_thong(user_id, action, detail, note=""):
     """
