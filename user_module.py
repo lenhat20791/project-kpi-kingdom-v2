@@ -4704,7 +4704,8 @@ def save_all_to_sheets(all_data):
                             wks_settings.clear() # Bây giờ mới an tâm xóa để ghi mới
                             wks_settings.update('A1', settings_rows)
                             st.write(f"✅ Tab Settings: Đã đồng bộ {len(settings_rows)-1} mục cấu hình.")
-                        
+            
+            # --- ĐÂY LÀ PHẦN BỊ THIẾU DẪN ĐẾN LỖI 4670 ---
             except Exception as e:
                 st.warning(f"⚠️ Lỗi tab Settings: {e}")
 
