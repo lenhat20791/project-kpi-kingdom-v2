@@ -695,64 +695,30 @@ def hien_thi_sidebar_chung():
             st.rerun()
 
 def get_boss_data_ready():
-    """
-    Lấy dữ liệu Boss bằng cách quét tìm từ khóa 'active_boss' trong cột A.
-    Không phụ thuộc vào số dòng cố định.
-    """
     import json
-    try:
-        client = st.session_state.get('CLIENT')
-        sheet_name = st.session_state.get('SHEET_NAME')
-        
-        if client is None:
-            return None
-        
-        # 1. Truy cập tab Settings
-        sh_settings = client.open(sheet_name).worksheet("Settings")
-        
-        # 2. Lấy toàn bộ dữ liệu tab Settings để quét (Nhanh và an toàn hơn find)
-        # records sẽ là một list các dòng
-        records = sh_settings.get_all_values() 
-        
-        boss_raw_json = None
-        # Duyệt qua từng dòng để tìm 'active_boss' ở cột A (index 0)
-        for row in records:
-            if row and row[0].strip() == "active_boss":
-                boss_raw_json = row[1] # Lấy dữ liệu ở cột B (index 1)
-                break
-        
-        if not boss_raw_json:
-            return None
-            
-        # 3. Giải mã JSON
-        boss = json.loads(boss_raw_json) #
-        if boss.get("status") != "active": 
-            return None
-
-        # 4. Đồng bộ máu thực tế từ BossLogs
-        try:
-            from user_module import get_realtime_boss_stats
-            boss_name = boss.get('name', boss.get('ten', 'BOSS'))
-            # Quét tab BossLogs để lấy sát thương thực tế
-            real_contributions, total_dmg_taken = get_realtime_boss_stats(boss_name)
-            
-            hp_max = int(boss.get("hp_max", 10000))
-            if total_dmg_taken > 0:
-                boss['hp_current'] = max(0, hp_max - total_dmg_taken)
-                boss['contributions'] = real_contributions
-            else:
-                # Nếu chưa có ai đánh, lấy hp_current ghi trong JSON
-                boss['hp_current'] = int(boss.get("hp_current", hp_max))
-                boss['contributions'] = boss.get("contributions", {})
-        except:
-            boss['hp_current'] = int(boss.get("hp_current", 10000))
-            boss['contributions'] = boss.get("contributions", {})
-        
-        return boss
-    except Exception as e:
-        print(f"Lỗi tìm kiếm Boss: {e}")
+    # Gọi hàm đa năng có cache bạn vừa tạo (Lấy từ tab Settings)
+    settings_list = fetch_data_from_tab("Settings") 
+    
+    if not settings_list:
         return None
-
+        
+    # Duyệt qua danh sách để tìm active_boss
+    # Vì fetch_data_from_tab trả về list dict, ta check key 'Config_Key' (Cột A)
+    boss_raw_json = None
+    for row in settings_list:
+        if row.get('Config_Key') == 'active_boss':
+            boss_raw_json = row.get('Value') # Lấy từ cột B
+            break
+            
+    if boss_raw_json:
+        try:
+            boss = json.loads(boss_raw_json)
+            if boss.get("status") == "active":
+                # Kết hợp thêm logic tính HP từ BossLogs của bạn ở đây
+                return boss
+        except:
+            return None
+    return None
 @st.dialog("📜 BÍ KÍP SINH TỒN TẠI KPI KINGDOM", width="large")
 def show_tutorial():
     # Nội dung hướng dẫn chia làm 4 Tab
