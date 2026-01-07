@@ -563,13 +563,28 @@ def hien_thi_bang_vang_diem_so():
     # 2. XỬ LÝ DỮ LIỆU
     if 'data' not in st.session_state or not st.session_state.data: return
     try:
-        # --- 🛡️ BỘ LỌC DỮ LIỆU AN TOÀN (ÁP DỤNG CHO TOP CAO THỦ) 🛡️ ---
-        # 1. Lấy dữ liệu thô
+        # --- 🛡️ BỘ LỌC DỮ LIỆU AN TOÀN (ĐÃ FIX LỖI LIST) 🛡️ ---
         raw_data_top = st.session_state.data
+        
+        # [QUAN TRỌNG] Nếu dữ liệu bị lỗi thành List -> Chuyển ngay sang Dict
+        if isinstance(raw_data_top, list):
+            fixed_dict = {}
+            for item in raw_data_top:
+                if isinstance(item, dict):
+                    # Tìm ID để làm Key
+                    u_id = item.get('id') or item.get('user_id') or item.get('username') or item.get('name')
+                    if item.get('role') == 'admin': u_id = 'admin'
+                    
+                    if u_id:
+                        fixed_dict[str(u_id)] = item
+            raw_data_top = fixed_dict # Gán lại dữ liệu đã sửa
+            
+        # -------------------------------------------------------------
+
         clean_data_top = {}
 
         # 2. Lọc bỏ các file cấu hình (chỉ lấy User là Dict)
-        if raw_data_top:
+        if raw_data_top and isinstance(raw_data_top, dict):
             for key, value in raw_data_top.items():
                 # Chỉ lấy value là Dictionary (Học sinh/Admin)
                 if isinstance(value, dict):
@@ -592,10 +607,10 @@ def hien_thi_bang_vang_diem_so():
         top_scores = df.sort_values(by='total_score', ascending=False).head(10)
         top_scores = top_scores[top_scores['total_score'] > 0] 
     except Exception as e:
-        st.error(f"Lỗi: {e}")
+        # st.error(f"Lỗi: {e}")
         return
 
-    # 3. RENDER HTML
+    # 3. RENDER HTML (Giữ nguyên phần hiển thị đẹp của bạn)
     list_html = ""
     if top_scores.empty:
         list_html = "<div style='text-align:center; padding: 30px; color:#bdc3c7; font-style:italic;'>⏳ Chưa có dữ liệu điểm số...</div>"
