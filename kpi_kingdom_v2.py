@@ -14,6 +14,7 @@ import streamlit.components.v1 as components
 import importlib 
 import gspread
 from google.oauth2.service_account import Credentials
+
 # --- CẤU HÌNH KẾT NỐI GOOGLE SHEETS ---
 SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 SHEET_NAME = "Data_KPI_Kingdom"
@@ -142,8 +143,8 @@ st.session_state.items = st.session_state.get('shop_data', [])
 st.session_state.players = st.session_state.data
 # 2. --- [QUAN TRỌNG] IMPORT MODULE CỦA BẠN TRƯỚC ---
 # Phải import thì Python mới biết admin_module là gì
-import admin_module
-import user_module
+#import admin_module
+#import user_module
 import item_system 
 
 # 3. --- SAU ĐÓ MỚI ĐƯỢC RELOAD ---
