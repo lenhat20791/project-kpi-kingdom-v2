@@ -210,7 +210,7 @@ def ghi_log_boss(user_id, boss_name, damage, rewards=None):
     # 1. Chuẩn bị dữ liệu
     thoi_gian = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # Xử lý cột "Phần thưởng" dựa vào trạng thái
+    # Xử lý nội dung hiển thị phần thưởng
     if rewards:
         # Trường hợp Boss chết: Format phần thưởng đẹp mắt
         if isinstance(rewards, list):
@@ -220,13 +220,12 @@ def ghi_log_boss(user_id, boss_name, damage, rewards=None):
         else:
             rewards_str = f"🎁 {str(rewards)}"
     else:
-        # Trường hợp đang đánh: Ghi chú nhẹ
+        # Trường hợp đang đánh
         rewards_str = "⚔️ Đang tấn công"
 
-    # --- 2. LƯU VÀO FILE JSON (BACKUP) ---
+    # --- 2. LƯU VÀO FILE JSON (BACKUP LOCAL) ---
     try:
         log_file = 'data/boss_logs.json'
-        # Tạo thư mục data nếu chưa có
         if not os.path.exists('data'):
             os.makedirs('data')
             
@@ -235,7 +234,7 @@ def ghi_log_boss(user_id, boss_name, damage, rewards=None):
             "boss_name": boss_name,
             "user_id": user_id,
             "damage": int(damage),
-            "status": "KILL" if rewards else "ATTACK", # Đánh dấu loại log
+            "status": "KILL" if rewards else "ATTACK",
             "rewards": rewards_str
         }
         
@@ -244,54 +243,65 @@ def ghi_log_boss(user_id, boss_name, damage, rewards=None):
             try:
                 with open(log_file, 'r', encoding='utf-8') as f:
                     logs = json.load(f)
-            except: logs = []
+            except: 
+                logs = []
         
         logs.append(new_log)
-        
         with open(log_file, 'w', encoding='utf-8') as f:
             json.dump(logs, f, indent=4, ensure_ascii=False)
             
     except Exception as e:
-        print(f"Lỗi JSON: {e}")
+        print(f"Lỗi lưu file JSON local: {e}")
 
-    # --- 3. LƯU LÊN GOOGLE SHEETS ---
+    # --- 3. LƯU LÊN GOOGLE SHEETS (VỆ TINH CHÍNH) ---
     try:
-        # Kiểm tra biến toàn cục CLIENT
-        if 'CLIENT' in globals() and globals()['CLIENT']:
-            sh = globals()['CLIENT'].open(SHEET_NAME)
-        else:
-            from user_module import get_gspread_client
-            client = get_gspread_client()
-            if not client: return
-            sh = client.open(SHEET_NAME)
+        # Lấy CLIENT và SHEET_NAME từ session_state (Đồng bộ với module chính)
+        client = st.session_state.get('CLIENT')
+        sheet_name = st.session_state.get('SHEET_NAME')
 
-        # Tìm hoặc tạo Tab BossLogs
-        try:
-            wks = sh.worksheet("BossLogs")
-        except:
-            wks = sh.add_worksheet(title="BossLogs", rows=1000, cols=10)
-            # Header chuẩn
-            wks.append_row(["Thời gian", "Tên Boss", "User ID", "Sát thương", "Ghi chú / Phần thưởng"])
+        # Nếu thiếu CLIENT, thử khởi tạo lại từ module dự phòng
+        if not client or not sheet_name:
+            try:
+                from user_module import get_gspread_client
+                client = get_gspread_client()
+                # SHEET_NAME thường được định nghĩa hằng số hoặc trong secrets
+                sheet_name = st.secrets.get("gcp_service_account", {}).get("spreadsheet_id")
+            except:
+                return False
 
-        # Ghi dữ liệu
-        row_data = [
-            thoi_gian,
-            str(boss_name),
-            str(user_id),
-            int(damage),
-            rewards_str
-        ]
-        
-        # Lệnh này sẽ nối tiếp vào dòng cuối cùng của Sheet
-        wks.append_row(row_data)
-        
-        # Nếu là đòn kết liễu thì hiện thông báo chúc mừng
-        if rewards:
-            st.toast(f"✅ Đã ghi công trạng diệt Boss!", icon="🏆")
+        if client and sheet_name:
+            sh = client.open(sheet_name)
+            
+            # Tìm hoặc tạo Tab BossLogs
+            try:
+                wks = sh.worksheet("BossLogs")
+            except:
+                wks = sh.add_worksheet(title="BossLogs", rows=1000, cols=10)
+                # Header chuẩn để hàm get_realtime_boss_stats đọc được
+                wks.append_row(["Thời gian", "Tên Boss", "User ID", "Sát thương", "Ghi chú / Phần thưởng"])
+
+            # Chuẩn bị dòng dữ liệu (Ép kiểu chuẩn số học cho Sát thương)
+            row_data = [
+                thoi_gian,
+                str(boss_name).strip(),
+                str(user_id).strip(),
+                int(damage),
+                rewards_str
+            ]
+            
+            # Ghi nối tiếp vào dòng cuối cùng
+            wks.append_row(row_data)
+            
+            # Thông báo nhanh nếu Boss bị tiêu diệt
+            if rewards:
+                st.toast(f"✅ Đã ghi công trạng diệt {boss_name}!", icon="🏆")
+                
+            return True
             
     except Exception as e:
-        # Chỉ in lỗi ra console để không làm gián đoạn trải nghiệm đánh boss của user
-        print(f"⚠️ Lỗi ghi Sheet Boss: {e}")
+        # Log lỗi vào console để không chặn luồng chơi của học sinh
+        print(f"⚠️ Lỗi ghi Sheet BossLogs: {e}")
+        return False
 
 # ------------------------------------------------------------------------------
 # CÁC HÀM HỖ TRỢ CHỢ ĐEN (MARKET) - GOOGLE SHEETS SYNC
