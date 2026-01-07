@@ -458,6 +458,8 @@ def show_land_info_popup(land_name, land_id):
     for i, player in enumerate(top_3):
         with cols[i]:
             icon_rank = ['👑', '⚔️', '🛡️'][i] if i < 3 else '🎖️'
+            # Xử lý hiển thị thời gian
+            time_str = f"{player['time']}s" if player['time'] > 0 else "--"
             st.markdown(f"""
                 <div style="text-align:center; border:2px solid {colors[i]}; border-radius:12px; padding:10px; background: #fffdf0; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                     <div style="font-size:24px;">{icon_rank}</div>
@@ -479,7 +481,7 @@ def show_land_info_popup(land_name, land_id):
         # Xử lý hiển thị quà cho gọn
         reward_str = str(entry['reward_recent'])
         if len(reward_str) > 25: reward_str = reward_str[:22] + "..."
-
+        time_display = f"{entry['time']}s" if entry['time'] > 0 else "--"
         st.markdown(f"""
             <div style="background:#f8f9fa; border-radius:8px; padding:8px 12px; margin-bottom:8px; border-left:4px solid #3498db; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                 <div>
