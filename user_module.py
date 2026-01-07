@@ -4663,7 +4663,8 @@ def save_all_to_sheets(all_data):
                     wks_players.clear()
                     wks_players.update('A1', player_rows) 
                     st.write(f"✅ Tab Players: Đã đồng bộ {len(player_rows)-1} người chơi (Đã bảo vệ stats).")
-
+            except Exception as e:
+                st.error(f"❌ Lỗi đồng bộ Tab Players: {e}")
             # =========================================================
             # --- 2. ĐỒNG BỘ SETTINGS & BOSS (PHIÊN BẢN BẢO VỆ DỮ LIỆU) ---
             # =========================================================
