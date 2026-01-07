@@ -2156,28 +2156,43 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         # Hiển thị nội dung câu hỏi đẹp hơn
         st.info(f"❓ {q['question']}")
         
-        # --- ĐỒNG HỒ ĐẾM NGƯỢC ---
-        elapsed = time.time() - st.session_state.start_time
-        remaining = max(0, int(time_limit - elapsed))
+        # --- [MỚI] BỘ ĐẾM NGƯỢC JAVASCRIPT ---
+        # Tạo một key duy nhất cho mỗi câu hỏi để JS reset lại mỗi lần chuyển câu
+        countdown_key = f"js_timer_{match_id}_{q_idx}"
         
-        # Cờ kiểm tra tự nộp bài
-        force_submit = False
-        if remaining <= 0:
-            force_submit = True
-        
-        # Màu sắc đồng hồ (Đỏ khi sắp hết giờ)
-        timer_color = "#e74c3c" if remaining <= 5 else "#2ecc71" 
-        st.markdown(
-            f"""<div style="text-align: center; font-size: 24px; font-weight: bold; color: {timer_color}; 
-            border: 2px solid {timer_color}; padding: 10px; border-radius: 10px; margin-bottom: 20px;">
-            ⏳ Thời gian còn lại: {remaining}s
-            </div>""", 
-            unsafe_allow_html=True
-        )
+        # HTML & JS cho bộ đếm ngược
+        # Khi countdown về 0, nó sẽ tự tìm nút bấm có id "force_submit_btn" và click
+        timer_html = f"""
+            <div id="timer-box" style="text-align: center; font-family: sans-serif;">
+                <div style="font-size: 20px; color: #555;">⏳ Thời gian còn lại</div>
+                <div id="countdown" style="font-size: 40px; font-weight: bold; color: #2ecc71;">{time_limit}s</div>
+            </div>
 
-        # Form trả lời (Dùng key unique để tránh lỗi state)
-        with st.form(key=f"quiz_form_{match_id}_{q_idx}_{current_user_id}"):
+            <script>
+                var seconds = {time_limit};
+                var timer = setInterval(function() {{
+                    seconds--;
+                    var display = document.getElementById('countdown');
+                    display.innerHTML = seconds + "s";
+                    
+                    if (seconds <= 5) {{
+                        display.style.color = "#e74c3c";
+                    }}
+                    
+                    if (seconds <= 0) {{
+                        clearInterval(timer);
+                        // Gửi tín hiệu hết giờ về Streamlit bằng cách click nút ẩn
+                        window.parent.document.querySelector('button[kind="primary"]').click();
+                    }}
+                }}, 1000);
+            </script>
+        """
+        components.html(timer_html, height=100)
+
+        # Form trả lời
+        with st.form(key=f"quiz_form_{match_id}_{q_idx}"):
             ans = st.radio("Lựa chọn của bạn:", q['options'], index=None)
+            # Nút bấm này sẽ được JS "click" hộ khi hết giờ
             submitted = st.form_submit_button("CHỐT ĐÁP ÁN 🚀", type="primary", use_container_width=True)
 
         # --- XỬ LÝ KẾT QUẢ ---
