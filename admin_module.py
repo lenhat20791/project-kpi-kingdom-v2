@@ -1725,14 +1725,31 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
 
         st.divider()
         
-        # --- PHẦN 2: HIỂN THỊ KỆ HÀNG DUY NHẤT (ĐÃ FIX LỖI ICON & SYNC DATA) ---
+        # --- PHẦN 2: HIỂN THỊ KỆ HÀNG DUY NHẤT (ĐÃ KẾT NỐI LIVE SHEET) ---
         st.write("### 🏪 KHO HÀNG HIỆN TẠI (TRÊN KỆ)")
 
-        # Đảm bảo shop_items tồn tại
-        if 'shop_items' not in st.session_state:
-            st.session_state.shop_items = st.session_state.data.get('shop_items', {})
+        # =================================================================
+        # 🔥 BƯỚC QUAN TRỌNG: TẢI DỮ LIỆU TƯƠI TỪ GOOGLE SHEET
+        # =================================================================
+        try:
+            # Import hàm tải Shop từ user_module (nơi đã viết hàm này chuẩn)
+            from user_module import load_shop_items_from_sheet
+            
+            live_shop = load_shop_items_from_sheet()
+            
+            # Nếu tải thành công, cập nhật ngay vào bộ nhớ
+            if live_shop:
+                st.session_state.data['shop_items'] = live_shop
+                st.session_state.shop_items = live_shop
+                # st.toast("Đã đồng bộ dữ liệu Shop từ Google Sheet", icon="cloud")
+        except Exception as e:
+            st.warning(f"⚠️ Không thể tải dữ liệu Shop: {e}")
+        # =================================================================
 
-        if st.session_state.shop_items:
+        # Lấy dữ liệu đã cập nhật để hiển thị
+        current_shop = st.session_state.get('shop_items', {})
+
+        if current_shop:
             label_map = {
                 "kpi": "KPI Tổng", 
                 "Tri_Thuc": "Tri Thức", 
@@ -1741,7 +1758,6 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
                 "Vinh_Quang": "Vinh Quang"
             }
             
-            # [FIX 1] Thay icon cứng '📘' bằng biến '{icon}' để đổi icon linh hoạt
             item_template = """
             <div style="background:#5d4037;border:2px solid #a1887f;border-radius:8px;width:150px;padding:10px;text-align:center;color:white;box-shadow:2px 2px 5px rgba(0,0,0,0.5);flex-shrink:0;margin-bottom:10px;">
                 <img src="{img}" style="width:50px;height:50px;object-fit:contain;">
@@ -1755,44 +1771,34 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
             """ 
 
             all_items_html = ""
-            # Lặp qua từng món
-            for item_id, info in st.session_state.shop_items.items():
-                if isinstance(info, dict): # Check kỹ kiểu dữ liệu
-                    # 1. Xử lý hiển thị tiền tệ
+            
+            for item_id, info in current_shop.items():
+                if isinstance(info, dict):
+                    # 1. Tiền tệ
                     c_buy = info.get('currency_buy', 'kpi')
                     curr_label = label_map.get(c_buy, c_buy)
                     
-                    # Icon tương ứng loại tiền
                     if c_buy == "Tri_Thuc": icon_buy = "📘"
                     elif c_buy == "Vinh_Du": icon_buy = "🎖️"
                     elif c_buy == "kpi": icon_buy = "🏆"
                     else: icon_buy = "💰"
                     
-                    # 2. Xử lý hiển thị hiệu ứng
+                    # 2. Hiệu ứng
                     val = info.get('buff_value', 0)
                     t_stat = info.get('target_stat', 'kpi')
-                    
-                    # Nếu là Item Gacha hoặc Reset Boss thì hiển thị kiểu khác
                     i_type = info.get('type', 'COMMON')
-                    if i_type == "GACHA_BOX":
-                        eff_txt = "🎲 Rương may mắn"
-                    elif i_type == "BOSS_RESET":
-                        eff_txt = "🔄 Hồi sinh Boss"
-                    elif val > 0:
-                        eff_txt = f"+{val} {label_map.get(t_stat, t_stat)}"
-                    else:
-                        eff_txt = "Vật phẩm"
+                    
+                    if i_type == "GACHA_BOX": eff_txt = "🎲 Rương may mắn"
+                    elif i_type == "BOSS_RESET": eff_txt = "🔄 Hồi sinh Boss"
+                    elif val > 0: eff_txt = f"+{val} {label_map.get(t_stat, t_stat)}"
+                    else: eff_txt = "Vật phẩm"
 
-                    # 3. Xử lý giới hạn
+                    # 3. Giới hạn
                     l_type = info.get('limit_type', 'Thông thường')
-                    if l_type == "Giới hạn tháng":
-                        l_txt = f"Max: {info.get('limit_amount')}/tháng"
-                    elif l_type == "Giới hạn vĩnh viễn":
-                        l_txt = f"Max: {info.get('limit_amount')}/đời"
-                    else:
-                        l_txt = "Không giới hạn"
+                    if l_type == "Giới hạn tháng": l_txt = f"Max: {info.get('limit_amount')}/tháng"
+                    elif l_type == "Giới hạn vĩnh viễn": l_txt = f"Max: {info.get('limit_amount')}/đời"
+                    else: l_txt = "Không giới hạn"
 
-                    # 4. Format HTML (Fix lỗi truyền biến icon)
                     all_items_html += item_template.format(
                         img=info.get('image', 'https://cdn-icons-png.flaticon.com/512/2979/2979689.png'),
                         name=info.get('name', item_id),
@@ -1800,47 +1806,42 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
                         limit=l_txt,
                         price=info.get('price', 0),
                         curr=curr_label,
-                        icon=icon_buy # <--- Đã truyền icon vào đây
+                        icon=icon_buy
                     ) 
 
-            # HIỂN THỊ FLEX CONTAINER
             st.markdown(f"""
             <div style="display:flex;flex-wrap:wrap;gap:10px;background:#2d1e16;padding:15px;border-radius:10px;justify-content:center;">
             {all_items_html}
             </div>
             """, unsafe_allow_html=True)
 
-            # --- NÚT DỠ HÀNG (QUAN TRỌNG: SYNC DỮ LIỆU) ---
-            st.write("") # Spacer
+            # --- NÚT DỠ HÀNG ---
+            st.write("")
             col_del1, col_del2 = st.columns([3, 1])
             
             with col_del1:
-                # Tạo list tên để chọn cho dễ, nhưng value trả về là ID (key)
-                item_options = {k: v.get('name', k) for k, v in st.session_state.shop_items.items()}
+                item_options = {k: v.get('name', k) for k, v in current_shop.items()}
                 selected_name_to_del = st.selectbox("Chọn vật phẩm muốn dỡ khỏi kệ:", list(item_options.values()))
-                # Map ngược từ Tên -> ID
                 target_del_id = next((k for k, v in item_options.items() if v == selected_name_to_del), None)
 
             with col_del2:
                 if st.button("🗑️ DỠ XUỐNG", use_container_width=True):
-                    if target_del_id and target_del_id in st.session_state.shop_items:
-                        # 1. Xóa khỏi Session Shop Items
-                        del st.session_state.shop_items[target_del_id]
+                    if target_del_id:
+                        # 1. Xóa khỏi session
+                        del st.session_state.data['shop_items'][target_del_id]
+                        if 'shop_items' in st.session_state:
+                            st.session_state.shop_items = st.session_state.data['shop_items']
                         
-                        # [QUAN TRỌNG] 2. ĐỒNG BỘ NGƯỢC LẠI VÀO DATA TỔNG
-                        # Hàm save_func thường lấy data từ st.session_state.data['shop_items']
-                        # Nếu không có dòng này, hàm save sẽ lưu lại danh sách cũ!
-                        st.session_state.data['shop_items'] = st.session_state.shop_items
-                        
-                        # 3. GỌI LỆNH LƯU (save_all_to_sheets)
+                        # 2. GỌI HÀM LƯU TOÀN BỘ (Để cập nhật Sheet)
+                        # Lưu ý: Cần đảm bảo save_func là hàm save_all_to_sheets mà ta đã viết
                         if save_func(st.session_state.data):
-                            st.success(f"Đã dỡ bỏ '{selected_name_to_del}' thành công!")
+                            st.success(f"Đã dỡ '{selected_name_to_del}' thành công!")
                             st.rerun()
                         else:
-                            st.error("Lỗi kết nối GSheet, chưa dỡ được hàng!")
+                            st.error("Lỗi kết nối GSheet!")
             
         else:
-            st.info("Kệ hàng hiện đang trống.")
+            st.info("Kệ hàng hiện đang trống (Hoặc chưa tải được dữ liệu từ Sheet).")
 
         st.divider()
 
