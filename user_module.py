@@ -2137,8 +2137,8 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         return
 
     # Thời gian giới hạn mỗi câu theo độ khó
-    limit_map = {"easy": 15, "medium": 20, "hard": 25, "extreme": 30}
-    time_limit = limit_map.get(level, 20)
+    limit_map = {"easy": 7, "medium": 10, "hard": 15, "extreme": 18}
+    time_limit = limit_map.get(level, 15)
 
     # --- 4. GIAO DIỆN LÀM BÀI ---
     q_idx = st.session_state.current_q
