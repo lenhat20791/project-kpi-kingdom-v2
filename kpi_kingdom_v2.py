@@ -711,16 +711,19 @@ def get_boss_data_ready():
             
         boss_raw_json = boss_row.get('Value')
         
-        # 3. Thử giải mã JSON
+        # 3. Giải mã JSON
         try:
-            boss = json.loads(boss_raw_json)
+            data_parsed = json.loads(boss_raw_json)
+            # Vì dữ liệu trên Sheet là {"active_boss": {...}} 
+            # nên ta phải lấy giá trị bên trong key này
+            boss = data_parsed.get("active_boss", {}) 
         except Exception as e:
-            st.error(f"❌ Bước 3: Lỗi định dạng JSON trong ô Value: {e}")
-            st.code(boss_raw_json) # Hiện chuỗi lỗi để soi dấu ngoặc
+            st.error(f"❌ Bước 3: Lỗi định dạng JSON: {e}")
             return None
 
+        # Kiểm tra lại status bên trong lớp đã bóc
         if str(boss.get("status")).lower() != "active":
-            st.info("ℹ️ Bước 4: Boss tìm thấy nhưng status không phải 'active'")
+            st.info(f"ℹ️ Bước 4: Boss tìm thấy nhưng status hiện là '{boss.get('status')}'")
             return None
 
         # 4. Kiểm tra sát thương
@@ -736,7 +739,8 @@ def get_boss_data_ready():
         return boss
     except Exception as e:
         st.error(f"🔥 Lỗi hệ thống: {e}")
-        return None        
+        return None
+        
 @st.dialog("📜 BÍ KÍP SINH TỒN TẠI KPI KINGDOM", width="large")
 def show_tutorial():
     # Nội dung hướng dẫn chia làm 4 Tab
