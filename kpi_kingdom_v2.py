@@ -144,7 +144,11 @@ st.session_state.players = st.session_state.data
 # 2. --- [QUAN TRỌNG] IMPORT MODULE CỦA BẠN TRƯỚC ---
 # Phải import thì Python mới biết admin_module là gì
 import admin_module
-#import user_module
+try:
+    import user_module
+except Exception:
+    # Nếu bị lỗi vòng lặp lúc khởi động, ta sẽ nạp nó "tại chỗ" trong các hàm sau
+    pass
 import item_system 
 
 # 3. --- SAU ĐÓ MỚI ĐƯỢC RELOAD ---
