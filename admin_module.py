@@ -7,21 +7,16 @@ import json
 import os
 import unicodedata
 import random
-import user_module
-from datetime import datetime
-from user_module import hien_thi_doi_mat_khau
-import os
 import shutil
-from datetime import datetime, timedelta
 import zipfile
 import unidecode
-from user_module import save_data
-from user_module import (
-    hien_thi_doi_mat_khau, 
-    save_data, 
-    load_loi_dai,
-    save_loi_dai
-)
+from datetime import datetime, timedelta
+
+# --- ⚠️ QUAN TRỌNG: ĐÃ XÓA CÁC DÒNG IMPORT GÂY LỖI ---
+# Chúng ta KHÔNG import save_data hay load_data ở đây nữa.
+# Các hàm đó sẽ được file chính (Main) truyền vào cho Admin dùng.
+
+
 
 def thực_hiện_auto_backup():
     """Tự động sao lưu dữ liệu data.json và loi_dai.json sau mỗi 7 ngày"""
@@ -308,7 +303,7 @@ def get_reward_options_list():
 
 import json
 import streamlit as st
-from user_module import get_gspread_client, SHEET_NAME
+
 
 # --- HÀM BỔ TRỢ DỮ LIỆU PHÓ BẢN (PHIÊN BẢN GGSHEET) ---
 @st.cache_data(ttl=60) # Cache 60s để đỡ gọi API liên tục
@@ -886,24 +881,27 @@ def admin_quan_ly_boss():
         # [LOGIC] Tự động tải shop (Giữ nguyên như code cũ của bạn)
         if 'shop_config' not in st.session_state:
             try:
-                from user_module import get_gspread_client
-                client = get_gspread_client()
-                secrets_gcp = st.secrets.get("gcp_service_account", {})
-                if "spreadsheet_id" in secrets_gcp: sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
-                elif "spreadsheet_url" in secrets_gcp: sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
-                else: sh = client.openall()[0]
+                # 1. Mở file Sheet (Dùng biến sheet_name được truyền vào)
+                sh = client.open(sheet_name)
 
+                # 2. Tìm tab Shop (Hỗ trợ nhiều tên khác nhau)
                 wks = None
                 for name in ["Shop", "shop", "Cửa hàng", "Items"]:
-                    try: wks = sh.worksheet(name); break
-                    except: continue
+                    try: 
+                        wks = sh.worksheet(name)
+                        break
+                    except: 
+                        continue
                 
+                # 3. Đọc dữ liệu
                 if wks:
                     st.session_state.shop_config = wks.get_all_records()
-                    st.success("✅ Đã tải danh sách vật phẩm!")
+                    # st.success("✅ Đã tải danh sách vật phẩm!") # Có thể bỏ dòng này cho đỡ rối mắt
                 else:
                     st.session_state.shop_config = []
+                    
             except Exception as e:
+                st.error(f"⚠️ Không tải được dữ liệu Shop: {e}")
                 st.session_state.shop_config = []
 
         st.divider()
@@ -930,16 +928,19 @@ def admin_quan_ly_boss():
                 # 1. Cập nhật RAM
                 sys_config['chest_image'] = new_chest_img
                 
-                # 2. Ghi vào Sheet Settings
+                # 2. Ghi vào Sheet Settings (SỬA LẠI: Dùng client có sẵn)
                 try:
-                    from user_module import get_gspread_client
-                    client = get_gspread_client()
-                    secrets_gcp = st.secrets.get("gcp_service_account", {})
-                    if "spreadsheet_id" in secrets_gcp: sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
-                    else: sh = client.openall()[0]
+                    # --- BỎ ĐOẠN IMPORT VÀ KẾT NỐI CŨ ---
+                    # Thay vì tự kết nối lại, ta dùng biến 'client' và 'sheet_name' đã được truyền vào hàm
+                    sh = client.open(sheet_name)
                     
-                    wks_set = sh.worksheet("Settings")
-                    
+                    # Mở tab Settings
+                    try:
+                        wks_set = sh.worksheet("Settings")
+                    except gspread.exceptions.WorksheetNotFound:
+                        # Nếu chưa có tab Settings thì tạo mới (Optional - cho an toàn)
+                        wks_set = sh.add_worksheet(title="Settings", rows=100, cols=20)
+
                     # Tìm dòng 'chest_image' để ghi đè hoặc tạo mới
                     try:
                         cell = wks_set.find("chest_image")
@@ -948,13 +949,15 @@ def admin_quan_ly_boss():
                         else:
                             wks_set.append_row(["chest_image", new_chest_img])
                     except:
+                        # Nếu tìm lỗi thì cứ append đại vào cuối
                         wks_set.append_row(["chest_image", new_chest_img])
                         
                     st.success("✅ Đã lưu ảnh rương mới!")
                     time.sleep(0.5)
                     st.rerun()
+
                 except Exception as e:
-                    st.error(f"Lỗi lưu ảnh: {e}")
+                    st.error(f"Lỗi lưu ảnh vào Settings: {e}")
 
         st.divider()
 
@@ -980,20 +983,38 @@ def admin_quan_ly_boss():
                     with c4:
                         if st.button("🗑️", key=f"del_chest_{idx}"):
                             current_rewards.pop(idx)
-                            # Lưu nhanh khi xóa
+                            
+                            # --- LOGIC LƯU MỚI (Dùng client có sẵn) ---
                             import json
-                            from user_module import get_gspread_client
                             try:
-                                client = get_gspread_client()
-                                secrets_gcp = st.secrets.get("gcp_service_account", {})
-                                if "spreadsheet_id" in secrets_gcp: sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
-                                elif "spreadsheet_url" in secrets_gcp: sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
-                                else: sh = client.openall()[0]
-                                wks_settings = sh.worksheet("Settings")
+                                # 1. Mở file Sheet bằng client được truyền vào
+                                sh = client.open(sheet_name)
+                                
+                                # 2. Mở tab Settings
+                                try:
+                                    wks_settings = sh.worksheet("Settings")
+                                except:
+                                    wks_settings = sh.add_worksheet("Settings", 100, 20)
+                                
+                                # 3. Cập nhật dữ liệu
                                 json_str = json.dumps(current_rewards, ensure_ascii=False)
-                                cell = wks_settings.find("chest_rewards")
-                                if cell: wks_settings.update_cell(cell.row, cell.col + 1, json_str)
-                            except: pass
+                                
+                                try:
+                                    cell = wks_settings.find("chest_rewards")
+                                    if cell: 
+                                        wks_settings.update_cell(cell.row, cell.col + 1, json_str)
+                                    else:
+                                        wks_settings.append_row(["chest_rewards", json_str])
+                                except:
+                                    wks_settings.append_row(["chest_rewards", json_str])
+                                    
+                                st.toast("✅ Đã xóa phần thưởng!", icon="🗑️")
+                                
+                            except Exception as e:
+                                st.error(f"Lỗi khi lưu: {e}")
+                                
+                            # 4. Tải lại trang
+                            time.sleep(0.5)
                             st.rerun()
 
         st.divider()
@@ -1073,24 +1094,25 @@ def admin_quan_ly_boss():
                     }
                     sys_config['chest_rewards'].append(new_reward)
                     
-                    # 2. GHI THẲNG VÀO SHEET (Fix lỗi không lưu)
+                    # 2. GHI THẲNG VÀO SHEET (LOGIC MỚI: Dùng client có sẵn)
                     try:
                         with st.spinner("Đang ghi dữ liệu lên mây..."):
                             import json
-                            from user_module import get_gspread_client
                             
-                            client = get_gspread_client()
-                            # Mở Sheet
-                            secrets_gcp = st.secrets.get("gcp_service_account", {})
-                            if "spreadsheet_id" in secrets_gcp: sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
-                            elif "spreadsheet_url" in secrets_gcp: sh = client.open_by_url(secrets_gcp["spreadsheet_url"])
-                            else: sh = client.openall()[0]
+                            # --- BỎ ĐOẠN IMPORT VÀ KẾT NỐI CŨ ---
+                            # 1. Mở file Sheet bằng biến 'client' và 'sheet_name' đã được truyền vào
+                            sh = client.open(sheet_name)
                             
-                            # Vào tab Settings
-                            wks_settings = sh.worksheet("Settings")
+                            # 2. Vào tab Settings (hoặc tạo mới nếu chưa có)
+                            try:
+                                wks_settings = sh.worksheet("Settings")
+                            except:
+                                wks_settings = sh.add_worksheet("Settings", 100, 20)
+                            
+                            # 3. Chuẩn bị dữ liệu JSON
                             json_str = json.dumps(sys_config['chest_rewards'], ensure_ascii=False)
                             
-                            # Tìm dòng 'chest_rewards' để ghi đè
+                            # 4. Tìm dòng 'chest_rewards' để ghi đè
                             try:
                                 cell = wks_settings.find("chest_rewards")
                                 if cell:
@@ -1098,17 +1120,21 @@ def admin_quan_ly_boss():
                                 else:
                                     wks_settings.append_row(["chest_rewards", json_str])
                             except:
+                                # Nếu tìm lỗi thì ghi mới luôn cho chắc
                                 wks_settings.append_row(["chest_rewards", json_str])
                                 
-                        st.success("✅ Đã lưu thành công vào Google Sheet!")
-                        st.balloons()
-                        time.sleep(1)
-                        st.rerun()
+                            st.success("✅ Đã lưu thành công vào Google Sheet!")
+                            st.balloons()
+                            time.sleep(1)
+                            st.rerun()
+                            
+                    except Exception as e:
+                        st.error(f"❌ Lỗi khi lưu Settings: {e}")
                         
                     except Exception as e:
                         st.error(f"❌ Lỗi ghi Sheet: {e}")
                         
-def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
+def hien_thi_giao_dien_admin(client, sheet_name, save_func):
     # --- TỰ ĐỘNG BACKUP KHI ADMIN ĐĂNG NHẬP ---
     if thực_hiện_auto_backup():
         st.toast("🛡️ Hệ thống đã tự động sao lưu dữ liệu định kỳ (7 ngày).", icon="💾")
@@ -1141,8 +1167,13 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
     page = st.session_state.get("page")
 
     # ===== 🔑 ĐỔI MẬT KHẨU =====
-    if page == "🔑 Đổi mật khẩu":
-        hien_thi_doi_mat_khau("admin", save_data_func)
+    elif page == "🔑 Đổi mật khẩu":
+        # 1. IMPORT LƯỜI (Lazy Import): Chỉ import ngay lúc này để tránh sập App
+        from user_module import hien_thi_doi_mat_khau
+        
+        # 2. Gọi hàm
+        # Lưu ý: Thay 'save_data_func' thành 'save_func' (nếu bạn đã sửa tên biến ở đầu hàm như tôi bảo)
+        hien_thi_doi_mat_khau("admin", save_func)
 
     # ===== 🏠 KPI TOÀN LỚP =====
     elif page == "🏠 Thống kê KPI lớp":
@@ -1204,18 +1235,11 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     if col != 'name':
                         st.session_state.data[index][col] = row[col]
             
-            # 2. --- [THAY ĐỔI QUAN TRỌNG] ---
-            # Bỏ dòng save_data_func cũ đi. Gọi trực tiếp hàm an toàn mới:
-            import user_module  # Import để tránh lỗi UnboundLocalError
-            
-            # Gọi hàm save_all_to_sheets (Hàm này đã có chốt chặn đếm học sinh)
-            if user_module.save_all_to_sheets(st.session_state.data):
+            if save_func(st.session_state.data):
                 st.success("Admin đã cập nhật dữ liệu thành công!")
-                import time
-                time.sleep(1) # Dừng 1 xíu để kịp nhìn thông báo
+                time.sleep(1) 
                 st.rerun()
             else:
-                # Nếu hàm trả về False (do dữ liệu rỗng hoặc lỗi), nó sẽ hiện lỗi đỏ
                 st.error("❌ Cập nhật thất bại! Hệ thống đã chặn lệnh lưu để bảo vệ dữ liệu.")
 
         st.divider()
@@ -1408,7 +1432,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             
                             try:
                                 # Đảm bảo save_data đã được import hoặc định nghĩa
-                                save_data(st.session_state.data) 
+                                save_func(st.session_state.data) 
                                 st.success(f"🎉 Hoàn tất! Thêm mới: {count_new} | Cập nhật: {count_update}")
                                 st.balloons()
                                 import time
@@ -1583,8 +1607,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 
                 if len(st.session_state.data) > 0:
                     st.info("🔄 Đang xử lý lưu trữ...")
-                    import user_module
-                    if user_module.save_all_to_sheets(st.session_state.data):
+                    if save_func(st.session_state.data):
                         st.success(f"🎉 Đã cập nhật thành công {count_updated} hồ sơ!")
                         import time
                         time.sleep(1)
@@ -1657,8 +1680,8 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         "is_listed": is_listed, # <--- LƯU TRẠNG THÁI ẨN/HIỆN
                         "desc": desc
                     }
-                    import user_module
-                    user_module.save_all_to_sheets(st.session_state.data) 
+                    # [SỬA] Dùng biến save_func
+                    save_func(st.session_state.data)
         
                     st.success(f"✅ Đã lưu '{name}' thành công!")
                     st.rerun()
@@ -1735,8 +1758,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     # 2. GỌI LỆNH LƯU CHUẨN (Quan trọng)
                     # Truyền st.session_state.data để hàm save hoạt động đúng logic Admin/Players
                     # Hàm save sẽ tự động lấy shop_items mới nhất (đã xóa món kia) từ session_state để ghi đè lên Sheets
-                    import user_module
-                    user_module.save_all_to_sheets(st.session_state.data)
+                    save_func(st.session_state.data)
                     
                     st.success(f"Đã dỡ bỏ '{target_del}' thành công!")
                     st.rerun()
@@ -1796,7 +1818,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             add_item_to_inventory(u_info, gift_item_id, gift_qty)
                             count_success += 1
                         
-                    save_data_func(st.session_state.data)
+                    save_func(st.session_state.data)
                     st.success(f"🎊 Đã phát quà đại trà! {gift_qty} {selected_display} đã được gửi tới {count_success} học sĩ!")
 
                 # TRƯỜNG HỢP 2: TẶNG CHO CÁ NHÂN
@@ -1808,7 +1830,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     if u_id:
                         add_item_to_inventory(st.session_state.data[u_id], gift_item_id, gift_qty)
                         
-                        save_data_func(st.session_state.data)
+                        save_func(st.session_state.data)
                         st.success(f"🎁 Đã tặng {gift_qty} {selected_display} cho {target_user}!")
                     else:
                         st.error("❌ Không tìm thấy thông tin học sĩ này trong dữ liệu!")
@@ -1832,7 +1854,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                         if isinstance(inv, list):
                             if item_to_remove in inv:
                                 inv.remove(item_to_remove)
-                                save_data_func(st.session_state.data)
+                                save_func(st.session_state.data)
                                 st.success(f"Đã thu hồi 1 {item_to_remove}!")
                                 time.sleep(1); st.rerun()
                             else:
@@ -1841,7 +1863,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                             if inv.get(item_to_remove, 0) > 0:
                                 inv[item_to_remove] -= 1
                                 if inv[item_to_remove] <= 0: del inv[item_to_remove]
-                                save_data_func(st.session_state.data)
+                                save_func(st.session_state.data)
                                 st.success(f"Đã thu hồi 1 {item_to_remove}!")
                                 time.sleep(1); st.rerun()
                     else:
@@ -1855,7 +1877,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 if found_uids:
                     u_id = found_uids[0]
                     st.session_state.data[u_id]['inventory'] = [] # Reset về list rỗng
-                    save_data_func(st.session_state.data) 
+                    save_func(st.session_state.data)
                     st.warning(f"Đã tịch thu toàn bộ vật phẩm của {del_user}!")
                 else:
                     st.error("Không tìm thấy người chơi.")
@@ -2008,7 +2030,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                     
                     # === [QUAN TRỌNG] SỬA LỖI Ở DÒNG NÀY ===
                     # Dùng biến 'save_data' thay vì 'user_module.save_all_to_sheets'
-                    if save_data(st.session_state.data):
+                    if save_func(st.session_state.data):
                         st.session_state.temp_loot_table = [] 
                         st.balloons()
                         
@@ -2058,7 +2080,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                     st.session_state.data['shop_items'][tid]['is_listed'] = True
                                     
                                     # [SỬA LỖI] Dùng save_data thay vì user_module
-                                    if save_data(st.session_state.data):
+                                    if save_func(st.session_state.data):
                                         st.success(f"Đã niêm yết '{tinfo.get('name')}'!")
                                         st.rerun()
                                     else:
@@ -2069,7 +2091,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                                     del st.session_state.data['shop_items'][tid]
                                     
                                     # [SỬA LỖI] Dùng save_data thay vì user_module
-                                    if save_data(st.session_state.data):
+                                    if save_func(st.session_state.data):
                                         st.success(f"Đã xóa vĩnh viễn '{tid}'!")
                                         st.rerun()
                                     else:
@@ -2117,7 +2139,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
             # --- [QUAN TRỌNG] LƯU VÀO DATA CHÍNH VÀ GHI FILE JSON ---
             if 'data' in st.session_state:
                 st.session_state.data['rank_settings'] = edited_ranks
-                save_data_func(st.session_state.data)
+                save_func(st.session_state.data)
             # ---------------------------------------------------------
             
             st.success("✅ Đã cập nhật và lưu hệ thống danh hiệu vĩnh viễn!")
@@ -2138,15 +2160,14 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
                 if confirm_text == "RESET":
                     import time
                     import json
-                    import user_module # Import module chứa hàm kết nối GSheet
-                    
+                    # [ĐOẠN MỚI - SẠCH SẼ]
                     status_placeholder = st.empty()
                     status_placeholder.info("⏳ Đang khởi động quy trình reset an toàn...")
 
-                    # 1. Kết nối Google Sheet
                     try:
-                        client = user_module.get_gspread_client()
-                        sh = client.open(user_module.SHEET_NAME)
+                        # 1. Dùng ngay biến 'client' và 'sheet_name' đã được truyền vào hàm
+                        sh = client.open(sheet_name)
+                        
                     except Exception as e:
                         st.error(f"❌ Lỗi kết nối Google Sheet: {e}")
                         st.stop()
@@ -2314,7 +2335,7 @@ def hien_thi_giao_dien_admin(save_data_func, save_shop_func):
             # Ghi nhận ngày mới
             current_day = datetime.now().strftime("%d/%m/%Y")
             st.session_state.data['system_config']['last_backup'] = current_day
-            save_data_func(st.session_state.data)
+            save_func(st.session_state.data)
             # Thông báo thành công và bắt rerun để logic #3 ở trên nhận diện lại màu xanh
             st.toast("Đã ghi nhận sao lưu!")
             st.rerun()
@@ -2390,7 +2411,7 @@ def quan_ly_loi_dai_admin(save_data_func):
                             st.session_state.data[opponent_id]['kpi'] += m.get('bet', 0)
                         
                         # FIX LỖI: Truyền data vào hàm lưu
-                        save_data_func(st.session_state.data) 
+                        save_func(st.session_state.data) 
                     
                     # Xóa trận đấu khỏi file lôi đài
                     if mid in ld_data['matches']:
