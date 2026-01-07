@@ -2164,78 +2164,48 @@ else:
         # --- 2. LOGIC HIỂN THỊ BOSS UI ---
         import streamlit.components.v1 as components 
 
-        # GỌI HÀM MỚI: Lấy dữ liệu đã được xử lý logic từ GSheet và Logs
+        # GỌI HÀM MỚI: Lấy dữ liệu từ GSheet và Logs
         boss = get_boss_data_ready()
 
-        # Kiểm tra xem có Boss đang hoạt động không
         if boss:
             boss_name = boss.get('name', boss.get('ten', 'BOSS'))
             hp_cur = boss.get('hp_current', 0)
             hp_max = boss.get('hp_max', 10000)
             contributions = boss.get('contributions', {})
+            percent = (hp_cur / hp_max) * 100 if hp_max > 0 else 0
 
             # --- XỬ LÝ HÌNH ẢNH ---
             boss_img_source = boss.get("anh", "")
             if str(boss_img_source).startswith("http"):
                 img_src = boss_img_source
             else:
-                # Xử lý ảnh local hoặc fallback ảnh mặc định
                 if not os.path.exists(boss_img_source):
-                     img_src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
+                    img_src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
                 else:
                     img_b64 = get_base64(boss_img_source)
                     img_src = f"data:image/png;base64,{img_b64}"
 
-            # Tính phần trăm HP
-            percent = (hp_cur / hp_max) * 100 if hp_max > 0 else 0
-
             # --- XỬ LÝ DANH SÁCH TOP 10 SÁT THƯƠNG ---
             top_list_html = ""
             if contributions:
-                # Sắp xếp theo sát thương giảm dần
+                # Sắp xếp giảm dần
                 top_10 = sorted(contributions.items(), key=lambda x: int(x[1]), reverse=True)[:10]
                 
                 for i, (uid, dmg) in enumerate(top_10):
-                    # Lấy tên user từ data chính
                     user_info = st.session_state.data.get(str(uid), {})
                     name = user_info.get("name", f"Chiến binh {str(uid)[-4:]}") 
-                    
                     color = "#f1c40f" if i < 3 else "#ffffff"
-                    medal = {0: "🥇", 1: "🥈", 2: "🥉"}.get(i, f"#{i+1}")
                     
+                    # Tích hợp trực tiếp giao diện mới vào đây (Căn lề chuẩn)
                     top_list_html += f"""
-                    <div style="display: flex; justify-content: space-between; color: {color}; margin-bottom: 5px; font-size: 14px;">
-                        <span>{medal} {name}</span>
-                        <span>{int(dmg):,} ⚔️</span>
-                    </div>
-                    """
+                    <div style='display:flex; justify-content:space-between; align-items:center; color:{color}; font-size:16px; margin-bottom:5px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:2px;'>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%;">
+                            <b>#{i+1}</b> {name}
+                        </span> 
+                        <span style='color:#00d2ff; font-weight:bold;'>{int(dmg):,} <small style='font-size:10px;'>DMG</small></span>
+                    </div>"""
             else:
-                top_list_html = "<div style='color: #bbb; text-align: center;'>Chưa có sát thương nào được ghi nhận</div>"
-
-            # --- HIỂN THỊ GIAO DIỆN (MARQUEE & PROGRESS BAR) ---
-            # (Giữ nguyên phần HTML/CSS Neon rực rỡ của bạn ở đây)
-            st.markdown(f"### 👿 MỤC TIÊU: {boss_name.upper()}")
-            st.progress(percent / 100, text=f"Máu hiện tại: {hp_cur:,} / {hp_max:,}")
-            
-            # Render bảng xếp hạng vào giao diện
-            with st.expander("🏆 BẢNG VÀNG SÁT THƯƠNG"):
-                st.markdown(f"""
-                <div style="background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #333;">
-                    {top_list_html}
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            # Hiển thị khi không có Boss (Hàm get_boss_data_ready trả về None)
-            st.info("✨ Hiện tại vương quốc đang trong thời bình. Hãy tích cực rèn luyện để chuẩn bị cho thử thách tiếp theo!")
-                
-                # --- [CHỈNH SỬA 1] Font chữ nhỏ lại (16px) và Margin bé lại (5px) ---
-                top_list_html += f"""
-                <div style='display:flex; justify-content:space-between; align-items:center; color:{color}; font-size:16px; margin-bottom:5px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:2px;'>
-                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%;">
-                        <b>#{i+1}</b> {name}
-                    </span> 
-                    <span style='color:#00d2ff; font-weight:bold;'>{int(dmg):,} <small style='font-size:10px;'>DMG</small></span>
-                </div>"""
+                top_list_html = "<div style='color: #bbb; text-align: center; margin-top:20px;'><i>Đang chờ anh hùng xuất trận...</i></div>"
 
             # --- RENDER HTML ---
             boss_ui_html = f"""
@@ -2247,7 +2217,7 @@ else:
                     background: linear-gradient(135deg, #6c5ce7 0%, #00d2ff 50%, #ff4d4d 100%);
                     border-left: 18px solid #fff;
                     border-radius: 0 50px 50px 0;
-                    padding: 25px; /* Giảm padding từ 35 -> 25 */
+                    padding: 25px;
                     display: flex;
                     height: 600px; 
                     box-shadow: 25px 25px 50px rgba(0,0,0,0.7);
@@ -2257,7 +2227,7 @@ else:
                 }}
 
                 .boss-avatar-box {{
-                    flex: 0 0 45%; /* Giảm chiều rộng ảnh một chút để nhường chỗ text */
+                    flex: 0 0 45%;
                     height: 100%;
                     border: 8px solid white;
                     border-radius: 30px;
@@ -2265,11 +2235,11 @@ else:
                     box-shadow: 0 0 40px rgba(0,0,0,0.6);
                     background: #000;
                 }}
-                .boss-avatar-box img {{ width: 100%; height: 100%; object-fit: cover; background-color: #1a1a1a; }}
+                .boss-avatar-box img {{ width: 100%; height: 100%; object-fit: cover; }}
 
                 .boss-main-content {{
                     flex: 0 0 55%;
-                    padding-left: 30px; /* Giảm padding trái */
+                    padding-left: 30px;
                     display: flex;
                     flex-direction: column;
                     justify-content: flex-start;
@@ -2278,7 +2248,7 @@ else:
 
                 .boss-prefix {{
                     font-family: 'Permanent Marker', cursive;
-                    font-size: 40px; /* [CHỈNH SỬA 2] Giảm từ 65px -> 40px */
+                    font-size: 40px;
                     color: #fff;
                     text-shadow: 4px 4px 0px #ff4d4d, 6px 6px 0px #000;
                     margin: 0;
@@ -2287,22 +2257,20 @@ else:
 
                 .boss-header {{
                     font-family: 'Bangers', cursive;
-                    font-size: 40px; /* [CHỈNH SỬA 3] Giảm từ 55px -> 40px */
+                    font-size: 40px;
                     color: #2c3e50;
                     -webkit-text-stroke: 1px #ffffff; 
-                    text-shadow: 2px 2px 0px #1a1a1a, 
-                                 0px 0px 5px rgba(255, 255, 255, 0.3);
-                    margin-bottom: 10px; /* Giảm margin bottom */
+                    text-shadow: 2px 2px 0px #1a1a1a;
+                    margin-bottom: 10px;
                     letter-spacing: 2px;
                     line-height: 1.1;
-                    font-weight: bold;
                     text-transform: uppercase;
                 }}
                 
                 .hp-mini-container {{
                     background: rgba(0,0,0,0.8);
                     border-radius: 15px;
-                    height: 35px; /* [CHỈNH SỬA 4] Giảm chiều cao thanh máu 55px -> 35px */
+                    height: 35px;
                     width: 100%;
                     position: relative;
                     overflow: hidden;
@@ -2318,9 +2286,9 @@ else:
                 }}
                 .hp-mini-text {{
                     position: absolute; width:100%; text-align:center; top:0;
-                    font-size: 18px; /* Giảm font chữ HP */
+                    font-size: 18px;
                     font-weight: bold; 
-                    line-height: 35px; /* Căn giữa theo chiều cao mới */
+                    line-height: 35px;
                     text-shadow: 1px 1px 2px #000;
                     color: white; z-index: 2;
                 }}
@@ -2328,15 +2296,15 @@ else:
                 .damage-leaderboard {{
                     background: rgba(0,0,0,0.5);
                     border-radius: 20px;
-                    padding: 15px; /* Giảm padding 25 -> 15 */
+                    padding: 15px;
                     flex-grow: 1;
                     border: 2px solid rgba(255,255,255,0.3);
                     display: flex;
                     flex-direction: column;
-                    overflow: hidden; /* Ẩn nếu tràn khung cha */
+                    overflow: hidden;
                 }}
                 .leaderboard-title {{
-                    font-size: 20px; /* Giảm font title 26 -> 20 */
+                    font-size: 20px;
                     font-weight: bold; text-transform: uppercase;
                     margin-bottom: 10px; 
                     color: #f1c40f; border-bottom: 2px solid #f1c40f;
@@ -2346,9 +2314,6 @@ else:
                     overflow-y: auto; 
                     flex-grow: 1; 
                 }}
-                
-                .list-container::-webkit-scrollbar {{ width: 4px; }}
-                .list-container::-webkit-scrollbar-thumb {{ background: rgba(255,255,255,0.5); border-radius: 10px; }}
             </style>
 
             <div class="boss-card">
@@ -2357,7 +2322,7 @@ else:
                 </div>
                 <div class="boss-main-content">
                     <p class="boss-prefix">BOSS</p>
-                    <div class="boss-header">{boss.get('ten', 'HỌC KỲ').upper()}</div>
+                    <div class="boss-header">{boss_name.upper()}</div>
                     <div class="hp-mini-container">
                         <div class="hp-mini-bar"></div>
                         <div class="hp-mini-text">HP: {hp_cur:,} / {hp_max:,}</div>
@@ -2366,7 +2331,7 @@ else:
                     <div class="damage-leaderboard">
                         <div class="leaderboard-title">🏆 TOP 10 CHIẾN BINH</div>
                         <div class="list-container">
-                            {top_list_html if top_list_html else "<div style='text-align:center; margin-top:20px; color:#ddd;'><i style='font-size:16px;'>Đang chờ anh hùng xuất trận...</i></div>"}
+                            {top_list_html}
                         </div>
                     </div>
                 </div>
@@ -2374,12 +2339,7 @@ else:
             """
             components.html(boss_ui_html, height=630)
         else:
-            st.markdown("""
-                <div style="text-align: center; padding: 40px; border: 2px dashed #ccc; border-radius: 10px; margin-top: 20px;">
-                    <h2 style="color: #7f8c8d;">🚫 KHÔNG CÓ TRẬN ĐẤU NÀO</h2>
-                    <p>Hiện tại không có Boss nào đang hoạt động. Hãy quay lại sau!</p>
-                </div>
-            """, unsafe_allow_html=True)
+            st.info("✨ Hiện tại vương quốc đang trong thời bình. Hãy tích cực rèn luyện!")
             
         # --- 4. SẢNH CHỌN VÙNG ĐẤT PHÓ BẢN ---
         import streamlit.components.v1 as components
