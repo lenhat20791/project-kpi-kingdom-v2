@@ -94,10 +94,52 @@ def gui_thong_bao_admin(loai, noi_dung):
     with open('data/admin_notices.json', 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
+def save_admin_notices_to_sheet(notices_list):
+    """
+    Lưu danh sách thông báo vào tab admin_notices.
+    Đặt tại Module Admin để gần với hàm giao diện.
+    """
+    import streamlit as st
+    try:
+        # Lấy lại kết nối từ session_state (đã khởi tạo ở module chính)
+        client = st.session_state.get('CLIENT')
+        sheet_name = st.session_state.get('SHEET_NAME')
+        
+        if not client or not sheet_name:
+            st.error("❌ Lỗi: Chưa kết nối được Google Sheet!")
+            return False
+        
+        # Mở đúng tab
+        sh = client.open(sheet_name).worksheet("admin_notices")
+        
+        # 1. Làm sạch dữ liệu cũ (Xóa từ dòng 2 đến hết)
+        all_values = sh.get_all_values()
+        if len(all_values) > 1:
+            sh.delete_rows(2, len(all_values))
+            
+        # 2. Chuẩn bị dữ liệu mới
+        # Theo cấu trúc ảnh bạn gửi: id (A), content (B), type (C), time (D)
+        data_to_save = []
+        for n in notices_list:
+            data_to_save.append([
+                str(n.get('id', '')), 
+                n.get('content', ''), 
+                str(n.get('type', '')), 
+                n.get('time', '')
+            ])
+            
+        # 3. Ghi dữ liệu mới
+        if data_to_save:
+            sh.update('A2', data_to_save)
+        return True
+    except Exception as e:
+        st.error(f"❌ Lỗi ghi Sheet tại Admin Module: {e}")
+        return False
+
 def giao_dien_thong_bao_admin():
     import time
     from datetime import datetime
-    import user_module  # Import module chứa hàm lưu sheet
+    import user_module
     import json
     import os
 
@@ -115,37 +157,47 @@ def giao_dien_thong_bao_admin():
         
         # --- NÚT GỬI THÔNG BÁO (MỚI THÊM) ---
         if st.button("📡 PHÁT THANH NGAY", type="primary", use_container_width=True):
-            if not msg_content:
+            if not msg_content.strip(): # Dùng .strip() để tránh chỉ nhập dấu cách
                 st.error("❌ Nội dung thông báo không được để trống!")
             else:
                 # 1. Tạo cấu trúc thông báo mới
                 new_notice = {
-                    "id": int(time.time()), # ID duy nhất dựa theo thời gian
-                    "content": msg_content,
+                    "id": str(int(time.time())), # Ép kiểu string để bảo vệ định dạng trên Sheet
+                    "content": msg_content.strip(),
                     "type": msg_type,
                     "time": datetime.now().strftime("%H:%M %d/%m")
                 }
 
-                # 2. Lưu vào Session State (Bộ nhớ tạm)
+                # 2. Lưu vào Session State
                 if 'admin_notices' not in st.session_state.data:
                     st.session_state.data['admin_notices'] = []
                 
-                # Thêm vào đầu danh sách
+                # Thêm vào đầu danh sách để tin mới nhất hiện lên trên
                 st.session_state.data['admin_notices'].insert(0, new_notice)
 
-                # 3. Lưu vào File JSON (Backup cục bộ - tùy chọn)
+                # 3. Lưu vào File JSON (Backup cục bộ)
                 try:
+                    if not os.path.exists('data'): os.makedirs('data')
                     with open('data/admin_notices.json', 'w', encoding='utf-8') as f:
-                        json.dump(st.session_state.data['admin_notices'], f, ensure_ascii=False)
-                except: pass
+                        json.dump(st.session_state.data['admin_notices'], f, ensure_ascii=False, indent=4)
+                except: 
+                    pass
 
-                # 4. 🔥 QUAN TRỌNG: LƯU LÊN GOOGLE SHEET 🔥
-                with st.spinner("Đang gửi tín hiệu lên vệ tinh..."):
-                    user_module.save_all_to_sheets(st.session_state.data)
-                
-                st.success("✅ Đã phát thông báo thành công!")
-                time.sleep(1)
-                st.rerun()
+                # 4. 🔥 LƯU LÊN GOOGLE SHEET 🔥
+                with st.spinner("📡 Đang phát sóng lên vệ tinh..."):
+                    # Gọi hàm lưu riêng biệt nằm ngay trong module admin này
+                    if save_admin_notices_to_sheet(st.session_state.data['admin_notices']):
+                        st.success("✅ Hệ thống: Đã phát thông báo thành công!")
+                        st.balloons()
+                        
+                        # QUAN TRỌNG: Xóa cache để các máy học sinh thấy thông báo mới ngay lập tức
+                        if "notices_cache" in st.session_state:
+                            del st.session_state.notices_cache
+                        
+                        time.sleep(1.5)
+                        st.rerun()
+                    else:
+                        st.error("❌ Lỗi kết nối: Không thể gửi thông báo lên Google Sheet!")
 
     # --- HIỂN THỊ DANH SÁCH THÔNG BÁO ĐANG CHẠY ---
     st.divider()
