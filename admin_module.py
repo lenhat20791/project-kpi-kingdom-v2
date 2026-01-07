@@ -1167,7 +1167,7 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
     page = st.session_state.get("page")
 
     # ===== 🔑 ĐỔI MẬT KHẨU =====
-    elif page == "🔑 Đổi mật khẩu":
+    if page == "🔑 Đổi mật khẩu":
         # 1. IMPORT LƯỜI (Lazy Import): Chỉ import ngay lúc này để tránh sập App
         from user_module import hien_thi_doi_mat_khau
         
