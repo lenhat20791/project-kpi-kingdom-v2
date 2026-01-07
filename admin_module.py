@@ -223,7 +223,7 @@ def hien_thi_thong_bao_he_thong():
     # 1. TẢI DỮ LIỆU TỪ ĐÚNG TAB (Sử dụng hàm đa năng có cache)
     if "notices_cache" not in st.session_state:
         # fetch_data_from_tab("admin_notices") trả về một List
-        st.session_state.notices_cache = fetch_data_from_tab("admin_notices")
+        st.session_state.notices_cache = fetch_func("admin_notices")
     
     notices = st.session_state.notices_cache
     
