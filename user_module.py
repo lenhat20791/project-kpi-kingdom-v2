@@ -2158,7 +2158,7 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         
         # --- [MỚI] BỘ ĐẾM NGƯỢC JAVASCRIPT ---
         # Tạo một key duy nhất cho mỗi câu hỏi để JS reset lại mỗi lần chuyển câu
-        countdown_key = f"js_timer_{match_id}_{q_idx}"
+        js_key = f"timer_{match_id}_{q_idx}"
         
         # HTML & JS cho bộ đếm ngược
         # Khi countdown về 0, nó sẽ tự tìm nút bấm có id "force_submit_btn" và click
@@ -2187,7 +2187,7 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
                 }}, 1000);
             </script>
         """
-        components.html(timer_html, height=100)
+        components.html(timer_html, height=120, key=js_key)
 
         # Form trả lời
         with st.form(key=f"quiz_form_{match_id}_{q_idx}"):
