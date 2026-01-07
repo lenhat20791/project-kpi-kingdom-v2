@@ -1893,7 +1893,29 @@ elif st.session_state.user_role in ["u1", "u2", "u3"]:
 
 
 # ===== GUEST (KHÁCH - CHƯA ĐĂNG NHẬP) =====
-else:    
+else:
+    # =================================================================
+    # 🚑 [CODE CỨU HỘ] TỰ ĐỘNG SỬA LỖI DỮ LIỆU & TẠO ADMIN
+    # =================================================================
+    if 'data' not in st.session_state: st.session_state.data = {}
+    
+    # 1. Chuyển List -> Dict (Sửa lỗi AttributeError)
+    if isinstance(st.session_state.data, list):
+        fixed_dict = {}
+        for item in st.session_state.data:
+            if isinstance(item, dict):
+                u_id = item.get('id') or item.get('user_id') or item.get('username') or item.get('name')
+                if item.get('role') == 'admin': u_id = 'admin'
+                if u_id: fixed_dict[str(u_id)] = item
+        st.session_state.data = fixed_dict
+
+    # 2. Tạo Admin nếu thiếu (Sửa lỗi Admin not found)
+    # Lưu ý: Kiểm tra kỹ cả trường hợp key 'admin' không tồn tại
+    if isinstance(st.session_state.data, dict) and 'admin' not in st.session_state.data:
+        st.session_state.data['admin'] = {
+            "name": "Quản Trị Viên", "role": "admin", "password": "123",
+            "team": "Ban Quản Trị", "kpi": 99999, "hp": 100
+        }
     # --- GIAO DIỆN KHÁCH ---
     col_sidebar, col_main = st.columns([1, 2.5])
 
