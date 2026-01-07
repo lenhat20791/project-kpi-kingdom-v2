@@ -696,46 +696,47 @@ def hien_thi_sidebar_chung():
 
 def get_boss_data_ready():
     import json
-    # 1. Lấy dữ liệu từ tab Settings (Đã có cache từ fetch_data_from_tab)
-    settings_list = fetch_data_from_tab("Settings")
-    if not settings_list: return None
-    
-    boss_raw_json = None
-    for row in settings_list:
-        if str(row.get('Config_Key', '')).strip() == 'active_boss':
-            boss_raw_json = row.get('Value')
-            break
-            
-    if not boss_raw_json: return None
-
     try:
-        boss = json.loads(boss_raw_json)
-        # Ép kiểu và kiểm tra status
-        if str(boss.get("status")).lower() != "active": return None
-
-        # 2. Lấy tên Boss chuẩn để đối soát Log
-        # Ưu tiên lấy 'ten' hoặc 'name'
-        boss_name_clean = str(boss.get('ten', boss.get('name', 'BOSS'))).strip()
-
-        # 3. Gọi hàm tính sát thương từ user_module
-        from user_module import get_realtime_boss_stats
-        real_contributions, total_dmg_taken = get_realtime_boss_stats(boss_name_clean)
+        # 1. Kiểm tra dữ liệu thô từ Settings
+        settings_list = fetch_data_from_tab("Settings")
+        if not settings_list:
+            st.error("❌ Bước 1: Không lấy được data từ tab Settings (Có thể lỗi Header dòng 1)")
+            return None
         
-        hp_max = int(boss.get("hp_max", 10000))
-        
-        # Cập nhật máu: Nếu có log thì tính theo log, không thì dùng số máu trên Sheet
-        if total_dmg_taken > 0:
-            boss['hp_current'] = max(0, hp_max - total_dmg_taken)
-            boss['contributions'] = real_contributions
-        else:
-            # Lấy máu hiện tại từ ô B17 (Dữ liệu: 9205)
-            boss['hp_current'] = int(boss.get("hp_current", hp_max))
-            boss['contributions'] = {}
+        # 2. Tìm Key
+        boss_row = next((row for row in settings_list if str(row.get('Config_Key')).strip() == 'active_boss'), None)
+        if not boss_row:
+            st.error("❌ Bước 2: Không tìm thấy dòng 'active_boss' trong cột Config_Key")
+            return None
             
+        boss_raw_json = boss_row.get('Value')
+        
+        # 3. Thử giải mã JSON
+        try:
+            boss = json.loads(boss_raw_json)
+        except Exception as e:
+            st.error(f"❌ Bước 3: Lỗi định dạng JSON trong ô Value: {e}")
+            st.code(boss_raw_json) # Hiện chuỗi lỗi để soi dấu ngoặc
+            return None
+
+        if str(boss.get("status")).lower() != "active":
+            st.info("ℹ️ Bước 4: Boss tìm thấy nhưng status không phải 'active'")
+            return None
+
+        # 4. Kiểm tra sát thương
+        from user_module import get_realtime_boss_stats
+        boss_name = boss.get('ten', boss.get('name', 'BOSS'))
+        real_contributions, total_dmg_taken = get_realtime_boss_stats(boss_name)
+        
+        # Gộp dữ liệu
+        hp_max = int(boss.get("hp_max", 10000))
+        boss['hp_current'] = max(0, hp_max - total_dmg_taken) if total_dmg_taken > 0 else int(boss.get("hp_current", hp_max))
+        boss['contributions'] = real_contributions if real_contributions else {}
+        
         return boss
     except Exception as e:
-        st.error(f"Lỗi phân tích Boss: {e}")
-        return None
+        st.error(f"🔥 Lỗi hệ thống: {e}")
+        return None        
 @st.dialog("📜 BÍ KÍP SINH TỒN TẠI KPI KINGDOM", width="large")
 def show_tutorial():
     # Nội dung hướng dẫn chia làm 4 Tab
