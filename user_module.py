@@ -121,21 +121,61 @@ def popup_ket_qua_mo_ruong(item_name, rewards):
         st.rerun()
         
 def load_market():
-    if not os.path.exists("market.json"):
-        with open("market.json", "w") as f:
-            json.dump({"listings": {}}, f)
-    with open("market.json", "r") as f:
-        return json.load(f)
+    """Tải dữ liệu Chợ Đen từ Tab 'Market' trên Google Sheets"""
+    try:
+        # Lấy kết nối từ Session State
+        client = st.session_state.get('CLIENT')
+        if not client:
+            return {"listings": {}} # Trả về trống nếu chưa kết nối
+
+        # Mở Sheet bằng ID từ Secrets
+        secrets_gcp = st.secrets.get("gcp_service_account", {})
+        sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+        
+        # Thử mở tab Market, nếu chưa có thì tạo mới
+        try:
+            wks = sh.worksheet("Market")
+        except:
+            # Nếu chưa có tab Market thì tạo tab mới với 2 cột cơ bản
+            wks = sh.add_worksheet("Market", rows=100, cols=5)
+            wks.append_row(["Config_Key", "Value"])
+            wks.append_row(["market_data", '{"listings": {}}'])
+        
+        # Tìm dòng dữ liệu chợ
+        cell = wks.find("market_data")
+        if cell:
+            json_str = wks.cell(cell.row, cell.col + 1).value
+            return json.loads(json_str)
+        
+        return {"listings": {}}
+    except Exception as e:
+        print(f"⚠️ Lỗi Load Market Cloud: {e}")
+        return {"listings": {}}
 
 def save_market(data):
-    with open("market.json", "w") as f:
-        json.dump(data, f, indent=4)
+    """Lưu dữ liệu Chợ Đen lên Cloud"""
+    try:
+        client = st.session_state.get('CLIENT')
+        if not client: return False
 
-import streamlit as st
-import json
-import os
-from datetime import datetime
-import uuid
+        secrets_gcp = st.secrets.get("gcp_service_account", {})
+        sh = client.open_by_key(secrets_gcp["spreadsheet_id"])
+        wks = sh.worksheet("Market")
+        
+        # Chuyển data thành chuỗi JSON
+        json_str = json.dumps(data, ensure_ascii=False)
+        
+        # Tìm và cập nhật vào ô Value bên cạnh key 'market_data'
+        cell = wks.find("market_data")
+        if cell:
+            wks.update_cell(cell.row, cell.col + 1, json_str)
+        else:
+            wks.append_row(["market_data", json_str])
+        return True
+    except Exception as e:
+        st.error(f"❌ Không thể lưu Chợ Đen lên Cloud: {e}")
+        return False
+        
 
 # --- CẤU HÌNH ĐƯỜNG DẪN FILE ---
 MARKET_FILE = "market.json"
