@@ -2149,94 +2149,106 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
                 if k in st.session_state: del st.session_state[k]
             st.rerun()
             
+# --- TRONG USER_MODULE.PY ---
+
 @st.cache_data(ttl=60, show_spinner=False)
 def load_loi_dai():
     """
     Tải dữ liệu Lôi Đài từ Tab 'PVP' trên Google Sheets.
-    Tự động dọn dẹp các trận đấu cũ quá 30 ngày.
+    Sử dụng CLIENT từ st.session_state để tránh lỗi biến cục bộ.
     """
     default_data = {"matches": {}, "rankings": {}}
     
-    # Cần đảm bảo CLIENT và SHEET_NAME có sẵn. 
-    # Nếu không, hãy truyền chúng vào hàm hoặc import ở đầu file.
-    if 'CLIENT' not in globals() or 'SHEET_NAME' not in globals():
-        st.error("Lỗi cấu hình: CLIENT hoặc SHEET_NAME chưa được định nghĩa.")
+    # 1. LẤY CLIENT TỪ SESSION STATE (Nơi lưu trữ biến toàn cục an toàn)
+    # File chính phải đảm bảo đã gán st.session_state.CLIENT = CLIENT lúc khởi động
+    client = st.session_state.get('CLIENT')
+    sheet_name = st.session_state.get('SHEET_NAME')
+
+    if not client or not sheet_name:
+        # Fallback: Thử tìm trong globals (nếu chạy local test)
+        if 'CLIENT' in globals(): client = globals()['CLIENT']
+        if 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
+    
+    if not client or not sheet_name:
+        # Nếu vẫn không có -> Lỗi cấu hình, trả về rỗng để không crash
+        # st.error("⚠️ (load_loi_dai) Chưa có kết nối Google Sheet.") 
         return default_data
 
     try:
-        # 1. Kết nối Google Sheets và mở Tab PVP
+        # 2. Kết nối
         try:
-            sh = CLIENT.open(SHEET_NAME).worksheet("PVP")
+            sh = client.open(sheet_name).worksheet("PVP")
         except:
-            # Nếu chưa có tab PVP, tạo mới luôn với Header chuẩn
-            sh = CLIENT.open(SHEET_NAME).add_worksheet(title="PVP", rows=100, cols=10)
-            sh.append_row(["Match_ID", "Full_JSON_Data", "Status", "Created_At"])
-            return default_data
+            # Tạo mới nếu chưa có
+            try:
+                sh = client.open(sheet_name).add_worksheet(title="PVP", rows=100, cols=10)
+                sh.append_row(["Match_ID", "Full_JSON_Data", "Status", "Created_At"])
+                return default_data
+            except:
+                return default_data # Lỗi quyền hoặc lỗi mạng
 
-        # 2. Lấy toàn bộ dữ liệu (bỏ qua dòng tiêu đề)
+        # 3. Lấy dữ liệu
         rows = sh.get_all_values()
-        if len(rows) <= 1:
-            return default_data
+        if len(rows) <= 1: return default_data
 
         matches = {}
         now = datetime.now()
         thirty_days_ago = now - timedelta(days=30)
         need_save = False 
 
-        # 3. Duyệt từng dòng
         for r in rows[1:]:
             try:
                 if len(r) < 2: continue
-                
                 mid = r[0]
                 m_data = json.loads(r[1]) 
                 
-                # --- LOGIC DỌN DẸP TỰ ĐỘNG ---
+                # Logic dọn dẹp (Giữ nguyên code tốt của bạn)
                 created_at_str = m_data.get('created_at', "")
                 if created_at_str:
                     try:
-                        # Xử lý linh hoạt hơn cho ngày tháng nếu cần
                         match_date = datetime.strptime(created_at_str[:10], "%d/%m/%Y")
-                        
                         if match_date < thirty_days_ago:
                             need_save = True 
                             continue 
-                    except ValueError:
-                         # Log nhẹ để biết dòng nào lỗi ngày tháng nhưng không crash app
-                        print(f"Lỗi định dạng ngày tháng trận {mid}: {created_at_str}")
-                        pass 
+                    except ValueError: pass 
 
                 matches[mid] = m_data
-                
-            except Exception as e:
-                print(f"Lỗi đọc dòng PVP ({mid}): {e}")
-                continue
+            except: continue
         
         final_data = {"matches": matches, "rankings": {}}
 
-        # 4. Lưu lại nếu có dọn dẹp
+        # Nếu có dọn dẹp thì lưu lại (Cần gọi hàm save ở chế độ không cache)
         if need_save:
             save_loi_dai(final_data)
 
         return final_data
 
     except Exception as e:
-        st.error(f"⚠️ Lỗi kết nối Lôi Đài Cloud: {e}")
+        # st.error(f"⚠️ Lỗi tải Lôi Đài: {e}")
         return default_data
 
 def save_loi_dai(data):
     """
-    Lưu dữ liệu Lôi Đài & Xóa Cache để cập nhật ngay lập tức.
+    Lưu dữ liệu Lôi Đài & Xóa Cache.
     """
-    if 'CLIENT' not in globals() or 'SHEET_NAME' not in globals():
-        st.error("Lỗi cấu hình: CLIENT hoặc SHEET_NAME chưa được định nghĩa.")
+    # 1. Lấy Client tương tự như hàm load
+    client = st.session_state.get('CLIENT')
+    sheet_name = st.session_state.get('SHEET_NAME')
+    
+    if not client or not sheet_name:
+        if 'CLIENT' in globals(): client = globals()['CLIENT']
+        if 'SHEET_NAME' in globals(): sheet_name = globals()['SHEET_NAME']
+
+    if not client or not sheet_name:
+        st.error("Lỗi cấu hình: Không tìm thấy kết nối Google Sheet.")
         return
 
     try:
-        sh = CLIENT.open(SHEET_NAME).worksheet("PVP")
+        sh = client.open(sheet_name).worksheet("PVP")
         
         rows_to_write = [["Match_ID", "Full_JSON_Data", "Status", "Created_At"]]
         matches = data.get('matches', {})
+        
         for mid, m_info in matches.items():
             json_str = json.dumps(m_info, ensure_ascii=False)
             status = m_info.get('status', 'unknown')
@@ -2244,14 +2256,14 @@ def save_loi_dai(data):
             rows_to_write.append([str(mid), json_str, status, created])
             
         sh.clear()
-        sh.update('A1', rows_to_write)
+        sh.update(values=rows_to_write, range_name='A1') # Dùng range_name an toàn hơn
         
-        # Xóa cache để đảm bảo lần load sau lấy dữ liệu mới
+        # Xóa cache
         load_loi_dai.clear()
         
     except Exception as e:
-        st.error(f"❌ Không thể lưu Lôi Đài lên Cloud: {e}")
-
+        st.error(f"❌ Lỗi lưu Lôi Đài: {e}")
+        
 @st.dialog("🏁 KẾT QUẢ TRẬN ĐẤU")
 def hien_thi_bang_diem_chung_cuoc(match_id, ld_data):
     # Kiểm tra an toàn xem trận đấu còn tồn tại không

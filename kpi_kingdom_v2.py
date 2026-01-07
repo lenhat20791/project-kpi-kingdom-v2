@@ -53,6 +53,9 @@ def get_gspread_client():
 # 🔥 [QUAN TRỌNG] Khởi tạo biến CLIENT toàn cục tại đây
 # Để các hàm bên dưới (load_loi_dai, save_loi_dai) có thể gọi CLIENT.open(...)
 CLIENT = get_gspread_client()
+if 'CLIENT' not in st.session_state: st.session_state.CLIENT = CLIENT
+if 'SHEET_NAME' not in st.session_state: st.session_state.SHEET_NAME = SHEET_NAME
+
 # --- HÀM ĐỌC DỮ LIỆU ĐA NĂNG CÓ CACHE ---
 @st.cache_data(ttl=60) # 🔄 Lưu dữ liệu 60 giây để tránh lỗi 429
 def fetch_data_from_tab(tab_name):
