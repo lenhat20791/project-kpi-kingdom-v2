@@ -2139,6 +2139,7 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
 
     # Thời gian giới hạn mỗi câu theo độ khó
     limit_map = {"easy": 7, "medium": 10, "hard": 15, "extreme": 18}
+    level = match_info.get('difficulty', 'Medium').lower()
     time_limit = limit_map.get(level, 15)
 
     # --- 4. GIAO DIỆN LÀM BÀI ---
@@ -2165,30 +2166,37 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
         # Khi countdown về 0, nó sẽ tự tìm nút bấm có id "force_submit_btn" và click
         timer_html = f"""
             <div id="timer-box" style="text-align: center; font-family: sans-serif;">
-                <div style="font-size: 20px; color: #555;">⏳ Thời gian còn lại</div>
-                <div id="countdown" style="font-size: 40px; font-weight: bold; color: #2ecc71;">{time_limit}s</div>
+                <div style="font-size: 18px; color: #555;">⏳ Thời gian còn lại</div>
+                <div id="countdown" style="font-size: 35px; font-weight: bold; color: #2ecc71;">{time_limit}s</div>
             </div>
-
             <script>
                 var seconds = {time_limit};
-                var timer = setInterval(function() {{
+                // Xóa mọi timer cũ tồn đọng
+                if (window.timerInterval) clearInterval(window.timerInterval);
+                
+                window.timerInterval = setInterval(function() {{
                     seconds--;
                     var display = document.getElementById('countdown');
-                    display.innerHTML = seconds + "s";
-                    
-                    if (seconds <= 5) {{
-                        display.style.color = "#e74c3c";
-                    }}
-                    
-                    if (seconds <= 0) {{
-                        clearInterval(timer);
-                        // Gửi tín hiệu hết giờ về Streamlit bằng cách click nút ẩn
-                        window.parent.document.querySelector('button[kind="primary"]').click();
+                    if(display) {{
+                        display.innerHTML = seconds + "s";
+                        if (seconds <= 3) display.style.color = "#e74c3c";
+                        
+                        if (seconds <= 0) {{
+                            clearInterval(window.timerInterval);
+                            // Tìm chính xác nút có chữ "CHỐT ĐÁP ÁN"
+                            var buttons = window.parent.document.querySelectorAll('button');
+                            for (var i = 0; i < buttons.length; i++) {{
+                                if (buttons[i].innerText.includes("CHỐT ĐÁP ÁN")) {{
+                                    buttons[i].click();
+                                    break;
+                                }}
+                            }}
+                        }}
                     }}
                 }}, 1000);
             </script>
         """
-        components.html(timer_html, height=120, key=js_key)
+        components.html(timer_html, height=100, key=js_key)
 
         # Form trả lời
         with st.form(key=f"quiz_form_{match_id}_{q_idx}"):
@@ -2198,42 +2206,28 @@ def lam_bai_thi_loi_dai(match_id, match_info, current_user_id, save_data_func):
 
         # --- XỬ LÝ KẾT QUẢ ---
         if submitted:
-            # 1. Lấy đáp án đúng (Hỗ trợ cả key 'answer' và 'correct_answer')
+            # Xử lý đáp án
             raw_correct_ans = q.get('answer', q.get('correct_answer', ''))
-            
-            # 2. Chuẩn hóa để so sánh (Lấy ký tự đầu A,B,C,D và viết hoa)
             user_key = str(ans).strip()[0].upper() if ans else ""
             ans_key = str(raw_correct_ans).strip()[0].upper()
             
-            # 3. Kiểm tra đúng sai
-            is_correct = (user_key == ans_key)
-            
             if not ans:
-                # Trường hợp JS tự nộp bài khi học sinh chưa chọn gì
                 st.warning(f"⏰ HẾT GIỜ! Bạn chưa kịp chọn đáp án.")
                 st.error(f"✅ Đáp án đúng là: {raw_correct_ans}")
-            elif is_correct:
-                st.balloons()
-                st.success("🎉 CHÍNH XÁC! +1 Điểm")
+            elif user_key == ans_key:
+                st.balloons(); st.success("🎉 CHÍNH XÁC! +1 Điểm")
                 st.session_state.user_score += 1
             else:
-                st.error("❌ SAI RỒI!")
-                st.info(f"✅ Đáp án đúng là: {raw_correct_ans}")
+                st.error("❌ SAI RỒI!"); st.info(f"✅ Đáp án đúng là: {raw_correct_ans}")
             
-            # Hiển thị giải thích (Nếu có trong data)
             if 'explanation' in q:
-                with st.expander("💡 Xem giải thích chi tiết"):
-                    st.write(q['explanation'])
+                with st.expander("💡 Xem giải thích"): st.write(q['explanation'])
             
-            # 4. Tạm dừng để học sinh đọc kết quả
-            with st.spinner("Đang chuyển câu hỏi tiếp theo..."):
-                import time
-                time.sleep(2.5) 
+            with st.spinner("Đang chuyển câu..."):
+                time.sleep(2.0)
             
             # 5. Chuyển câu
             st.session_state.current_q += 1
-            # Reset lại thời gian bắt đầu cho câu tiếp theo (nếu vẫn dùng logic Python hỗ trợ)
-            st.session_state.start_time = time.time() 
             st.rerun()
             
     else:
