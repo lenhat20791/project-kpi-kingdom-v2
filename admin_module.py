@@ -1725,8 +1725,12 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
 
         st.divider()
         
-        # --- PHẦN 2: HIỂN THỊ KỆ HÀNG DUY NHẤT (ĐÃ SỬA LỖI) ---
+        # --- PHẦN 2: HIỂN THỊ KỆ HÀNG DUY NHẤT (ĐÃ FIX LỖI ICON & SYNC DATA) ---
         st.write("### 🏪 KHO HÀNG HIỆN TẠI (TRÊN KỆ)")
+
+        # Đảm bảo shop_items tồn tại
+        if 'shop_items' not in st.session_state:
+            st.session_state.shop_items = st.session_state.data.get('shop_items', {})
 
         if st.session_state.shop_items:
             label_map = {
@@ -1736,71 +1740,107 @@ def hien_thi_giao_dien_admin(client, sheet_name, save_func):
                 "Vinh_Du": "Vinh Dự",
                 "Vinh_Quang": "Vinh Quang"
             }
+            
+            # [FIX 1] Thay icon cứng '📘' bằng biến '{icon}' để đổi icon linh hoạt
             item_template = """
-<div style="background:#5d4037;border:2px solid #a1887f;border-radius:8px;width:150px;padding:10px;text-align:center;color:white;box-shadow:2px 2px 5px rgba(0,0,0,0.5);flex-shrink:0;margin-bottom:10px;">
-<img src="{img}" style="width:50px;height:50px;object-fit:contain;">
-<div style="font-size:0.8em;font-weight:bold;height:35px;margin-top:5px;overflow:hidden;">{name}</div>
-<div style="font-size:0.7em;color:#76ff03;">{effect}</div>
-<div style="font-size:0.65em;color:#ffab40;">{limit}</div>
-<div style="color:#ffd600;font-size:0.8em;font-weight:bold;margin-top:5px;border-top:1px solid #795548;padding-top:5px;">
-📘 {price} {curr}
-</div>
-</div>
-""" 
+            <div style="background:#5d4037;border:2px solid #a1887f;border-radius:8px;width:150px;padding:10px;text-align:center;color:white;box-shadow:2px 2px 5px rgba(0,0,0,0.5);flex-shrink:0;margin-bottom:10px;">
+                <img src="{img}" style="width:50px;height:50px;object-fit:contain;">
+                <div style="font-size:0.8em;font-weight:bold;height:35px;margin-top:5px;overflow:hidden;display:flex;align-items:center;justify-content:center;">{name}</div>
+                <div style="font-size:0.7em;color:#76ff03;">{effect}</div>
+                <div style="font-size:0.65em;color:#ffab40;">{limit}</div>
+                <div style="color:#ffd600;font-size:0.8em;font-weight:bold;margin-top:5px;border-top:1px solid #795548;padding-top:5px;">
+                    {icon} {price} {curr}
+                </div>
+            </div>
+            """ 
 
             all_items_html = ""
-            for item_name, info in st.session_state.shop_items.items():
-                # 1. Lấy nhãn tiền tệ mua hàng thực tế
-                c_buy = info.get('currency_buy', 'kpi')
-                curr_label = label_map.get(c_buy, "Điểm")
-                icon_buy = "📘" if c_buy == "Tri_Thuc" else "🏆"
-                
-                # 2. Lấy nhãn chỉ số tác động thực tế (Khi tiêu thụ)
-                t_stat = info.get('target_stat', 'kpi')
-                target_label = label_map.get(t_stat, "Điểm")
-                
-                # 3. Xử lý Text giới hạn và Hiệu ứng
-                l_type = info.get('limit_type', 'Thông thường')
-                l_txt = f"Hạn mức: {info.get('limit_amount')}" if l_type == "Giới hạn tháng" else l_type
-                
-                val = info.get('buff_value', 0)
-                # SỬA TẠI ĐÂY: Hiển thị đúng loại điểm được cộng thay vì mặc định KPI
-                eff_txt = "Vật phẩm" if val == 0 else f"+{val} {target_label}"
+            # Lặp qua từng món
+            for item_id, info in st.session_state.shop_items.items():
+                if isinstance(info, dict): # Check kỹ kiểu dữ liệu
+                    # 1. Xử lý hiển thị tiền tệ
+                    c_buy = info.get('currency_buy', 'kpi')
+                    curr_label = label_map.get(c_buy, c_buy)
+                    
+                    # Icon tương ứng loại tiền
+                    if c_buy == "Tri_Thuc": icon_buy = "📘"
+                    elif c_buy == "Vinh_Du": icon_buy = "🎖️"
+                    elif c_buy == "kpi": icon_buy = "🏆"
+                    else: icon_buy = "💰"
+                    
+                    # 2. Xử lý hiển thị hiệu ứng
+                    val = info.get('buff_value', 0)
+                    t_stat = info.get('target_stat', 'kpi')
+                    
+                    # Nếu là Item Gacha hoặc Reset Boss thì hiển thị kiểu khác
+                    i_type = info.get('type', 'COMMON')
+                    if i_type == "GACHA_BOX":
+                        eff_txt = "🎲 Rương may mắn"
+                    elif i_type == "BOSS_RESET":
+                        eff_txt = "🔄 Hồi sinh Boss"
+                    elif val > 0:
+                        eff_txt = f"+{val} {label_map.get(t_stat, t_stat)}"
+                    else:
+                        eff_txt = "Vật phẩm"
 
-                all_items_html += item_template.format(
-                    img=info.get('image', ''),
-                    name=item_name,
-                    effect=eff_txt,
-                    limit=l_txt,
-                    price=info.get('price', 0),
-                    curr=curr_label,
-                    icon=icon_buy
-                ) 
+                    # 3. Xử lý giới hạn
+                    l_type = info.get('limit_type', 'Thông thường')
+                    if l_type == "Giới hạn tháng":
+                        l_txt = f"Max: {info.get('limit_amount')}/tháng"
+                    elif l_type == "Giới hạn vĩnh viễn":
+                        l_txt = f"Max: {info.get('limit_amount')}/đời"
+                    else:
+                        l_txt = "Không giới hạn"
 
-            # HIỂN THỊ CONTAINER CHÍNH (SÁT LỀ TRÁI)
+                    # 4. Format HTML (Fix lỗi truyền biến icon)
+                    all_items_html += item_template.format(
+                        img=info.get('image', 'https://cdn-icons-png.flaticon.com/512/2979/2979689.png'),
+                        name=info.get('name', item_id),
+                        effect=eff_txt,
+                        limit=l_txt,
+                        price=info.get('price', 0),
+                        curr=curr_label,
+                        icon=icon_buy # <--- Đã truyền icon vào đây
+                    ) 
+
+            # HIỂN THỊ FLEX CONTAINER
             st.markdown(f"""
-<div style="display:flex;flex-wrap:wrap;gap:10px;background:#2d1e16;padding:15px;border-radius:10px;justify-content:center;">
-{all_items_html}
-</div>
-""", unsafe_allow_html=True)
+            <div style="display:flex;flex-wrap:wrap;gap:10px;background:#2d1e16;padding:15px;border-radius:10px;justify-content:center;">
+            {all_items_html}
+            </div>
+            """, unsafe_allow_html=True)
 
-            # --- NÚT DỠ HÀNG (ĐÃ SỬA LOGIC LƯU) ---
-            if 'shop_items' in st.session_state and st.session_state.shop_items:
-                target_del = st.selectbox("Chọn vật phẩm muốn dỡ khỏi kệ:", list(st.session_state.shop_items.keys()))
-                
-                if st.button(f"🗑️ DỠ '{target_del}' XUỐNG"):
-                    # 1. Xóa khỏi bộ nhớ tạm (Session State)
-                    del st.session_state.shop_items[target_del]
-                    
-                    # 2. GỌI LỆNH LƯU CHUẨN (Quan trọng)
-                    # Truyền st.session_state.data để hàm save hoạt động đúng logic Admin/Players
-                    # Hàm save sẽ tự động lấy shop_items mới nhất (đã xóa món kia) từ session_state để ghi đè lên Sheets
-                    save_func(st.session_state.data)
-                    
-                    st.success(f"Đã dỡ bỏ '{target_del}' thành công!")
-                    st.rerun()
-            else:
-                st.info("Kệ hàng hiện đang trống.")
+            # --- NÚT DỠ HÀNG (QUAN TRỌNG: SYNC DỮ LIỆU) ---
+            st.write("") # Spacer
+            col_del1, col_del2 = st.columns([3, 1])
+            
+            with col_del1:
+                # Tạo list tên để chọn cho dễ, nhưng value trả về là ID (key)
+                item_options = {k: v.get('name', k) for k, v in st.session_state.shop_items.items()}
+                selected_name_to_del = st.selectbox("Chọn vật phẩm muốn dỡ khỏi kệ:", list(item_options.values()))
+                # Map ngược từ Tên -> ID
+                target_del_id = next((k for k, v in item_options.items() if v == selected_name_to_del), None)
+
+            with col_del2:
+                if st.button("🗑️ DỠ XUỐNG", use_container_width=True):
+                    if target_del_id and target_del_id in st.session_state.shop_items:
+                        # 1. Xóa khỏi Session Shop Items
+                        del st.session_state.shop_items[target_del_id]
+                        
+                        # [QUAN TRỌNG] 2. ĐỒNG BỘ NGƯỢC LẠI VÀO DATA TỔNG
+                        # Hàm save_func thường lấy data từ st.session_state.data['shop_items']
+                        # Nếu không có dòng này, hàm save sẽ lưu lại danh sách cũ!
+                        st.session_state.data['shop_items'] = st.session_state.shop_items
+                        
+                        # 3. GỌI LỆNH LƯU (save_all_to_sheets)
+                        if save_func(st.session_state.data):
+                            st.success(f"Đã dỡ bỏ '{selected_name_to_del}' thành công!")
+                            st.rerun()
+                        else:
+                            st.error("Lỗi kết nối GSheet, chưa dỡ được hàng!")
+            
+        else:
+            st.info("Kệ hàng hiện đang trống.")
 
         st.divider()
 
