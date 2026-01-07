@@ -3292,9 +3292,80 @@ def confirm_use_dialog(item_name, item_info, current_user_id, save_func):    # -
 
 
 # --- 3. TIỆM TẠP HÓA & KHO ĐỒ (ALL) ---
+# --- Thêm vào user_module.py ---
+
+def load_user_inventory(user_id):
+    """
+    Kết nối Tab 'Players', tìm cột 'inventory_json' của user_id để tải kho đồ về.
+    """
+    client = None
+    sheet_name = None
+    if 'CLIENT' in st.session_state: client = st.session_state.CLIENT
+    if 'SHEET_NAME' in st.session_state: sheet_name = st.session_state.SHEET_NAME
+    
+    if not client or not sheet_name: return {}
+
+    try:
+        sh = client.open(sheet_name)
+        wks = sh.worksheet("Players")
+        
+        # 1. Tìm dòng chứa user_id (Dùng cell để tìm cho nhanh)
+        # Lưu ý: Giả sử user_id nằm ở cột A (Cột 1)
+        try:
+            cell = wks.find(user_id, in_column=1)
+        except:
+            return {} # Không tìm thấy user
+
+        if cell:
+            # 2. Lấy giá trị ở cột 'inventory_json'. 
+            # Trong ảnh của bạn, inventory_json là cột M.
+            # Cách an toàn nhất là tìm header 'inventory_json' để biết số thứ tự cột.
+            
+            # Tìm số thứ tự cột inventory_json (chỉ tìm ở dòng 1)
+            header_cell = wks.find("inventory_json", in_row=1)
+            if not header_cell:
+                # Fallback: Nếu không tìm thấy header, mặc định cột M là cột 13
+                col_index = 13 
+            else:
+                col_index = header_cell.col
+
+            # Lấy dữ liệu tại dòng của user, cột inventory
+            val = wks.cell(cell.row, col_index).value
+            
+            # 3. Parse JSON
+            if val:
+                import json
+                try:
+                    # Fix lỗi json ngoặc đơn thành ngoặc kép nếu có
+                    clean_json = str(val).replace("'", '"')
+                    return json.loads(clean_json)
+                except:
+                    return {} # Lỗi format JSON
+            else:
+                return {} # Ô trống
+                
+    except Exception as e:
+        print(f"Lỗi tải kho đồ: {e}")
+        return {}
+    
+    return {}
+
 def hien_thi_tiem_va_kho(user_id, save_data_func):
     st.subheader("🏪 TIỆM TẠP HÓA & 🎒 TÚI ĐỒ")
-    
+    # =========================================================
+    # 1. GỌI HÀM TẢI DỮ LIỆU TỪ SHEET (Phần 1)
+    # =========================================================
+    try:
+        from user_module import load_user_inventory
+        # Lấy dữ liệu mới nhất từ Sheet
+        live_inventory = load_user_inventory(user_id)
+        
+        # Nếu lấy được dữ liệu, cập nhật ngay vào Session State
+        if live_inventory:
+            st.session_state.data[user_id]['inventory'] = live_inventory
+            
+    except Exception as e:
+        st.error(f"Không thể đồng bộ kho đồ: {e}")
     # Lấy thông tin người dùng hiện tại
     user_info = st.session_state.data[user_id]
     
