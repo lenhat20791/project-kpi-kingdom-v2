@@ -696,36 +696,35 @@ def hien_thi_sidebar_chung():
 
 def get_boss_data_ready():
     """
-    Thay thế hoàn toàn load_boss_data(). 
-    Lấy dữ liệu từ GSheet (Settings dòng 17) và đồng bộ với BossLogs.
+    Lấy dữ liệu Boss trực tiếp từ tab Settings (Dòng 17) và đồng bộ BossLogs.
     """
     import json
-    import os
     try:
         client = st.session_state.get('CLIENT')
         sheet_name = st.session_state.get('SHEET_NAME')
         if not client: 
-            return None # Hoặc trả về dict mặc định nếu muốn
+            return None
         
-        # 1. Truy cập tab Settings lấy cấu hình Boss
+        # 1. Truy cập tab Settings lấy cấu hình Boss (Dòng 17 - Cột Config_Key)
         sh_settings = client.open(sheet_name).worksheet("Settings")
-        
-        # Tìm key 'active_boss' ở cột A
         records = sh_settings.get_all_values()
+        
         boss_raw_json = None
         for row in records:
+            # Tìm chính xác từ khóa 'active_boss' ở cột A
             if row[0] == "active_boss":
-                boss_raw_json = row[1] # Cột B
+                boss_raw_json = row[1] # Cột B: Chứa chuỗi JSON
                 break
         
         if not boss_raw_json: 
             return None
             
+        # Giải mã JSON từ ô B17
         boss = json.loads(boss_raw_json)
         if boss.get("status") != "active": 
             return None
 
-        # 2. Đồng bộ sát thương thực tế từ BossLogs (Nếu có module hỗ trợ)
+        # 2. Đồng bộ sát thương thực tế từ BossLogs (Sử dụng hàm của user_module)
         try:
             from user_module import get_realtime_boss_stats
             boss_name = boss.get('name', boss.get('ten', 'BOSS'))
@@ -733,20 +732,22 @@ def get_boss_data_ready():
             
             hp_max = int(boss.get("hp_max", 10000))
             if total_dmg_taken > 0:
+                # Cập nhật máu hiện tại dựa trên Log
                 boss['hp_current'] = max(0, hp_max - total_dmg_taken)
                 boss['contributions'] = real_contributions
             else:
-                # Nếu chưa có log, dùng số máu ghi trên Sheet (9205)
+                # Nếu chưa có log, dùng số máu 9205 ghi trên dòng 17
                 boss['hp_current'] = int(boss.get("hp_current", hp_max))
+                boss['contributions'] = boss.get("contributions", {})
         except:
-            # Fallback nếu hàm log lỗi
             boss['hp_current'] = int(boss.get("hp_current", 10000))
+            boss['contributions'] = boss.get("contributions", {})
         
         return boss
     except Exception as e:
-        st.error(f"Lỗi hệ thống Boss: {e}")
+        # Không hiển thị lỗi ra UI để tránh làm xấu giao diện, chỉ in ra console
+        print(f"Lỗi Boss Data: {e}")
         return None
-
 
 @st.dialog("📜 BÍ KÍP SINH TỒN TẠI KPI KINGDOM", width="large")
 def show_tutorial():
@@ -2339,7 +2340,7 @@ else:
             """
             components.html(boss_ui_html, height=630)
         else:
-            st.info("✨ Hiện tại vương quốc đang trong thời bình. Hãy tích cực rèn luyện!")
+            st.info("✨ Hiện tại chưa có Boss xuất hiện. Hãy nghĩ ngơi nhé!")
             
         # --- 4. SẢNH CHỌN VÙNG ĐẤT PHÓ BẢN ---
         import streamlit.components.v1 as components
